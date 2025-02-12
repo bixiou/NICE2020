@@ -2,6 +2,8 @@
 # This file produces example runs for the NICE2020 model
 #########################################################
 
+cd("C:/Users/fabre/Documents/www/NICE2020")
+
 # Activate the project and make sure all packages we need
 # are installed.
 using Pkg

@@ -4,9 +4,13 @@ This code couples together a country version of the NICE model with the [FAIRv2.
 
 ### Software Requirements
 This code was created with Julia v1.9.3 and Mimi v1.5.1. You can find documentation on the Mimi framework at [https://www.mimiframework.org/Mimi.jl/stable/](https://www.mimiframework.org/Mimi.jl/stable/). 
+If you need to install Julia, also add to the PATH the location of julia.exe (e.g. C:\Users\your_name\AppData\Local\Programs\Julia-1.11.3\bin).
 
-To automatically download the necessary packages an dependencies in the correct version:
-(1) set the NICE2020 repository as root directory 
+To automatically download the necessary packages and dependencies in the correct version:
+(1) set the NICE2020 repository as root directory using 
+```julia
+cd("path/to/NICE2020")
+```
 (2) run the following code: 
 ```julia
 using Pkg
