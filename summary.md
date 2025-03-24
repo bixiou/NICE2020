@@ -22,6 +22,7 @@
 
 ### Liens utiles
 - [Documentation Julia](https://docs.julialang.org/en/v1/manual/getting-started/)
+- [Documentation Mimi](https://www.mimiframework.org/Mimi.jl/stable/tutorials/tutorial_1/#Tutorial-1:-Install-Mimi-1)
 - [NICE repository](https://github.com/bixiou/NICE2020)
 - [Documentation git](https://git-scm.com/book/en/v2)
 
