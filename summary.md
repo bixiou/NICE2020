@@ -15,9 +15,15 @@
 
 ## 0. Installation et exécution
 
+### Étapes
+- Installer VS Code, les extensions: Julia
+- Créer un compte github
+- Cloner dépôt NICE2020
+
 ### Liens utiles
 - [Documentation Julia](https://docs.julialang.org/en/v1/manual/getting-started/)
 - [NICE repository](https://github.com/bixiou/NICE2020)
+- [Documentation git](https://git-scm.com/book/en/v2)
 
 ### Problèmes rencontrés / observations
 
