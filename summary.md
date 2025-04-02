@@ -34,6 +34,13 @@
 
 
 ## 1. Participation partielle
+Scénarios à tester:
+1. All: Whole World
+2. All except rich oil countries: World except Russia, Kazakhstan, Saudi Arabia, Qatar, Kuweit, Azerbaijan, Oman, Bahrein, Malaysia
+3. Optimistic scenario: Africa + Latin America + South Asia + South-East Asia + China + EU28 + Norway + Switzerland + Canada + Japan + Korea + NZ
+central <- all_countries[df$npv_over_gdp_gcs_adj > 0 | df$code %in% c("CHN", EU28_countries, "NOR", "CHE", "JPN", "NZL")]
+4. Generous EU: EU27 + China + Africa + Latin America + South Asia + South-East Asia
+5. Africa-EU partnership: EU27 + Africa
 
 
 
