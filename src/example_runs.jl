@@ -2,7 +2,10 @@
 # This file produces example runs for the NICE2020 model
 #########################################################
 
-cd("C:/Users/fabre/Documents/www/NICE2020")
+#create your own "chemin.txt" to find NICE2020
+chemin = read("chemin.txt", String) |> strip  
+cd(chemin)  
+
 
 # Activate the project and make sure all packages we need
 # are installed.

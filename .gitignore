@@ -7,3 +7,8 @@
 # macOS
 .DS_Store
 **/.DS_Store
+
+*Manifest.toml
+
+*chemin.txt
+
