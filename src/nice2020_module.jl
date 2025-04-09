@@ -40,6 +40,9 @@ function create_nice2020()
 	rwpp = Symbol.(wpp_regions)
 	set_dimension!(m, :regionwpp, rwpp )
 
+	# Set scenario dimension (1 to 5)
+	set_dimension!(m, :scenario, 1:5)
+
 	# Set quantile dimension
 	set_dimension!(m, :quantile, ["First", "Second", "Third", "Fourth", "Fifth", "Sixth", "Seventh", "Eighth", "Ninth", "Tenth"])
 	nb_quantile = length(dim_keys(m, :quantile))
@@ -71,6 +74,9 @@ function create_nice2020()
 	add_shared_param!(m, :η, 	1.5)
 	add_shared_param!(m, :σ, 	Matrix(emissionsrate), dims=[:time, :country])
 	add_shared_param!(m,  :s, Matrix(srate), dims=[:time, :country])
+	add_shared_param!(m, :policy_scenario, 1) # identifies the club of countries participating in the policy
+	add_shared_param!(m, :club_per_scenario, club_per_scenario, dims=[:scenario, :country]) # countries in the club for each scenario
+	add_shared_param!(m, :club_scenario_part, club_scenario_part, dims=[:scenario, :country]) # countries in the club for each scenario (1) or not (0)
 
 	# --------------------------------
 	# FAIR Initial (2020) Conditions

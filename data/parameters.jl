@@ -28,6 +28,62 @@ names_regions_df = unique(mapping_wpp_regions[:, [:WPP_region_name,:WPP_region_n
 sort!(names_regions_df, :WPP_region_number)
 wpp_regions = names_regions_df[:, :WPP_region_name]
 
+#-----------------------------------------------------------------
+# Load mapping of countries participating in each scenario
+#----------------------------------------------------------------
+
+# Fonction utilitaire pour créer un vecteur binaire de participation
+function participation_vector(participants::Vector{String}, all_countries::Vector{String})
+    return [country in participants ? 1 : 0 for country in all_countries]
+end
+
+rich_oil_countries = ["RUS", "KAZ", "SAU", "QAT", "KWT", "AZE", "OMN", "BHR", "MYS"]
+
+# Scenario 2 : All except rich oil countries
+all_except_oil_countries = filter(country -> !(country in rich_oil_countries), countries)
+
+#Scenario 3 : Optimistic scenario: Africa + Latin America + South Asia + South-East Asia + China + EU28 + Norway + Switzerland + Canada + Japan + Korea + NZ
+optimistic_regions = [5, 8, 9, 15, 18, 3, 13, 14, 16]
+optimistic_countries = filter(row -> row[:WPP_region_number] in optimistic_regions, mapping_wpp_regions)[:, :countrycode]
+
+
+additional_countries = ["CHN", "NOR", "CHE", "CAN", "JPN", "NZL", "KOR"]
+eu28_countries = ["AUT", "BEL", "BGR", "HRV", "CYP", "CZE", "DNK", "EST", "FIN", "FRA", "DEU", "GRC", "HUN", 
+"IRL", "ITA", "LVA", "LTU", "LUX", "MUX", "MLT", "NLD", "POL", "PRT", "ROU", "SVK", "SVN", "ESP", "SWE", "GBR"]
+
+
+optimistic_scenario_countries = unique(vcat(optimistic_country_codes, additional_countries, eu28_countries))
+
+#Scenario 4: Generous EU: EU27 + China + Africa + Latin America + South Asia + South-East Asia
+
+eu27_countries = ["AUT", "BEL", "BGR", "HRV", "CYP", "CZE", "DNK", "EST", "FIN", "FRA", "DEU", "GRC", "HUN", 
+"IRL", "ITA", "LVA", "LTU", "LUX", "MUX", "MLT", "NLD", "POL", "PRT", "ROU", "SVK", "SVN", "ESP", "SWE"]
+
+generous_eu_countries = unique(vcat(eu27_countries, optimistic_countries, ["CHN"]))
+
+#Scenario 5 : Africa-EU partnership : Africa + EU_27
+africa_regions=[5, 8, 9, 15, 18]
+africa_countries = filter(row -> row[:WPP_region_number] in africa_regions, mapping_wpp_regions)[:, :countrycode]
+
+partnership_countries =unique(vcat(eu27_countries, africa_countries))
+
+club_per_scenario = [
+    countries,                   # Scenario 1
+    all_except_oil_countries,             # Scenario 2
+    optimistic_scenario_countries,        # Scenario 3
+    generous_eu_countries,                # Scenario 4
+    partnership_countries                 # Scenario 5
+]
+
+# Final binary participation matrix per scenario
+club_scenario_part = [
+    fill(1, length(countries)),  # Scenario 1
+    participation_vector(all_except_oil_countries, countries),  # Scenario 2
+    participation_vector(optimistic_scenario_countries, countries),  # Scenario 3
+    participation_vector(generous_eu_countries, countries),  # Scenario 4
+    participation_vector(partnership_countries, countries)   # Scenario 5
+]
+
 
 #-----------------------------------------
 # Load economic and emissions calibration

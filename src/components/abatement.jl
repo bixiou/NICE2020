@@ -4,6 +4,7 @@
 
 @defcomp abatement begin
     country          = Index()
+    scenario         = Index()
 
     σ       = Parameter(index=[time, country])  # Emissions output ratio (GtCO2 per million USD2017)
     YGROSS  = Parameter(index=[time, country])  # Gross output (1e6 USD2017 per year)
@@ -18,6 +19,8 @@
     reference_country_index = Parameter()                       # Index of the reference country for the differentiated carbon tax case
     control_regime          = Parameter()                       # Switch for emissions control regime  1:"global_carbon_tax", 2:"country_carbon_tax", 3:"country_abatement_rate"
     μ_input                 = Parameter(index=[time, country])  # Input mitigation rate, used with option 3 "country_abatement_rate"
+    policy_scenario         = Parameter()                       # Policy scenario for the country, used to determine which countries are in the club
+    club_per_scenario       = Parameter(index=[scenario, country]) # Countries in the club for each scenario
 
     θ1                 = Variable(index=[time, country])    # Multiplicative parameter of abatement cost function. Equal to ABATEFRAC at 100% mitigation
     country_carbon_tax = Variable(index=[time, country]) 	# CO2 tax rate (2017 USD per tCO2)
@@ -35,9 +38,12 @@
 
             if (p.control_regime==1)  # global_carbon_tax
 
-                # Set country carbon tax equal to global uniform carbon tax, bounded by the global backstop price
-                v.country_carbon_tax[t,c] = min(p.pbacktime[t], p.global_carbon_tax[t]) 
-
+                # Set country carbon tax equal to global uniform carbon tax, bounded by the global backstop price, only for countries participating
+                if (c in p.club_per_scenario[p.policy_scenario,:]) 
+                    v.country_carbon_tax[t,c] = min(p.pbacktime[t], p.global_carbon_tax[t]) 
+                else
+                    v.country_carbon_tax[t,c] = 0.0 # No carbon tax for non-participating countries
+                end
                 # Find abatement rate from inversion of the expression (tax = marginal abatement cost), bound between 0 and 1
                 #v.μ[t,c] = min( max((v.country_carbon_tax[t,c] / p.pbacktime[t,region_index] ) ^ (1 / (p.θ2 - 1.0)), 0.0), 1.0)
                 v.μ[t,c] = min( max((v.country_carbon_tax[t,c] / (v.θ1[t,c] * p.θ2/(p.σ[t,c]*1e3)) ) ^ (1 / (p.θ2 - 1.0)), 0.0), 1.0)
@@ -48,12 +54,16 @@
                 # Expression to compute carbon tax of every country from carbon tax of reference country
                 # Follows a simple rule for optimally differentiated taxes (see SI in Young-Brun et al. (in prep.))
                 # tax_it = (1-savings_it)/(1-savings_ref,t) * u'(c_ref,t) / u'(c_it) * tax_ref,t
-                # Carbon tax is bounded above by the global backstop price
-
-                v.country_carbon_tax[t,c] = min(p.pbacktime[t], p.reference_carbon_tax[t] *
+                # Carbon tax is bounded above by the global backstop 
+                
+                if(c in p.club_per_scenario[p.policy_scenario,:]) 
+                    v.country_carbon_tax[t,c] = min(p.pbacktime[t], p.reference_carbon_tax[t] *
                                             ((1 - p.s[t,p.reference_country_index])/ (1 - p.s[t,c]) ) *
                                             (p.YGROSS[t,c]/p.YGROSS[t,p.reference_country_index] *
                                             p.l[t,p.reference_country_index]/p.l[t,c] )^p.η )
+                else
+                    v.country_carbon_tax[t,c] = 0.0 # No carbon tax for non-participating countries
+                end
 
                 # Find abatement rate from inversion of the expression (tax = marginal abatement cost), bound between 0 and 1
                 #v.μ[t,c] = min( max((v.country_carbon_tax[t,c] / p.pbacktime[t,region_index] ) ^ (1 / (p.θ2 - 1.0)), 0.0), 1.0)
