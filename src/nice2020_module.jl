@@ -71,6 +71,7 @@ function create_nice2020()
 	add_shared_param!(m, :η, 	1.5)
 	add_shared_param!(m, :σ, 	Matrix(emissionsrate), dims=[:time, :country])
 	add_shared_param!(m,  :s, Matrix(srate), dims=[:time, :country])
+	add_shared_param!(m, :policy_scenario, 1) # identifies the club of countries participating in the policy
 
 	# --------------------------------
 	# FAIR Initial (2020) Conditions
