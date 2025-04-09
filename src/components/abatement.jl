@@ -5,6 +5,7 @@
 @defcomp abatement begin
     country          = Index()
     scenario         = Index()
+    scenario         = Index()
 
     σ       = Parameter(index=[time, country])  # Emissions output ratio (GtCO2 per million USD2017)
     YGROSS  = Parameter(index=[time, country])  # Gross output (1e6 USD2017 per year)
@@ -19,6 +20,8 @@
     reference_country_index = Parameter()                       # Index of the reference country for the differentiated carbon tax case
     control_regime          = Parameter()                       # Switch for emissions control regime  1:"global_carbon_tax", 2:"country_carbon_tax", 3:"country_abatement_rate"
     μ_input                 = Parameter(index=[time, country])  # Input mitigation rate, used with option 3 "country_abatement_rate"
+    policy_scenario         = Parameter()                       # Policy scenario for the country, used to determine which countries are in the club
+    club_per_scenario       = Parameter(index=[scenario, country]) # Countries in the club for each scenario
     policy_scenario         = Parameter()                       # Policy scenario for the country, used to determine which countries are in the club
     club_per_scenario       = Parameter(index=[scenario, country]) # Countries in the club for each scenario
 
