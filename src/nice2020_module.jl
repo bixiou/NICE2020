@@ -75,8 +75,7 @@ function create_nice2020()
 	add_shared_param!(m, :σ, 	Matrix(emissionsrate), dims=[:time, :country])
 	add_shared_param!(m,  :s, Matrix(srate), dims=[:time, :country])
 	add_shared_param!(m, :policy_scenario, 1) # identifies the club of countries participating in the policy
-	add_shared_param!(m, :club_per_scenario, club_per_scenario, dims=[:scenario, :country]) # countries in the club for each scenario
-	add_shared_param!(m, :club_scenario_part, club_scenario_part, dims=[:scenario, :country]) # countries in the club for each scenario (1) or not (0)
+	add_shared_param!(m, :club_scenario_part, club_scenario_part, dims=[:scenario, :country]) # identifies the club of countries participating in the policy
 
 	# --------------------------------
 	# FAIR Initial (2020) Conditions
@@ -136,6 +135,9 @@ function create_nice2020()
 	connect_param!(m, :abatement, :l, :l)
 	connect_param!(m, :abatement, :η, :η)
 	connect_param!(m, :abatement, :σ, :σ)
+	connect_param!(m, :abatement, :policy_scenario, :policy_scenario)
+	connect_param!(m, :abatement, :club_scenario_part, :club_scenario_part)
+
 
 	# --------------------------------
 	# CO2 Emissions
@@ -177,6 +179,8 @@ function create_nice2020()
 
 	connect_param!(m, :revenue_recycle, :l, :l)
 	connect_param!(m, :revenue_recycle, :switch_recycle, :switch_recycle)
+	connect_param!(m, :revenue_recycle, :policy_scenario, :policy_scenario)
+	connect_param!(m, :revenue_recycle, :club_scenario_part, :club_scenario_part)
 
 	# --------------------------------
 	# Quantile distribution
