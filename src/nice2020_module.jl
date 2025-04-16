@@ -40,6 +40,9 @@ function create_nice2020()
 	rwpp = Symbol.(wpp_regions)
 	set_dimension!(m, :regionwpp, rwpp )
 
+	# Set scenario dimension (1 to 5)
+	set_dimension!(m, :scenario, 1:5)
+
 	# Set quantile dimension
 	set_dimension!(m, :quantile, ["First", "Second", "Third", "Fourth", "Fifth", "Sixth", "Seventh", "Eighth", "Ninth", "Tenth"])
 	nb_quantile = length(dim_keys(m, :quantile))
@@ -71,6 +74,8 @@ function create_nice2020()
 	add_shared_param!(m, :η, 	1.5)
 	add_shared_param!(m, :σ, 	Matrix(emissionsrate), dims=[:time, :country])
 	add_shared_param!(m,  :s, Matrix(srate), dims=[:time, :country])
+	add_shared_param!(m, :policy_scenario, 1) # identifies the club of countries participating in the policy
+	add_shared_param!(m, :club_scenario_part, club_scenario_part, dims=[:scenario, :country]) # identifies the club of countries participating in the policy
 
 	# --------------------------------
 	# FAIR Initial (2020) Conditions
@@ -130,6 +135,9 @@ function create_nice2020()
 	connect_param!(m, :abatement, :l, :l)
 	connect_param!(m, :abatement, :η, :η)
 	connect_param!(m, :abatement, :σ, :σ)
+	connect_param!(m, :abatement, :policy_scenario, :policy_scenario)
+	connect_param!(m, :abatement, :club_scenario_part, :club_scenario_part)
+
 
 	# --------------------------------
 	# CO2 Emissions
@@ -171,6 +179,8 @@ function create_nice2020()
 
 	connect_param!(m, :revenue_recycle, :l, :l)
 	connect_param!(m, :revenue_recycle, :switch_recycle, :switch_recycle)
+	connect_param!(m, :revenue_recycle, :policy_scenario, :policy_scenario)
+	connect_param!(m, :revenue_recycle, :club_scenario_part, :club_scenario_part)
 
 	# --------------------------------
 	# Quantile distribution

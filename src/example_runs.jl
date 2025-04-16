@@ -94,6 +94,7 @@ switch_recycle  = 0 # OFF   Recycle revenues to households
 update_param!(nice2020_uniform_tax, :abatement, :control_regime, 1) # Switch for emissions control regime  1:"global_carbon_tax", 2:"country_carbon_tax", 3:"country_abatement_rate"
 update_param!(nice2020_uniform_tax, :abatement, :global_carbon_tax, global_co2_tax)
 update_param!(nice2020_uniform_tax, :switch_recycle, switch_recycle)
+update_param!(nice2020_uniform_tax, :policy_scenario, 5)
 
 println("Running the updated model and saving the output in the directory: ", output_directory_uniform,)
 
@@ -125,6 +126,7 @@ update_param!(nice2020_uniform_tax, :abatement, :global_carbon_tax, global_co2_t
 update_param!(nice2020_uniform_tax, :switch_recycle, switch_recycle)
 update_param!(nice2020_uniform_tax, :revenue_recycle, :switch_scope_recycle, switch_scope_recycle)
 update_param!(nice2020_uniform_tax, :revenue_recycle, :switch_global_pc_recycle, switch_global_pc_recycle)
+update_param!(nice2020_uniform_tax, :policy_scenario, 5)
 
 println("Running the updated model and saving the output in the directory: ", output_directory_uniform,)
 
@@ -160,6 +162,7 @@ update_param!(nice2020_uniform_tax, :switch_recycle, switch_recycle)
 update_param!(nice2020_uniform_tax, :revenue_recycle, :switch_scope_recycle, switch_scope_recycle)
 update_param!(nice2020_uniform_tax, :revenue_recycle, :switch_global_pc_recycle, switch_global_pc_recycle)
 update_param!(nice2020_uniform_tax, :revenue_recycle, :global_recycle_share,  ones(nb_country) * global_recycle_share ) 
+update_param!(nice2020_uniform_tax, :policy_scenario, 5) 
 
 println("Running the updated model and saving the output in the directory: ", output_directory_uniform,)
 
