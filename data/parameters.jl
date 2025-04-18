@@ -37,6 +37,18 @@ function participation_vector(participants::Vector{Symbol}, all_countries::Vecto
     return [country in participants ? 1 : 0 for country in all_countries]
 end
 
+# Scenario labels
+scenarios = [:All_World, :All_Except_Oil_Countries, :Optimistic, :Generous_EU, :Partnership]
+
+# Correspondence dictionary name → index
+scenario_index = Dict(
+    :All_World     => 1,
+    :All_Except_Oil_Countries    => 2,
+    :Optimistic    => 3,
+    :Generous_EU   => 4,
+    :Partnership   => 5
+)
+
 rich_oil_countries = ["RUS", "KAZ", "SAU", "QAT", "KWT", "AZE", "OMN", "BHR", "MYS"]
 
 # Scenario 2 : All except rich oil countries
