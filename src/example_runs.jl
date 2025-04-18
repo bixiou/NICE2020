@@ -117,6 +117,7 @@ println("Updating some parameters of the previously created NICE2020 instance.")
 switch_recycle                  = 1 # ON     Recycle revenues to households
 switch_scope_recycle            = 0 # OFF    Carbon tax revenues recycled at country level (0) or globally (1)
 switch_global_pc_recycle        = 0 # OFF    Carbon tax revenues recycled on an equal per capita basis
+switch_scenario                 = :Partnership  # Choice of scenario by name (:All_World, :All_Except_Oil_Countries, :Optimistic, :Generous_EU, :Partnership)
 
 
 # Set uniform taxes, revenue recycling switches and run the model
@@ -126,7 +127,9 @@ update_param!(nice2020_uniform_tax, :abatement, :global_carbon_tax, global_co2_t
 update_param!(nice2020_uniform_tax, :switch_recycle, switch_recycle)
 update_param!(nice2020_uniform_tax, :revenue_recycle, :switch_scope_recycle, switch_scope_recycle)
 update_param!(nice2020_uniform_tax, :revenue_recycle, :switch_global_pc_recycle, switch_global_pc_recycle)
-update_param!(nice2020_uniform_tax, :policy_scenario, 5)
+update_param!(nice2020_uniform_tax, :policy_scenario, MimiNICE2020.scenario_index[switch_scenario])
+
+println("Selected Scenario : ", switch_scenario)
 
 println("Running the updated model and saving the output in the directory: ", output_directory_uniform,)
 
@@ -149,6 +152,7 @@ println("Updating some parameters of the previously created NICE2020 instance.")
 switch_recycle                  = 1 # ON     Recycle revenues to households
 switch_scope_recycle            = 1 # ON     Carbon tax revenues recycled globally
 switch_global_pc_recycle        = 1 # ON    Carbon tax revenues recycled on an equal per capita basis
+switch_scenario                 = :Partnership  # Choice of scenario by name (:All_World, :All_Except_Oil_Countries, :Optimistic, :Generous_EU, :Partnership)
 
 # Rule for share of global tax revenues recycled at global level (switch_recycle and switch_scope_recycle must be ON)
 global_recycle_share            = 1 # 100%   Share of tax revenues recycled globally 
@@ -162,7 +166,9 @@ update_param!(nice2020_uniform_tax, :switch_recycle, switch_recycle)
 update_param!(nice2020_uniform_tax, :revenue_recycle, :switch_scope_recycle, switch_scope_recycle)
 update_param!(nice2020_uniform_tax, :revenue_recycle, :switch_global_pc_recycle, switch_global_pc_recycle)
 update_param!(nice2020_uniform_tax, :revenue_recycle, :global_recycle_share,  ones(nb_country) * global_recycle_share ) 
-update_param!(nice2020_uniform_tax, :policy_scenario, 5) 
+update_param!(nice2020_uniform_tax, :policy_scenario, MimiNICE2020.scenario_index[switch_scenario])
+
+println("Selected Scenario : ", switch_scenario)
 
 println("Running the updated model and saving the output in the directory: ", output_directory_uniform,)
 
@@ -184,6 +190,7 @@ println("--4-- Example run changing the parameter η, with global carbon tax (no
 switch_recycle                  = 1 # ON     Recycle revenues to households
 switch_scope_recycle            = 1 # ON     Carbon tax revenues recycled globally
 switch_global_pc_recycle        = 1 # ON    Carbon tax revenues recycled on an equal per capita basis
+switch_scenario                 = :Partnership  # Choice of scenario by name (:All_World, :All_Except_Oil_Countries, :Optimistic, :Generous_EU, :Partnership)
 
 # Rule for share of global tax revenues recycled at global level (switch_recycle and switch_scope_recycle must be ON)
 global_recycle_share            = 1 # 100%   Share of tax revenues recycled globally 
@@ -195,6 +202,7 @@ update_param!(nice2020_uniform_tax, :switch_recycle, switch_recycle)
 update_param!(nice2020_uniform_tax, :revenue_recycle, :switch_scope_recycle, switch_scope_recycle)
 update_param!(nice2020_uniform_tax, :revenue_recycle, :switch_global_pc_recycle, switch_global_pc_recycle)
 update_param!(nice2020_uniform_tax, :revenue_recycle, :global_recycle_share,  ones(nb_country) * global_recycle_share )
+update_param!(nice2020_uniform_tax, :policy_scenario, MimiNICE2020.scenario_index[switch_scenario])
 
 # CHANGE THE VALUE OF THE η PARAMETER
 # Note that η is a shared parameter, it enters both in the abatement and the welfare  components

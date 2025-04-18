@@ -37,6 +37,18 @@ function participation_vector(participants::Vector{Symbol}, all_countries::Vecto
     return [country in participants ? 1 : 0 for country in all_countries]
 end
 
+# Scenario labels
+scenarios = [:All_World, :All_Except_Oil_Countries, :Optimistic, :Generous_EU, :Partnership]
+
+# Correspondence dictionary name → index
+scenario_index = Dict(
+    :All_World     => 1,
+    :All_Except_Oil_Countries    => 2,
+    :Optimistic    => 3,
+    :Generous_EU   => 4,
+    :Partnership   => 5
+)
+
 rich_oil_countries = ["RUS", "KAZ", "SAU", "QAT", "KWT", "AZE", "OMN", "BHR", "MYS"]
 
 # Scenario 2 : All except rich oil countries
@@ -68,11 +80,11 @@ africa_countries = filter(row -> row[:WPP_region_number] in africa_regions, mapp
 partnership_countries =unique(vcat(eu27_countries, africa_countries))
 
 club_per_scenario = [
-    Symbol.(countries),                   # Scenario 1
-    Symbol.(all_except_oil_countries),             # Scenario 2
-    Symbol.(optimistic_scenario_countries),        # Scenario 3
-    Symbol.(generous_eu_countries),                # Scenario 4
-    Symbol.(partnership_countries)                 # Scenario 5
+    Symbol.(countries),                   # Scenario 1 (All_World)
+    Symbol.(all_except_oil_countries),             # Scenario 2 (All_Except_Oil_Countries)
+    Symbol.(optimistic_scenario_countries),        # Scenario 3 (Optimistic)
+    Symbol.(generous_eu_countries),                # Scenario 4 (Generous_EU)
+    Symbol.(partnership_countries)                 # Scenario 5 (Partnership)
 ]
 
 # Final binary participation matrix per scenario
