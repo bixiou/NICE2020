@@ -58,7 +58,6 @@ function create_nice2020()
 	add_comp!(m, damages, after = :pattern_scale)
 	add_comp!(m, neteconomy, after = :damages)
 	add_comp!(m, revenue_recycle, after = :neteconomy)
-	add_comp!(m, neteconomy_with_redistrib, after = :revenue_recycle)
 	add_comp!(m, quantile_recycle, after = :revenue_recycle)
 	add_comp!(m, welfare, after = :quantile_recycle)
 
