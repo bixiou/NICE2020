@@ -28,6 +28,7 @@ package <- function(p, version = NULL, remove = FALSE, github = '') {
   library(p, character.only = TRUE)
 } # loads packages with automatical install if needed
 
+
 package("rnaturalearth")
 package("rnaturalearthdata")
 
@@ -35,22 +36,17 @@ package("rnaturalearthdata")
 #Please enter the path to your data below and run the code#
 ###########################################################
 
-# Path of the folder with baseline scenario - ex : "C:/Users/ZBOOK/NICE2020/results/bau_no_policy_at_all/no_revenue_recycling"
+# Path of the folder with baseline scenario 
 
-path_baseline_scenario = "C:/Users/ZBOOK/NICE2020/results/bau_no_policy_at_all/no_revenue_recycling"
+path_baseline_scenario = "results/bau_no_policy_at_all/no_revenue_recycling"
 
 # Path of the folder with policy scenario of interest
 
-path_policy_interest = "C:/Users/ZBOOK/NICE2020/results/uniform_tax_example/revenue_recycling/global_per_capita"
+path_policy_interest = "results/uniform_tax_example/revenue_recycling/global_per_capita"
 
 # The year you want to represent on maps
 
 year_represent = 2030
-
-# The folder you want to save the outputs in ex : "C:\Users\ZBOOK\NICE2020\cap_and_share"
-
-save_folder = "C:/Users/ZBOOK/NICE2020/cap_and_share/maps"
-setwd(save_folder)
 
 #Choose discount rate
 
@@ -216,7 +212,8 @@ plot_world_map <- function(var, df, along = "country", breaks, labels, colors,
   }
 }
 
-create_EDE_diff_map <- function(path_baseline_scenario, path_policy_interest, year_represent, save_folder = "figures") {
+#Creates the map from the path to data
+create_EDE_diff_map <- function(path_baseline_scenario, path_policy_interest, year_represent, save_folder = "cap_and_share/map") {
   # Breaks for consumption
   breaks_EDE <- c(-Inf, -0.05, -0.025, -0.01, -0.0001, 0.0001,
                   0.01, 0.025, 0.05, 0.1, 0.3, Inf)
@@ -260,17 +257,17 @@ create_EDE_diff_map <- function(path_baseline_scenario, path_policy_interest, ye
     breaks = breaks_EDE,
     labels = labels_EDE,
     colors = colors_EDE,
-    legend = "Change in equally distributed \nequivalent (EDE) consumption \ncompared to baseline (2030) \nin %",
+    legend = paste0("Change in equally distributed \nequivalent (EDE) consumption \ncompared to baseline (", year_represent, ") \nin %"),
     save = TRUE,
     format = c("png", "pdf"),
-    folder = "figures"  # Crée le dossier automatiquement si pas présent
+    folder = "cap_and_share/map"  # Crée le dossier automatiquement si pas présent
   )
   
 }
 
 
-
-create_transfer_diff_map <- function(path_baseline_scenario, path_policy_interest, year_represent, save_folder = "figures") {
+#Creates two ther maps about the amount of transfers
+create_transfer_diff_map <- function(path_baseline_scenario, path_policy_interest, year_represent, save_folder = "cap_and_share/map") {
   
   # Placeholder pour lecture de fichiers
   country_tax_revenue <- read.csv(file.path(path_policy_interest, "country_output", "country_tax_revenue.csv"))
@@ -293,13 +290,9 @@ create_transfer_diff_map <- function(path_baseline_scenario, path_policy_interes
     summarise(total_transfers = sum(discounted_value, na.rm = TRUE)) %>%
     select(country,total_transfers)
   
-  write.csv(transfers_pc_year,
-            file = file.path(save_folder, "transfers_pc_year.csv"),
-            row.names = FALSE)
-  
-  write.csv(transfers_pc_2020_2100_discounted,
-            file = file.path(save_folder, "transfers_pc_2020_2100_discounted.csv"),
-            row.names = FALSE)
+  #Uncomment if you want to see the tables
+  #write.csv(transfers_pc_year, file = "transfers_pc_year.csv", row.names = FALSE)
+  #write.csv(transfers_pc_2020_2100_discounted, file = "transfers_pc_2020_2100_discounted.csv", row.names = FALSE)
   
   
   # Breaks et palette personnalisée
@@ -344,7 +337,7 @@ create_transfer_diff_map <- function(path_baseline_scenario, path_policy_interes
     legend = paste("Per capita yearly net transfers \n(USD, 2017) in ", year_represent),
     save = TRUE,
     format = c("png", "pdf"),
-    folder = save_folder,
+    folder = "cap_and_share/map",
     zeroindata=TRUE
   )
   
@@ -381,14 +374,25 @@ create_transfer_diff_map <- function(path_baseline_scenario, path_policy_interes
     breaks = breaks_npv,
     labels = labels_npv,
     colors = colors_npv,
-    legend = paste("Net present value of transfers \nper capita between 2020 and 100 \nin (USD, 2017) "),
+    legend = paste("Net present value of transfers \nper capita between 2020 and 100 \nin (USD, 2017),\ndisount rate  =", discount_rate),
     save = TRUE,
     format = c("png", "pdf"),
-    folder = save_folder,
+    folder = "cap_and_share/map",
     zeroindata=TRUE
   )
   
 }
 
-create_transfer_diff_map(path_baseline_scenario, path_policy_interest, year_represent, save_folder = "figures")
 
+###############################
+###############################
+##Call the following funtions##
+###############################
+###############################
+
+
+#Call this function to create the maps about transfers
+create_transfer_diff_map(path_baseline_scenario, path_policy_interest, year_represent, save_folder = "cap_and_share/map")
+
+#Call this function to create the map about changes in EDE consumption
+create_EDE_diff_map(path_baseline_scenario, path_policy_interest, year_represent, save_folder = "cap_and_share/map")

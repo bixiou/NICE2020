@@ -15,6 +15,7 @@
     s                = Parameter(index=[time, country]) # Savings rate
     l                = Parameter(index=[time, country]) # Labor - population (thousands)
     mapcrwpp        = Parameter(index=[country])        # Map from country index to WPP region index
+    country_pc_dividend  = Parameter(index=[time, country])  # Total per capita carbon tax dividends, including any international transfers (thousand 2017USD per year)
 
     # Variables
 
@@ -37,7 +38,7 @@
         for c in d.country
 
             # Output net of abatement costs and damages
-            v.Y[t,c] = (1.0 - p.ABATEFRAC[t,c]) ./ (1.0 + p.LOCAL_DAMFRAC_KW[t,c]) * p.YGROSS[t,c]
+            v.Y[t,c] = (1.0 - p.ABATEFRAC[t,c]) ./ (1.0 + p.LOCAL_DAMFRAC_KW[t,c]) * p.YGROSS[t,c] + p.country_pc_dividend[t,c]*p.l[t,c] 
 
             # Investment
             v.I[t,c] = p.s[t,c] * v.Y[t,c]

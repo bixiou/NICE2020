@@ -34,7 +34,7 @@
 ### Résultat
 
 
-## 1. Participation partielle
+## 1. Participation partielle (FAIT)
 Scénarios à tester:
 1. All: Whole World
 2. All except rich oil countries: World except Russia, Kazakhstan, Saudi Arabia, Qatar, Kuweit, Azerbaijan, Oman, Bahrein, Malaysia
@@ -43,9 +43,13 @@ central <- all_countries[df$npv_over_gdp_gcs_adj > 0 | df$code %in% c("CHN", EU2
 4. Generous EU: EU27 + China + Africa + Latin America + South Asia + South-East Asia
 5. Africa-EU partnership: EU27 + Africa
 
+Avancement : cinq scénarios implémentés avec des noms explicites, et un sixième où on peut rentrer la liste des pays/régions du club directement dans le fichier parameters.jl
 
-## 2. Cartes
+
+## 2. Cartes (FAIT)
 - Utiliser/adapter le code cap_and_share/map.R pour créer une carte des résultats, notamment (i) les gains/pertes par pays par rapport à la situation sans transferts internationaux et (ii) la variation de bien-être (EDE) par rapport au BAU.
+
+Avancement : projet R créé dans cap_and_share, possibilité de représenter les variations par pays de consommation EDE sur une année, le montant des transferts sur une année, et la NPV des transferts sur 2020-2100 par pays. Il reste peut-être à calibrer le taux d'actualisation.
 
 
 ## 3. Optimiser sous contrainte de budget carbone (Erwan)
