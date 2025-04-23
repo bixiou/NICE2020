@@ -5,7 +5,8 @@
 
 # Activate the project and make sure all packages we need are installed.
 using Pkg
-Pkg.activate(joinpath(@__DIR__, "..", ".."))
+#Pkg.activate(joinpath(@__DIR__, "..", ".."))
+Pkg.activate(joinpath(@__DIR__, ".."))
 #Pkg.resolve() # To resolve inconsistencies between Manifest.toml and Project.toml
 Pkg.instantiate()
 
@@ -13,7 +14,7 @@ Pkg.instantiate()
 using Mimi, MimiFAIRv2, DataFrames, CSVFiles
 
 # Make directory to optionally save tested pathways outputs
-output_directory_test_2deg_global = joinpath(@__DIR__, "..", "..", "test_2deg_global_exp")
+output_directory_test_2deg_global = joinpath(@__DIR__, "..", "test_2deg_global_exp")
 mkpath(output_directory_test_2deg_global)
 
 println("Test global carbon tax runs")
@@ -24,7 +25,7 @@ function test_global_exp_c_tax(tax_start_value_test, g_rate_test)
 
     full_co2_tax = exp_tax_trajectory(tax_start_value = tax_start_value_test, g_rate=g_rate_test, year_tax_start=2020, year_tax_end=2200)
 
-    update_param!(nice_v2, :global_carbon_tax, full_co2_tax)
+    update_param!(nice_v2, :abatement, :global_carbon_tax, full_co2_tax)
 
     run(nice_v2)
 
@@ -36,13 +37,17 @@ function test_global_exp_c_tax(tax_start_value_test, g_rate_test)
 end
 
 # Load NICE2020 source code.
-include(joinpath("..", "nice_v2_module.jl"))
-include(joinpath("..", "helper_functions.jl"))
+#include(joinpath("..", "nice_v2_module.jl"))
+#include(joinpath("..", "helper_functions.jl"))
 
+include(joinpath(@__DIR__, "..", "src", "nice2020_module.jl"))
+include(joinpath(@__DIR__, "..", "src", "helper_functions.jl"))
 # Get baseline instance of the model and set the model to run in "global carbon tax" control regime and no revenue recycling
-nice_v2 = nice_v2_module.create_nice_v2()
-update_param!(nice_v2, :control_regime, 1) # Switch for emissions control regime  1:"global_carbon_tax", 2:"country_carbon_tax", 3:"country_abatement_rate"
+#nice_v2 = nice_v2_module.create_nice_v2()
+nice_v2 = MimiNICE2020.create_nice2020()
+#update_param!(nice_v2, :control_regime, 1) # Switch for emissions control regime  1:"global_carbon_tax", 2:"country_carbon_tax", 3:"country_abatement_rate"
 update_param!(nice_v2, :switch_recycle, 0) # Switch carbon taxation recycling off 
+update_param!(nice_v2, :abatement, :control_regime, 1)
 
 # Get number of time steps in the model
 nb_steps   = length(dim_keys(nice_v2, :time))
@@ -126,7 +131,7 @@ println("Selected global carbon tax pathway: ", tax_path )
 
 # Save selected carbon tax pathway to csv in data folder
 tax_path = parse.(Float64,split(tax_path[1],'_')) #Extract the initial level and increase rate from string
-save(joinpath("..", "..", "data","uniform_exp_tax_path_params.csv"), DataFrame(path=tax_path); header=false)
+save(joinpath( "data","uniform_exp_tax_path_params.csv"), DataFrame(path=tax_path); header=false)
 
 # Extract corresponding welfare value
 welfare_value_path = tot_welfare_disc[tot_welfare_disc.value .== maximum(tot_welfare_disc.value, init=-Inf), :value]
