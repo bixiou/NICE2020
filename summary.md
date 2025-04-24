@@ -99,12 +99,13 @@ Pour la période pre-2030, prendre le BAU pour les émissions (vous obtenez comb
 
 ## 5. Trajectoires exogènes et endogènes (Marius) (FAIT)
 1. Trajectoires exogènes: À partir d'une table donnant le PIB par pays pour chaque année de simulation, et d'une table équivalente pour les émissions, neutraliser la partie macro de NICE et faire tourner la partie analyse distributive; prenant en entrée ces deux tables et en sortie les sorties habituelles de NICE. (Cette partie est repoussée à plus tard)
-2. Trajectoire endogène: modéliser la rétroaction des transferts sur le PIB. Plus précisément, dans net_economy.jl:40, ajouter les transferts à v.Y[t,c] = (1.0 - p.ABATEFRAC[t,c]) ./ (1.0 + p.LOCAL_DAMFRAC_KW[t,c]) * p.YGROSS[t,c] + transfers[t,c] (FAIT)
-Ce qui a été fait : 
--dans net_economy, il y a un switch qui permet d'inclure les effets macros de la redistribution - il n'est actvié quand quand une partie des revenus est redistribuée à l'international sinon pas d'effet macro par pays
--dans quantile_recycle, toujours avec le même switch, on peut appliquer la taxe et les transferts par personne en appliquant le taux d'épargner - parce que ça impacte le revenu des individus et pas seulement leur conso
--dans nice2020_module, attention les composants revenue_recycle tourne avant net_economy maintenant (il y avait une référence à Ynet qui bloquait dans revenue_recycle avant mais elle ne sert à rien en fait); ensuite quelques paramètres sont passès en paramètres partagés
--quelques petits changements dans example_runs pour ajouter le switch
+2. Trajectoire endogène: modéliser la rétroaction des transferts sur le PIB. Plus précisément, dans net_economy.jl:40, ajouter les transferts à v.Y[t,c] = (1.0 - p.ABATEFRAC[t,c]) ./ (1.0 + p.LOCAL_DAMFRAC_KW[t,c]) * p.YGROSS[t,c] + transfers[t,c] (FAIT) \
+     
+Ce qui a été fait. \
+Dans net_economy, il y a un switch qui permet d'inclure les effets macros de la redistribution - il n'est activé quand quand une partie des revenus est redistribuée à l'international sinon pas d'effet macro par pays.\
+Dans quantile_recycle, toujours avec le même switch, on peut appliquer la taxe et les transferts par personne en appliquant le taux d'épargner - parce que ça impacte le revenu des individus et pas seulement leur conso.\
+Dans nice2020_module, attention les composants revenue_recycle tourne avant net_economy maintenant (il y avait une référence à Ynet qui bloquait dans revenue_recycle avant mais elle ne sert à rien en fait); ensuite quelques paramètres sont passès en paramètres partagés.\
+Quelques petits changements dans example_runs pour ajouter le switch.
 
 
 ## 6. Prédire l'empreinte carbone (Marius)
