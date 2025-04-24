@@ -96,6 +96,7 @@ update_param!(nice2020_uniform_tax, :abatement, :control_regime, 1) # Switch for
 update_param!(nice2020_uniform_tax, :abatement, :global_carbon_tax, global_co2_tax)
 update_param!(nice2020_uniform_tax, :switch_recycle, switch_recycle)
 update_param!(nice2020_uniform_tax, :policy_scenario, MimiNICE2020.scenario_index[switch_scenario])
+update_param!(nice2020_uniform_tax, :redistribution_switch, redistribution_switch)
 
 println("Running the updated model and saving the output in the directory: ", output_directory_uniform,)
 
@@ -119,6 +120,7 @@ switch_recycle                  = 1 # ON     Recycle revenues to households
 switch_scope_recycle            = 0 # OFF    Carbon tax revenues recycled at country level (0) or globally (1)
 switch_global_pc_recycle        = 0 # OFF    Carbon tax revenues recycled on an equal per capita basis
 switch_scenario                 = :Partnership  # Choice of scenario by name (:All_World, :All_Except_Oil_Countries, :Optimistic, :Generous_EU, :Partnership)
+redistribution_switch           = 1 # Can compute economic data including redistributive effect 
 
 
 # Set uniform taxes, revenue recycling switches and run the model
@@ -126,9 +128,10 @@ update_param!(nice2020_uniform_tax, :abatement, :control_regime, 1) # Switch for
 update_param!(nice2020_uniform_tax, :abatement, :global_carbon_tax, global_co2_tax)
 
 update_param!(nice2020_uniform_tax, :switch_recycle, switch_recycle)
-update_param!(nice2020_uniform_tax, :revenue_recycle, :switch_scope_recycle, switch_scope_recycle)
+update_param!(nice2020_uniform_tax, :switch_scope_recycle, switch_scope_recycle)
 update_param!(nice2020_uniform_tax, :revenue_recycle, :switch_global_pc_recycle, switch_global_pc_recycle)
 update_param!(nice2020_uniform_tax, :policy_scenario, MimiNICE2020.scenario_index[switch_scenario])
+update_param!(nice2020_uniform_tax, :redistribution_switch, redistribution_switch)
 
 println("Selected Scenario : ", switch_scenario)
 
@@ -154,6 +157,7 @@ switch_recycle                  = 1 # ON     Recycle revenues to households
 switch_scope_recycle            = 1 # ON     Carbon tax revenues recycled globally
 switch_global_pc_recycle        = 1 # ON    Carbon tax revenues recycled on an equal per capita basis
 switch_scenario                 = :Partnership  # Choice of scenario by name (:All_World, :All_Except_Oil_Countries, :Optimistic, :Generous_EU, :Partnership)
+redistribution_switch           = 0 # Can compute economic data including redistributive effect 
 
 # Rule for share of global tax revenues recycled at global level (switch_recycle and switch_scope_recycle must be ON)
 global_recycle_share            = 1 # 100%   Share of tax revenues recycled globally 
@@ -164,10 +168,11 @@ update_param!(nice2020_uniform_tax, :abatement, :control_regime, 1) # Switch for
 update_param!(nice2020_uniform_tax, :abatement, :global_carbon_tax, global_co2_tax)
 
 update_param!(nice2020_uniform_tax, :switch_recycle, switch_recycle)
-update_param!(nice2020_uniform_tax, :revenue_recycle, :switch_scope_recycle, switch_scope_recycle)
+update_param!(nice2020_uniform_tax, :switch_scope_recycle, switch_scope_recycle)
 update_param!(nice2020_uniform_tax, :revenue_recycle, :switch_global_pc_recycle, switch_global_pc_recycle)
 update_param!(nice2020_uniform_tax, :revenue_recycle, :global_recycle_share,  ones(nb_country) * global_recycle_share ) 
 update_param!(nice2020_uniform_tax, :policy_scenario, MimiNICE2020.scenario_index[switch_scenario])
+update_param!(nice2020_uniform_tax, :redistribution_switch, redistribution_switch)
 
 println("Selected Scenario : ", switch_scenario)
 
@@ -192,6 +197,7 @@ switch_recycle                  = 1 # ON     Recycle revenues to households
 switch_scope_recycle            = 1 # ON     Carbon tax revenues recycled globally
 switch_global_pc_recycle        = 1 # ON    Carbon tax revenues recycled on an equal per capita basis
 switch_scenario                 = :Partnership  # Choice of scenario by name (:All_World, :All_Except_Oil_Countries, :Optimistic, :Generous_EU, :Partnership)
+redistribution_switch           = 0 # Can compute economic data including redistributive effect 
 
 # Rule for share of global tax revenues recycled at global level (switch_recycle and switch_scope_recycle must be ON)
 global_recycle_share            = 1 # 100%   Share of tax revenues recycled globally 
@@ -200,10 +206,11 @@ global_recycle_share            = 1 # 100%   Share of tax revenues recycled glob
 update_param!(nice2020_uniform_tax, :abatement, :control_regime, 1) # Switch for emissions control regime  1:"global_carbon_tax", 2:"country_carbon_tax", 3:"country_abatement_rate"
 update_param!(nice2020_uniform_tax, :abatement, :global_carbon_tax, global_co2_tax)
 update_param!(nice2020_uniform_tax, :switch_recycle, switch_recycle)
-update_param!(nice2020_uniform_tax, :revenue_recycle, :switch_scope_recycle, switch_scope_recycle)
+update_param!(nice2020_uniform_tax, :switch_scope_recycle, switch_scope_recycle)
 update_param!(nice2020_uniform_tax, :revenue_recycle, :switch_global_pc_recycle, switch_global_pc_recycle)
 update_param!(nice2020_uniform_tax, :revenue_recycle, :global_recycle_share,  ones(nb_country) * global_recycle_share )
 update_param!(nice2020_uniform_tax, :policy_scenario, MimiNICE2020.scenario_index[switch_scenario])
+update_param!(nice2020_uniform_tax, :redistribution_switch, redistribution_switch)
 
 # CHANGE THE VALUE OF THE η PARAMETER
 # Note that η is a shared parameter, it enters both in the abatement and the welfare  components

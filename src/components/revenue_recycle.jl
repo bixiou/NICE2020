@@ -3,7 +3,6 @@
     country          = Index()
     scenario         = Index()
 
-    Y                           = Parameter(index=[time, country])         		# Output net of damages and abatement costs (1e6 USD2017 per year)
     country_carbon_tax       	= Parameter(index=[time, country])         		# CO2 tax rate (USD2017 per tCO2)
     LOCAL_DAMFRAC_KW            = Parameter(index=[time, country])              #  Country-level damages based on local temperatures and on Kalkuhl & Wenz (share of net output)
     E_gtco2                 	= Parameter(index=[time, country])      		# Country level CO₂ emissions (GtCO2 per year)
