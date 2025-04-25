@@ -37,19 +37,31 @@ function participation_vector(participants::Vector{Symbol}, all_countries::Vecto
     return [country in participants ? 1 : 0 for country in all_countries]
 end
 
+# Scenario labels
+scenarios = [:All_World, :All_Except_Oil_Countries, :Optimistic, :Generous_EU, :Partnership]
+
+# Correspondence dictionary name → index
+scenario_index = Dict(
+    :All_World     => 1,
+    :All_Except_Oil_Countries    => 2,
+    :Optimistic    => 3,
+    :Generous_EU   => 4,
+    :Partnership   => 5
+)
+
 rich_oil_countries = ["RUS", "KAZ", "SAU", "QAT", "KWT", "AZE", "OMN", "BHR", "MYS"]
 
 # Scenario 2 : All except rich oil countries
 all_except_oil_countries = filter(country -> !(country in rich_oil_countries), countries)
 
 #Scenario 3 : Optimistic scenario: Africa + Latin America + South Asia + South-East Asia + China + EU28 + Norway + Switzerland + Canada + Japan + Korea + NZ
-optimistic_regions = [5, 8, 9, 15, 18, 3, 13, 14, 16]
+optimistic_regions = [2, 5, 8, 9, 15, 18, 3, 13, 14, 16]
 optimistic_countries = filter(row -> row[:WPP_region_number] in optimistic_regions, mapping_wpp_regions)[:, :countrycode]
 
 
 additional_countries = ["CHN", "NOR", "CHE", "CAN", "JPN", "NZL", "KOR"]
 eu28_countries = ["AUT", "BEL", "BGR", "HRV", "CYP", "CZE", "DNK", "EST", "FIN", "FRA", "DEU", "GRC", "HUN", 
-"IRL", "ITA", "LVA", "LTU", "LUX", "MUX", "MLT", "NLD", "POL", "PRT", "ROU", "SVK", "SVN", "ESP", "SWE", "GBR"]
+"IRL", "ITA", "LVA", "LTU", "LUX", "MLT", "NLD", "POL", "PRT", "ROU", "SVK", "SVN", "ESP", "SWE", "GBR"]
 
 
 optimistic_scenario_countries = unique(vcat(optimistic_countries, additional_countries, eu28_countries))
@@ -57,7 +69,7 @@ optimistic_scenario_countries = unique(vcat(optimistic_countries, additional_cou
 #Scenario 4: Generous EU: EU27 + China + Africa + Latin America + South Asia + South-East Asia
 
 eu27_countries = ["AUT", "BEL", "BGR", "HRV", "CYP", "CZE", "DNK", "EST", "FIN", "FRA", "DEU", "GRC", "HUN", 
-"IRL", "ITA", "LVA", "LTU", "LUX", "MUX", "MLT", "NLD", "POL", "PRT", "ROU", "SVK", "SVN", "ESP", "SWE"]
+"IRL", "ITA", "LVA", "LTU", "LUX", "MLT", "NLD", "POL", "PRT", "ROU", "SVK", "SVN", "ESP", "SWE"]
 
 generous_eu_countries = unique(vcat(eu27_countries, optimistic_countries, ["CHN"]))
 
@@ -67,26 +79,35 @@ africa_countries = filter(row -> row[:WPP_region_number] in africa_regions, mapp
 
 partnership_countries =unique(vcat(eu27_countries, africa_countries))
 
-club_per_scenario = [
-    Symbol.(countries),                   # Scenario 1
+#Scenario 6 : personalized scenario (add you own countries)
+#groups available : eu27_countries, eu28_countries, africa_countries, optimistic Northern countries (additional_countries), latin_america_countries
+
+latin_american_countries = filter(row -> row[:WPP_region_number] in [2, 3, 13], mapping_wpp_regions)[:, :countrycode]
+
+#add the groups of countries that participate in the personalized scenario in here
+personalized_countries = unique(vcat(eu27_countries, africa_countries, ["NOR", "CHN", "CHE"]))
+
+
+club_countries = [
+    Symbol.(countries),                            # Scenario 1
     Symbol.(all_except_oil_countries),             # Scenario 2
     Symbol.(optimistic_scenario_countries),        # Scenario 3
     Symbol.(generous_eu_countries),                # Scenario 4
-    Symbol.(partnership_countries)                 # Scenario 5
+    Symbol.(partnership_countries),                # Scenario 5
+    Symbol.(personalized_countries)                # Scenario 6
 ]
 
 # Final binary participation matrix per scenario
-club_scenario_part_vec = [
-    fill(1, length(countries)),  # Scenario 1
-    participation_vector(Symbol.(all_except_oil_countries), Symbol.(countries)),  # Scenario 2
-    participation_vector(Symbol.(optimistic_scenario_countries), Symbol.(countries)),  # Scenario 3
-    participation_vector(Symbol.(generous_eu_countries), Symbol.(countries)),  # Scenario 4
-    participation_vector(Symbol.(partnership_countries), Symbol.(countries))   # Scenario 5
-]
+club_countries_binary = transpose(reduce(hcat,[
+    fill(1, length(countries)),                                                         # Scenario 1
+    participation_vector(Symbol.(all_except_oil_countries), Symbol.(countries)),        # Scenario 2
+    participation_vector(Symbol.(optimistic_scenario_countries), Symbol.(countries)),   # Scenario 3
+    participation_vector(Symbol.(generous_eu_countries), Symbol.(countries)),           # Scenario 4
+    participation_vector(Symbol.(partnership_countries), Symbol.(countries)),           # Scenario 5
+    participation_vector(Symbol.(personalized_countries), Symbol.(countries))           # Scenario 6
+]))
 
-#Convert to matrix 
-club_scenario_part=transpose(reduce(hcat, club_scenario_part_vec))
-size(club_scenario_part) # Check size of the matrix
+
 #-----------------------------------------
 # Load economic and emissions calibration
 #----------------------------------------

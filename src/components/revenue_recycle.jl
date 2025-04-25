@@ -3,7 +3,6 @@
     country          = Index()
     scenario         = Index()
 
-    Y                           = Parameter(index=[time, country])         		# Output net of damages and abatement costs (1e6 USD2017 per year)
     country_carbon_tax       	= Parameter(index=[time, country])         		# CO2 tax rate (USD2017 per tCO2)
     LOCAL_DAMFRAC_KW            = Parameter(index=[time, country])              #  Country-level damages based on local temperatures and on Kalkuhl & Wenz (share of net output)
     E_gtco2                 	= Parameter(index=[time, country])      		# Country level CO₂ emissions (GtCO2 per year)
@@ -14,7 +13,7 @@
     switch_scope_recycle	   	= Parameter() 									# Switch, carbon tax revenues recycled at country (0) or  global (1) level
     switch_global_pc_recycle    = Parameter()                                   # Switch, carbon tax revenues recycled globally equal per capital (1)
     policy_scenario             = Parameter()                                    # Policy scenario for the country, used to determine which countries are in the club
-    club_scenario_part       	= Parameter(index=[scenario, country])          # Countries in the club for each scenario (1) or not (0)
+    club_countries_binary       	= Parameter(index=[scenario, country])          # Countries in the club for each scenario (1) or not (0)
 
     tax_revenue 				= Variable(index=[time, country]) 				# Country carbon tax revenue (thousand 2017USD per year)
     tax_pc_revenue              = Variable(index=[time, country]) 				# Carbon tax revenue per capita (thousand 2017USD per capita per year)
@@ -94,7 +93,7 @@
                     ## Globally recycled revenues recycled on a per capita basis =======================
                     if p.switch_global_pc_recycle==1
                         # if country is in the club, it receives a share of global revenue
-                        v.country_pc_dividend_global_transfers[t,c] = v.global_revenue[t]*p.club_scenario_part[p.policy_scenario,c] / ((p.l[t,:]' *p.club_scenario_part[p.policy_scenario,:])*1e3)
+                        v.country_pc_dividend_global_transfers[t,c] = v.global_revenue[t]*p.club_countries_binary[p.policy_scenario,c] / ((p.l[t,:]' *p.club_countries_binary[p.policy_scenario,:])*1e3)
                     else 
                         v.country_pc_dividend_global_transfers[t,c] = 0
                         end

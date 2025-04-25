@@ -34,7 +34,7 @@
 ### Résultat
 
 
-## 1. Participation partielle
+## 1. Participation partielle (FAIT)
 Scénarios à tester:
 1. All: Whole World
 2. All except rich oil countries: World except Russia, Kazakhstan, Saudi Arabia, Qatar, Kuweit, Azerbaijan, Oman, Bahrein, Malaysia
@@ -43,9 +43,13 @@ central <- all_countries[df$npv_over_gdp_gcs_adj > 0 | df$code %in% c("CHN", EU2
 4. Generous EU: EU27 + China + Africa + Latin America + South Asia + South-East Asia
 5. Africa-EU partnership: EU27 + Africa
 
+Avancement : cinq scénarios implémentés avec des noms explicites, et un sixième où on peut rentrer la liste des pays/régions du club directement dans le fichier parameters.jl
 
-## 2. Cartes
+
+## 2. Cartes (FAIT)
 - Utiliser/adapter le code cap_and_share/map.R pour créer une carte des résultats, notamment (i) les gains/pertes par pays par rapport à la situation sans transferts internationaux et (ii) la variation de bien-être (EDE) par rapport au BAU.
+
+Avancement : projet R créé dans cap_and_share, possibilité de représenter les variations par pays de consommation EDE sur une année, le montant des transferts sur une année, et la NPV des transferts sur 2020-2100 par pays. Il reste peut-être à calibrer le taux d'actualisation.
 
 
 ## 3. Optimiser sous contrainte de budget carbone (Erwan)
@@ -94,11 +98,20 @@ Pour la période pre-2030, prendre le BAU pour les émissions (vous obtenez comb
 
 
 ## 5. Trajectoires exogènes et endogènes (Marius)
+### Consignes
 1. Trajectoires exogènes: À partir d'une table donnant le PIB par pays pour chaque année de simulation, et d'une table équivalente pour les émissions, neutraliser la partie macro de NICE et faire tourner la partie analyse distributive; prenant en entrée ces deux tables et en sortie les sorties habituelles de NICE. 
--> Pb: que neutralise-t-on concrètement ? Qu'a-t-on en entrée parmi PIB brut, PIB net, abattement, taxe, dommages ? AF => Oublions cette partie avant de déterminer la réponse. Ou ne gardons que la distribution des dommages et intra-pays (et oublions les coûts d'abattement)
-=> En entrée: PIB brut, émissions, taxe. Abattement à 0.
--> Pb: difficile d'injecter directement des trajectoires exogènes car tout est calibré en même temps (taux d'épargne, dépréciation): il faut matcher le TFP
-2. Trajectoire endogène: modéliser la rétroaction des transferts sur le PIB. Plus précisément, dans net_economy.jl:40, ajouter les transferts à v.Y[t,c] = (1.0 - p.ABATEFRAC[t,c]) ./ (1.0 + p.LOCAL_DAMFRAC_KW[t,c]) * p.YGROSS[t,c] + transfers[t,c]
+-> Pb: que neutralise-t-on concrètement ? Qu'a-t-on en entrée parmi PIB brut, PIB net, abattement, taxe, dommages ? 
+AF => En entrée: PIB brut, émissions, taxe. Abattement à 0. I, K, PIB net ne servent plus (mais pas besoin de les modifier).
+Note: avec ces trajectoires exogènes on perd un des avantages de NICE, qui est d'estimer les coûts d'abattement (non monétaires).
+2. Trajectoire endogène: modéliser la rétroaction des transferts sur le PIB. Plus précisément, dans net_economy.jl:40, ajouter les transferts à v.Y[t,c] = (1.0 - p.ABATEFRAC[t,c]) ./ (1.0 + p.LOCAL_DAMFRAC_KW[t,c]) * p.YGROSS[t,c] + transfers[t,c] (FAIT) \
+     
+### Fait
+Dans net_economy, il y a un switch qui permet d'inclure les effets macros de la redistribution - il n'est activé que quand une partie des revenus est redistribuée à l'international sinon pas d'effet macro par pays.\
+Dans quantile_recycle, toujours avec le même switch, on peut appliquer la taxe et les transferts par personne en appliquant le taux d'épargne - parce que ça impacte le revenu des individus et pas seulement leur conso.\
+Dans nice2020_module, attention les composants revenue_recycle tourne avant net_economy maintenant (il y avait une référence à Ynet qui bloquait dans revenue_recycle avant mais elle ne sert à rien en fait); ensuite quelques paramètres sont passès en paramètres partagés.\
+Quelques petits changements dans example_runs pour ajouter le switch.
+AF -> Je reformule: Dans NICE initial, la taxe carbone s'appliquait à la consommation. Pour pouvoir modéliser l'effet macro (la rétroaction) des transferts inter sur le PIB (et l'investissement), il faut attribuer la taxe au PIB dans son ensemble. On effectue donc ce changement.
+AF => Pour pouvoir évaluer l'effet macro toutes choses égales par ailleurs, il faudrait distinguer les deux switchs (s'ils ne sont pas équivalents, ce que je crois). Switch 1: taxe portant sur Y plutôt que C; Switch 2: avec ou sans rétroaction. Pour l'option taxe sur Y sans rétroaction, il faudrait calculer I (à partir d'un Y net intermédiaire) avant de calculer Y net en incorporant les transferts.
 
 
 ## 6. Prédire l'empreinte carbone (Marius)

@@ -8,6 +8,7 @@
     LOCAL_DAMFRAC_KW            = Parameter(index=[time, country])              # Country-level damages based on local temperatures and on Kalkuhl & Wenz (share of net output)
     CPC                     	= Parameter(index=[time, country])      		# Country level consumption per capita (thousand USD2017 per person per year)
 	l           				= Parameter(index=[time, country])  			# Country population (thousands)
+    s           				= Parameter(index=[time, country])  			# Savings rate
 	mapcrwpp   				    = Parameter(index=[country])        			# Map from country index to wpp region index
 	Y           				= Parameter(index=[time, country]) 				# Output net of damages and abatement costs (1e6 USD2017 per year)
     Y_pc                        = Parameter(index=[time, country]) 	            # Per capita output net of abatement and damages (USD2017 per person per year)
@@ -22,6 +23,7 @@
     damage_elasticity        	= Parameter()                          			# Income elasticity of climate damages (1 = proportional to income)
 	quantile_consumption_shares = Parameter(index=[time, country, quantile]) 	# Income shares of deciles
     recycle_share           	= Parameter(index=[country, quantile]) 		    # Share of carbon tax revenue recycled back to each quantile
+    redistribution_switch       = Parameter()                                   # Switch, to choose whether the redistribution macro effects are added
 
     CO2_income_elasticity    	= Variable(index=[time, country])             	# Elasticity of CO2 price exposure with respect to income
     abatement_cost_dist		 	= Variable(index=[time, country, quantile]) 	# Quantile distribution shares of mitigation costs
@@ -92,16 +94,16 @@
 
 				# Subtract tax revenue from each quantile based on quantile CO2 tax burden distributions.
 				# Note, per capita tax revenue and consumption should both be in $1000/person.
-				v.qcpc_post_tax[t,c,q] =  v.qcpc_post_damage_abatement[t,c,q] - (p.nb_quantile * p.tax_pc_revenue[t,c] * v.carbon_tax_dist[t,c,q])
+				v.qcpc_post_tax[t,c,q] =  v.qcpc_post_damage_abatement[t,c,q] - (p.nb_quantile * p.tax_pc_revenue[t,c] * v.carbon_tax_dist[t,c,q])*(1-(1-p.s[t,c])*p.redistribution_switch)
 
 				# Recycle tax revenue by adding shares back to all quantiles
 				if p.switch_recycle==0 # In the NO revenue recycling case (distributionally neutral), refund tax revenues equal to the initial burden
 
-					v.qcpc_post_recycle[t,c,q] = v.qcpc_post_tax[t,c,q] + (p.nb_quantile * p.tax_pc_revenue[t,c] * v.carbon_tax_dist[t,c,q])
+					v.qcpc_post_recycle[t,c,q] = v.qcpc_post_tax[t,c,q] + (p.nb_quantile * p.tax_pc_revenue[t,c] * v.carbon_tax_dist[t,c,q])*(1-(1-p.s[t,c])*p.redistribution_switch)
 
 				elseif p.switch_recycle==1 # In the revenue recycling case, distribute divididends from country and/or global tax revenue (assume recycling shares constant over time)
 
-					v.qcpc_post_recycle[t,c,q] = v.qcpc_post_tax[t,c,q] + (p.nb_quantile * p.country_pc_dividend[t,c] * p.recycle_share[c,q])
+					v.qcpc_post_recycle[t,c,q] = v.qcpc_post_tax[t,c,q] + (p.nb_quantile * p.country_pc_dividend[t,c] * p.recycle_share[c,q])*(1-(1-p.s[t,c])*p.redistribution_switch)
 				end
 
 			end # quantile
