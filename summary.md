@@ -9,10 +9,10 @@
 4. Permettre une allocation personnalisée des recettes carbone, à partir d'une répartition du budget carbone entre pays (en modifiant revenue_recycle.jl ou bien loss_damage). => Erwan
 5. Faire tourner NICE avec des trajectoires exogènes de PIB et d'émissions. Puis, au contraire, intégrer la rétroaction des transferts sur le PIB. => Marius
 6. Prédire le ratio de l'empreinte carbone par rapport aux émissions territoriales d'un pays en utilisant son PIB par habitant et sa balance commerciale, à partir de données récentes. => Marius
-7. Modéliser les coûts et bénéfices en nominal (à partir des chiffres en PPA).
+7. Modéliser les coûts et bénéfices en nominal (à partir des chiffres en PPA). AF-Ghersi
 8. Raffiner la présentation de la distribution des revenus, en utilisant les données par percentile du WID. 
 9. Modéliser en R l'apport de NICE, à savoir la désagrégation en décile-pays et les dégâts par pays.
-
+10. Modéliser une transition entre absence de taxe et taxe optimale pour les premières années.
 
 ## 0. Installation et exécution
 
@@ -94,7 +94,10 @@ Pour la période pre-2030, prendre le BAU pour les émissions (vous obtenez comb
 
 
 ## 5. Trajectoires exogènes et endogènes (Marius)
-1. Trajectoires exogènes: À partir d'une table donnant le PIB par pays pour chaque année de simulation, et d'une table équivalente pour les émissions, neutraliser la partie macro de NICE et faire tourner la partie analyse distributive; prenant en entrée ces deux tables et en sortie les sorties habituelles de NICE.
+1. Trajectoires exogènes: À partir d'une table donnant le PIB par pays pour chaque année de simulation, et d'une table équivalente pour les émissions, neutraliser la partie macro de NICE et faire tourner la partie analyse distributive; prenant en entrée ces deux tables et en sortie les sorties habituelles de NICE. 
+-> Pb: que neutralise-t-on concrètement ? Qu'a-t-on en entrée parmi PIB brut, PIB net, abattement, taxe, dommages ? AF => Oublions cette partie avant de déterminer la réponse. Ou ne gardons que la distribution des dommages et intra-pays (et oublions les coûts d'abattement)
+=> En entrée: PIB brut, émissions, taxe. Abattement à 0.
+-> Pb: difficile d'injecter directement des trajectoires exogènes car tout est calibré en même temps (taux d'épargne, dépréciation): il faut matcher le TFP
 2. Trajectoire endogène: modéliser la rétroaction des transferts sur le PIB. Plus précisément, dans net_economy.jl:40, ajouter les transferts à v.Y[t,c] = (1.0 - p.ABATEFRAC[t,c]) ./ (1.0 + p.LOCAL_DAMFRAC_KW[t,c]) * p.YGROSS[t,c] + transfers[t,c]
 
 
@@ -109,6 +112,28 @@ Pour la période pre-2030, prendre le BAU pour les émissions (vous obtenez comb
 8. Comparer le mean absolute error de 4 et 6.
 
 
+## 7. Modéliser prix nominal
+- est-ce que ça a du sens de modéliser empreinte carbone et nominal dans un modèle sans secteurs ? la relation PPP/nominal est-elle stable dans le temps ?
+=> Checker si les prix dans KLEM ou IMACLIM v2 reflètent les PPP (KLEM a l'avantage d'être désagrégé et néoclassique/standard, mais ne gère pas le commerce contrairement à IMACLIM).
+=> Comment downscale IMACLIM.
+=> Comment est calibré la fonction d'abattement dans NICE?
+
+
+## 8. Inégalités non paramétriques
+Francis Dennig avait une modélisation des inégalités non-paramétriques.
+
+
 ## Questions 
 - Does NICE model the feedback effect of transfers on GDP? => No.
-- "a global and uniform carbon tax leads to the same abatement rate trajectory in every country, but to heterogeneous abatement costs in terms of share of gross output" Why?
+- Is there an important reason for modelling the carbon tax as a tax on consumption rather than production?
+
+
+## Infos sur NICE
+- Calibration exogène: NICE a déjà des trajectoires exogènes (SSP2), la prod totale des facteurs est ajustée; l'intensité carbone sigma est estimée à partir de trajectoires d'émissions d'autres modèles. PIB SSP2 BAU sans dommage, prennent dépréciation et taux d'épargne de Penn World, convergeant vers un taux commun. À chaque période trouvent le TFP nécessaire pour reproduire le PIB. Pour les émissions, ont fit sur les sorties de REMIND. Population exogène. Puis fit sur les émissions pour trouver le sigma = intensité carbone. Les sigma et TFP changent pour chaque période, Marie ne se souvient plus si c'est lissé (genre taux de croissance constant) ou ajusté période par période. 
+- certaines calibrations, faites par personnes différentes, sont dans nice_inputs.json; c'est équivalent à une table de données normale en excel.
+- Revenus: NICE repasse les revenus en consos pour les pays où les données sont en termes de revenus plutôt que conso
+- Gaz: Dans NICE il y a juste le CO2
+
+
+## Literature
+- Determinants of trade balance: Bekkers et al. (2020) pp. 20-21; Lane and Milesi-Ferretti (2012): R^2=.45; Fouré et al. (2013): R^2: .56 (OECD), .17 (non-OECD)
