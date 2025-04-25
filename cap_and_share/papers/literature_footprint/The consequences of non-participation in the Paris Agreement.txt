@@ -1,0 +1,70 @@
+1. Title and Authors of the Paper
+Title: The consequences of non-participation in the Paris Agreement
+Authors: Mario Larch & Joschka Wanner
+
+2. Main Goal and Fundamental Concept
+Le papier évalue les effets négatifs qu’un pays cause au reste du monde lorsqu’il décide de ne pas participer à l’Accord de Paris sur le climat. Il cherche à quantifier la perte d'efficacité climatique globale, en tenant compte à la fois des effets directs (émissions non réduites) et indirects (fuite carbone via les échanges et les prix des énergies fossiles).
+
+3. Technical Approach
+Les auteurs utilisent un modèle de gravité structurel multi-secteurs enrichi pour intégrer :
+
+une fonction de production à facteurs multiples avec usage d'énergie,
+
+un marché mondial de combustibles fossiles avec une élasticité d’offre constante,
+
+une modélisation des taxes carbone nationales,
+
+et une fonction d’utilité qui inclut une désutilité liée aux émissions mondiales.
+
+Le modèle permet de simuler un scénario dans lequel tous les pays appliquent leurs contributions déterminées au niveau national (NDCs), sauf un qui se retire et n’adopte aucune politique climatique. Les émissions sont décomposées en effets d’échelle, de composition, et de technique.
+
+4. Distinctive Features
+Le modèle intègre à la fois les fuites par les échanges commerciaux (relocation industrielle) et les fuites par le marché de l’énergie (effet prix du carbone).
+
+Il permet une décomposition analytique des émissions (scale/composition/technique) dans un cadre empirique.
+
+Il fournit une évaluation quantifiée et comparative des pertes d’efficacité mondiale dues à la non-participation de chaque pays, un par un (140 pays simulés).
+
+5. Experimental Setup and Results
+Base de données : GTAP 10, année de référence 2014, avec estimation des coûts commerciaux par équation gravitaire.
+
+Le modèle est calibré pour simuler différents scénarios de retrait unilatéral d’un pays de l’accord.
+
+Résultats clés :
+
+Le retrait des États-Unis réduit de 38.2 % les gains de réduction mondiale (32% effet direct + 6% de fuite).
+
+Le retrait de la Chine réduit la réduction mondiale de 24.1 %.
+
+La fuite carbone est principalement due à la baisse du prix mondial des énergies fossiles, incitant les pays non-coopérants à produire plus intensivement.
+
+Dans presque tous les cas, le pays qui se retire n’en tire pas de gain net de bien-être, car les pertes liées aux dommages climatiques compensent les gains économiques.
+
+6. Advantages and Limitations
+Avantages :
+
+Permet une quantification claire de l'impact de la non-coopération.
+
+Combine rigueur théorique et applicabilité empirique à grande échelle.
+
+Intègre deux canaux de fuite carbone dans un seul modèle structurel.
+
+Limitations :
+
+Hypothèse de marché énergétique mondial parfaitement intégré, ce qui simplifie excessivement certaines frictions géopolitiques.
+
+Ne prend en compte que les émissions liées à la combustion de CO₂, pas les autres gaz ni les émissions de procédé.
+
+7. Conclusion
+Ce papier propose un modèle robuste pour évaluer les impacts globaux et nationaux de la non-coopération climatique. Il met en lumière les interdépendances entre politiques nationales via les fuites carbone, montre que les effets d’une taxe carbone ne sont pas confinés à l’intérieur des frontières, et renforce la pertinence des approches fondées sur les émissions de consommation ou sur l'intégration du commerce dans les politiques climatiques.
+
+En quoi ce papier t’aide à répondre à ta question ?
+Tu cherches à savoir quelle base utiliser pour attribuer le carbone émis dans le cadre d'une taxe sur la production. Ce papier est très pertinent car :
+
+Il quantifie précisément les fuites carbone liées à la production locale vs consommation mondiale. Il montre que les politiques nationales peuvent être contrecarrées par les échanges commerciaux et les prix mondiaux de l'énergie.
+
+Il utilise un modèle de commerce international pour attribuer les émissions par origine de production et destination de consommation, ce qui est exactement ce qu’il faut pour passer des émissions territoriales à l’empreinte carbone.
+
+Il intègre les liens entre PIB, commerce, usage d'énergie et émissions, ce qui est utile pour ton objectif de prédiction à partir d’autres données (GDP, balance commerciale…).
+
+En résumé : tu veux savoir combien de carbone "appartient" à la production d’un pays donné dans un monde interconnecté ? Ce papier te donne une méthode et une structure modélisable pour le faire.
