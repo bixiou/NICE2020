@@ -14,6 +14,15 @@
 9. Modéliser en R l'apport de NICE, à savoir la désagrégation en décile-pays et les dégâts par pays.
 10. Modéliser une transition entre absence de taxe et taxe optimale pour les premières années.
 
+## Idées de recherche
+1. Étudier l'équivalence entre prix carbone différenciés et droits d'émissions différenciés. 
+2. Compare world welfare in a climate club of 
+a. global CO2 price recycled to producers
+b. club CO2 price recycled equal pc with the same global budget (i.e. lower budget in club to allow BAU emissions outside)
+c. if a < b, share of revenue that producers should give to LDCs to make a = b.
+3. Tester prix différenciés de Equal Right.
+
+
 ## 0. Installation et exécution
 
 ### Étapes
