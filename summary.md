@@ -124,6 +124,7 @@ AF => Pour pouvoir évaluer l'effet macro toutes choses égales par ailleurs, il
 
 
 ## 6. Prédire l'empreinte carbone (Marius)
+### Consignes
 1. Chercher dans la littérature (Google Scholar) des papiers qui prédisent carbon footprint ou consumption-based emissions ou carbon content of trade à partir d'autres données (GDP, trade balance). Faire la liste des papiers qui s'en rapprochent le plus (avec abstract ou un résumé de votre cru). Si ça n'existe pas, passer aux étapes suivantes :
 2. Vérifier (par ex demander à Marie Young-Brun) si NICE concerne seulement le CO2 fossile ou s'il y aussi LULUCF ou d'autres GHG.
 3. Télécharger des données récentes pays par pays de consumption-based emissions (CO2 fossil a priori, selon ce que fait NICE), territorial emissions (CO2 fossil), (log) GDP, trade balance, et energy trade balance (in energy units and in $, et si possible distinguer trade balance pétrole, gaz, charbon, autre énergie). Mettre toutes ces variables en per capita terms.
@@ -132,6 +133,15 @@ AF => Pour pouvoir évaluer l'effet macro toutes choses égales par ailleurs, il
 6. Faire tourner les régressions sur les données d'il y a ~20 ans et voir si ça prédit bien les empreinte carbone actuelles, en mettant en entrée les variables actuelles de PIB et émissions, mais en calculant la trade balance à partir de celle d'il y a 20 ans (en % du PIB).
 7. À partir des intensités carbone (tCO2/$) des non-energy imported goods (si pas de données là-dessus, chercher des données sur non-energy global GDP), des intensités carbone de chaque énergie, et des données de trade balance par energy goods et non-energy aggregate good, estimer le contenu carbone des importations/exportations par pays. Voir (graphiquement, R^2, mean absolute error) si ça prédit bien l'empreinte carbone.
 8. Comparer le mean absolute error de 4 et 6.
+
+### Avancement
+ 1. Relevant literature : \ 
+Serkan Aras and M. Hanifi Van (2022) reach a R2 of 0.94 using statistical learning methods concerning Turkey.\ 
+Liddle (2018) Regressions using consumption-based and territory-based CO2 emissions are compared. Trade is significant for consumption-based but not for territory-based emissions.\ 
+Liddle (2018) is not available for download but can be accesed at this address : https://www.sciencedirect.com/science/article/pii/S0140988317303857?casa_token=NrPmOH5yntUAAAAA:t8Z3eKYPO7eFtFLR-MP9LwuX3rZWoFz7N34XW7dMMJfjMz2fyipqqPjcA3MbfVaktyQLADHz1dsf
+Bhattacharya et.al (2019) Examine the convergence of consumption-based and territory-based carbon emissions intensity across 70 countries. there are three clubs for consumption-based-emissions. Forecast club convergence by 2030. \ 
+Same problem about download : https://www.sciencedirect.com/science/article/pii/S0140988319304293?fr=RR-2&ref=pdf_download&rr=937d8a728fa8d11b \ 
+Mahlkow and Wanner (2023) establish stylized facts about the links between consumption-based emissions and trade imbalances
 
 
 ## 7. Modéliser prix nominal
