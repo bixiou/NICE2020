@@ -66,6 +66,7 @@ Avancement : projet R créé dans cap_and_share, possibilité de représenter le
 2. Adapter ce code au cas de participation partielle : on dote les pays participants d'un budget carbone, et on optimise leur bien-être (sans tenir compte du bien-être des pays non participants).
 3. Coder un module qui permet de trouver le prix période par période d'un budget carbone défini période par période (qui marche également avec participation partielle).
 4. Coder un module qui permet de trouver le prix à partir de budgets carbone définis pour une période donnée dans un pays donné (en entrée on a une table de budgets carbone régions x dates, et en sortie on a une table de prix correspondants). 
+/!\ Comme on maximise le bien-être, la contrainte de budget carbone n'est pas forcément binding.
 
 
 ## 4. Allocation personnalisée des recettes (Erwan)
