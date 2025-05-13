@@ -165,7 +165,7 @@ Francis Dennig avait une modélisation des inégalités non-paramétriques.
 - Calibration exogène: NICE a déjà des trajectoires exogènes (SSP2), la prod totale des facteurs est ajustée; l'intensité carbone sigma est estimée à partir de trajectoires d'émissions d'autres modèles. PIB SSP2 BAU sans dommage, prennent dépréciation et taux d'épargne de Penn World, convergeant vers un taux commun. À chaque période trouvent le TFP nécessaire pour reproduire le PIB. Pour les émissions, ont fit sur les sorties de REMIND. Population exogène. Puis fit sur les émissions pour trouver le sigma = intensité carbone. Les sigma et TFP changent pour chaque période, Marie ne se souvient plus si c'est lissé (genre taux de croissance constant) ou ajusté période par période. 
 - certaines calibrations, faites par personnes différentes, sont dans nice_inputs.json; c'est équivalent à une table de données normale en excel.
 - Revenus: NICE repasse les revenus en consos pour les pays où les données sont en termes de revenus plutôt que conso
-- Gaz: Dans NICE il y a juste le CO2
+- Gaz: Dans NICE il y a juste le CO2, mais ça inclut tout le CO2 (y.c. LULUCF)
 
 
 ## Literature
