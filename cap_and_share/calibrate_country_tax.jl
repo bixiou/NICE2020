@@ -6,7 +6,7 @@
 ################################################################################################
 
 using Pkg
-# Active le projet et installe si nécessaire
+# Activate the project and make sure all packages we need are installed.
 auto_dir = joinpath(@__DIR__, "..")
 Pkg.activate(auto_dir)
 Pkg.instantiate()
@@ -16,10 +16,6 @@ include(joinpath(@__DIR__, "..", "src", "helper_functions.jl"))
 
 using Mimi, MimiFAIRv2, DataFrames, CSVFiles, CSV
 
-# --------------------------------------------
-# SECTION À MODIFIER :
-# Indique le chemin vers ton fichier CSV d'émissions cible
-# Format attendu : time,country,E_gtco2 (extraction NICE2020)
 # --------------------------------------------
 const target_csv = joinpath(@__DIR__, "..", "results", "uniform_tax_example", "no_revenue_recycling", "country_output", "industrial_co2_emissions.csv")
 # --------------------------------------------
