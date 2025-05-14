@@ -41,7 +41,7 @@ function create_nice2020()
 	set_dimension!(m, :regionwpp, rwpp )
 
 	# Set scenario dimension (1 to 6)
-	set_dimension!(m, :scenario, 1:6)
+	set_dimension!(m, :scenario, 1:7)
 
 	# Set quantile dimension
 	set_dimension!(m, :quantile, ["First", "Second", "Third", "Fourth", "Fifth", "Sixth", "Seventh", "Eighth", "Ninth", "Tenth"])
@@ -132,6 +132,7 @@ function create_nice2020()
 	update_param!(m, :abatement, :μ_input, zeros(length(dim_keys(m, :time)), length(dim_keys(m, :country))))
 	update_param!(m, :abatement, :θ2, 2.6)
 	update_param!(m, :abatement, :pbacktime, full_pbacktime)
+	update_param!(m, :abatement, :direct_country_tax, zeros(length(dim_keys(m, :time)), length(dim_keys(m, :country))))
 
 	connect_param!(m, :abatement, :s, :s)
 	connect_param!(m, :abatement, :l, :l)

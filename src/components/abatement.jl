@@ -22,6 +22,7 @@
     policy_scenario         = Parameter()                       # Policy scenario for the country, used to determine which countries are in the club
     policy_scenario         = Parameter()                       # Policy scenario for the country, used to determine which countries are in the club
     club_countries_binary      = Parameter(index=[scenario, country])  # Countries in the club for each scenario (1) or not (0)
+    direct_country_tax = Parameter(index=[time, country])
 
     θ1                 = Variable(index=[time, country])    # Multiplicative parameter of abatement cost function. Equal to ABATEFRAC at 100% mitigation
     country_carbon_tax = Variable(index=[time, country]) 	# CO2 tax rate (2017 USD per tCO2)
@@ -67,6 +68,14 @@
                 v.μ[t,c] = p.μ_input[t,c]
                 v.country_carbon_tax[t,c] =  (v.θ1[t,c] * p.θ2/(p.σ[t,c]*1e3)) * v.μ[t,c]^(p.θ2 - 1.0)
 
+            
+            elseif (p.control_regime==4) # taxe manuelle pays×année
+                # on prend directement la taxe que l'utilisateur a passée
+                v.country_carbon_tax[t,c] = p.direct_country_tax[t,c] 
+                # et on en déduit le taux d’abattement pour la cohérence interne
+                v.μ[t,c] = min(max(
+                  (v.country_carbon_tax[t,c] / (v.θ1[t,c] * p.θ2/(p.σ[t,c]*1e3)))^(1/(p.θ2-1)),
+                  0.0), 1.0)    
             end
 
         end

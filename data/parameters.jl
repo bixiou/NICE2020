@@ -38,7 +38,7 @@ function participation_vector(participants::Vector{Symbol}, all_countries::Vecto
 end
 
 # Scenario labels
-scenarios = [:All_World, :All_Except_Oil_Countries, :Optimistic, :Generous_EU, :Partnership]
+scenarios = [:All_World, :All_Except_Oil_Countries, :Optimistic, :Generous_EU, :Partnership, :Union]
 
 # Correspondence dictionary name → index
 scenario_index = Dict(
@@ -46,7 +46,8 @@ scenario_index = Dict(
     :All_Except_Oil_Countries    => 2,
     :Optimistic    => 3,
     :Generous_EU   => 4,
-    :Partnership   => 5
+    :Partnership   => 5,
+    :Union         => 7
 )
 
 rich_oil_countries = ["RUS", "KAZ", "SAU", "QAT", "KWT", "AZE", "OMN", "BHR", "MYS"]
@@ -88,13 +89,26 @@ latin_american_countries = filter(row -> row[:WPP_region_number] in [2, 3, 13], 
 personalized_countries = unique(vcat(eu27_countries, africa_countries, ["NOR", "CHN", "CHE"]))
 
 
+#Scenario 7 : Union 
+union_countries = ["AFG", "AGO", "ALB", "ARG", "AUT", "BDI", "BEL", "BEN", "BFA", "BGD", "BGR", "BHS", "BIH", "BLZ", "BOL",
+"BRA", "BRB", "BTN", "BWA", "CAF", "CHE", "CHL", "CHN", "CIV", "CMR", "COD", "COG", "COL", "COM", "CPV",
+"CRI", "CUB", "CYP", "CZE", "DEU", "DJI", "DNK", "DOM", "DZA", "ECU", "EGY", "ERI", "ESP", "EST", "ETH",
+  "FIN", "FRA", "GAB", "GBR", "GHA", "GIN", "GMB", "GNB", "GNQ", "GRC", "GTM", "GUY", "HND", "HRV", "HTI",
+  "HUN", "IDN", "IND", "IRL", "ISL", "ITA", "JAM", "JPN", "KEN", "KHM", "KOR", "LAO", "LBR", "LBY", "LKA",
+  "LSO", "LTU", "LUX", "LVA", "MAR", "MDA", "MDG", "MDV", "MEX", "MLI", "MLT", "MMR", "MNG", "MOZ", "MRT",
+  "MUS", "MWI", "MYS", "NAM", "NER", "NGA", "NIC", "NLD", "NOR", "NPL", "PAK", "PAN", "PER", "PHL", "PNG",
+ "POL", "PRT", "PRY", "ROU", "RWA", "SDN", "SEN", "SGP", "SLE", "SLV", "SOM", "SRB", "SSD", "SUR", "SVK",
+ "SVN", "SWE", "SWZ", "TCD", "TGO", "THA", "TLS", "TTO", "TUN", "TWN" ,"TZA", "UGA", "URY", "VEN", "VNM",
+ "ZAF", "ZMB", "ZWE", "PRK"]
+
 club_countries = [
     Symbol.(countries),                            # Scenario 1
     Symbol.(all_except_oil_countries),             # Scenario 2
     Symbol.(optimistic_scenario_countries),        # Scenario 3
     Symbol.(generous_eu_countries),                # Scenario 4
     Symbol.(partnership_countries),                # Scenario 5
-    Symbol.(personalized_countries)                # Scenario 6
+    Symbol.(personalized_countries),                # Scenario 6
+    Symbol.(union_countries)                       # Scenario 7
 ]
 
 # Final binary participation matrix per scenario
@@ -104,7 +118,8 @@ club_countries_binary = transpose(reduce(hcat,[
     participation_vector(Symbol.(optimistic_scenario_countries), Symbol.(countries)),   # Scenario 3
     participation_vector(Symbol.(generous_eu_countries), Symbol.(countries)),           # Scenario 4
     participation_vector(Symbol.(partnership_countries), Symbol.(countries)),           # Scenario 5
-    participation_vector(Symbol.(personalized_countries), Symbol.(countries))           # Scenario 6
+    participation_vector(Symbol.(personalized_countries), Symbol.(countries)),           # Scenario 6
+    participation_vector(Symbol.(union_countries), Symbol.(countries))
 ]))
 
 

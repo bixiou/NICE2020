@@ -23,7 +23,7 @@ rho = 0.015                       # discount rate
 # ——————————————————————————————————————————————————————————————
 include(joinpath(@__DIR__, "..", "data", "parameters.jl"))
 
-const scenario_name     = :Partnership # Choice of scenario by name (:All_World, :All_Except_Oil_Countries, :Optimistic, :Generous_EU, :Partnership)
+const scenario_name     = :All_World # Choice of scenario by name (:All_World, :All_Except_Oil_Countries, :Optimistic, :Generous_EU, :Partnership)
 
 const policy_scenario   = scenario_index[scenario_name]
 
@@ -75,72 +75,87 @@ update_param!(nice_v2, :policy_scenario, policy_scenario)
 nb_steps   = length(dim_keys(nice_v2, :time))
 years_vec  = collect(2020:2020+nb_steps-1)
 
-# Run function over ranges for start rate and growth rate
-start_first   = 125
-start_step    = 1
-start_last    = 128
-g_rate_first  = 0.022
-g_rate_step   = 0.001
-g_rate_last   = 0.025
-nb_tests      = length(collect(start_first:start_step:start_last)) *
-                length(collect(g_rate_first:g_rate_step:g_rate_last))
-println("Number of trajectories tested: ", nb_tests)
+mask = (years_vec .>= tax_start_year) .& (years_vec .<= evaluation_end_year)
+discount = (1 .+ rho) .^ collect(0:(evaluation_end_year - tax_start_year))
 
-## Store results in arrays
-emissions_all   = Array{Float64}(undef, nb_steps, nb_tests)
-welfare_all     = Array{Float64}(undef, nb_steps, nb_tests)
-c_tax_paths     = Array{String}(undef, nb_tests)
+# === Zoom-progressive search with carbon budget constraint ===
+const n_zoom    = 3       # number of zoom iterations
+const n_points  = 11      # 11×11 grids
+# initial bounds 
+const start_first  = 0
+const start_last   = 2000
+const g_rate_first = 0.0
+const g_rate_last  = 0.20
+start_min, start_max = start_first, start_last
+rate_min,  rate_max  = g_rate_first, g_rate_last
 
-function global_c_tax_loop(emissions_all, welfare_all, c_tax_paths)
-    i = 0
-    for start in start_first:start_step:start_last, g in g_rate_first:g_rate_step:g_rate_last
-        i += 1
-        println("Run $i/$nb_tests")
+best_welfare = -Inf
+best_params  = (NaN, NaN)
 
-        emissions_all[:, i], welfare_all[:, i] = test_global_exp_c_tax(start, g)
-        c_tax_paths[i] = string(start, "_", g)
+for zoom in 1:n_zoom
+    println("Zoom niveau $zoom: domaine A∈[$start_min,$start_max], B∈[$rate_min,$rate_max]")
+    A_vals = range(start_min, stop=start_max, length=n_points)
+    B_vals = range(rate_min,  stop=rate_max,  length=n_points)
+
+    # grille de scores
+    welfare_grid = fill(-Inf, n_points, n_points)
+
+    for (i, A) in enumerate(A_vals), (j, B) in enumerate(B_vals)
+        # simulation
+        emissions, welfare = test_global_exp_c_tax(A, B)
+
+        # we restrict to the years [tax_start_year, evaluation_end_year]
+        emis_zoom = emissions[mask]
+        wel_zoom  = welfare[mask] ./ discount
+
+        # carbon budget constraint
+        if sum(emis_zoom) <= emission_budget_limit
+            welfare_grid[i, j] = sum(wel_zoom)
+        end
+        # sinon reste -Inf
     end
-    return emissions_all, welfare_all, c_tax_paths
+
+    # detect the max in the grid
+    max_idx = argmax(welfare_grid)
+    ci = CartesianIndices(welfare_grid)[max_idx]
+    i_max, j_max = Tuple(ci)
+    best_A, best_B = A_vals[i_max], B_vals[j_max]
+    best_val       = welfare_grid[i_max, j_max]
+    println("  → meilleur A=$(best_A), B=$(best_B), welfare=$best_val")
+
+    # memorize if it's the best overall
+    if best_val > best_welfare
+        best_welfare = best_val
+        best_params  = (best_A, best_B)
+    end
+
+    # determining the mini-rectangle around max and its neighbors
+    i_min = max(i_max-1, 1); i_max_ = min(i_max+1, n_points)
+    j_min = max(j_max-1, 1); j_max_ = min(j_max+1, n_points)
+    A_neighbors = [A_vals[ii] for ii in i_min:i_max_]
+    B_neighbors = [B_vals[jj] for jj in j_min:j_max_]
+
+    start_min, start_max = minimum(A_neighbors), maximum(A_neighbors)
+    rate_min,  rate_max  = minimum(B_neighbors), maximum(B_neighbors)
 end
 
-emissions_all, welfare_all, c_tax_paths = global_c_tax_loop(emissions_all, welfare_all, c_tax_paths)
+# --- Checking total emissions for the optimum path ---
+emissions_opt, welfare_opt = test_global_exp_c_tax(best_params[1], best_params[2])
 
-######################################################
-## Sélection selon 2 critères sur [tax_start_year, evaluation_end_year]
-######################################################
+# We keep only the period [tax_start_year, evaluation_end_year]
+emis_budget = emissions_opt[mask]
 
-# --- from 2020-2100 to tax_start_year-evaluation_end_year ---
-mask      = (years_vec .>= tax_start_year) .& (years_vec .<= evaluation_end_year)
-emissions = emissions_all[mask, :]
-welfare   = welfare_all[mask, :]
-# ---------------------------------------------------------
+total_emis_opt = sum(emis_budget)
+println("Total emissions of  ", tax_start_year, " to ", evaluation_end_year,
+        " for the scenario : ", total_emis_opt, " GtCO2")
 
-# Create vector for discounting à partir de la date de début
-discount     = (1 .+ rho) .^ collect(0:evaluation_end_year-tax_start_year)
+println("\n=== Final result ===")
+println("Best path: initial tax = $(best_params[1]), growth = $(best_params[2])")
+println("Total discounted welfare = $best_welfare")
 
-# Apply discount rate 
-welfare_disc = welfare ./ discount 
-
-# Change to DataFrame format
-emissions_df    = DataFrame(emissions,    Symbol.(c_tax_paths))
-welfare_df_disc = DataFrame(welfare_disc, Symbol.(c_tax_paths))
-
-# Compute total emissions per trajectory
-tot_emissions = combine(emissions_df, names(emissions_df) .=> sum .=> names(emissions_df))
-
-# --- use emission_budget_limit to filter ---
-valid                  = sum.(eachcol(emissions_df)) .<= emission_budget_limit
-emissions_constrained  = emissions_df[:, valid]
-# ---------------------------------------------------------
-
-# Sum global welfare and keep only valid columns
-tot_welfare_disc = combine(welfare_df_disc, names(welfare_df_disc) .=> sum .=> names(welfare_df_disc))
-select!(tot_welfare_disc, names(emissions_constrained))
-
-# Finding the optimum trajectory
-tot_welfare_disc = stack(tot_welfare_disc)
-tax_path         = tot_welfare_disc[tot_welfare_disc.value .== maximum(tot_welfare_disc.value), :variable]
-println("Selected global carbon tax pathway: ", tax_path)
+# Saving the results
+save(joinpath("data","uniform_exp_tax_path_params.csv"),
+     DataFrame(path=collect(best_params)); header=false)
 
 # Save selected carbon tax pathway to CSV
 tax_path = parse.(Float64, split(tax_path[1], '_'))

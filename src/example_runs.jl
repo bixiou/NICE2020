@@ -89,7 +89,7 @@ println("Creating an instance of the NICE2020 model and updating some parameters
 nice2020_uniform_tax = MimiNICE2020.create_nice2020()
 
 switch_recycle  = 0 # OFF   Recycle revenues to households
-switch_scenario = :Partnership  # Choice of scenario by name (:All_World, :All_Except_Oil_Countries, :Optimistic, :Generous_EU, :Partnership)
+switch_scenario = :Union  # Choice of scenario by name (:All_World, :All_Except_Oil_Countries, :Optimistic, :Generous_EU, :Partnership)
 
 # Set uniform global carbon tax rates and run model.
 update_param!(nice2020_uniform_tax, :abatement, :control_regime, 1) # Switch for emissions control regime  1:"global_carbon_tax", 2:"country_carbon_tax", 3:"country_abatement_rate"
