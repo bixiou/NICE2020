@@ -30,7 +30,7 @@ const participation_vec = club_countries_binary[policy_scenario, :]
 
 # -------------------------------------------------------------------
 # Target file (global aggregated): columns `time` (Int) and `E_gtco2` (Float64)
-const target_csv = joinpath(@__DIR__, "..", "data", "emissions_2020_2300_bis.csv")
+const target_csv = joinpath(@__DIR__, "data", "input", "E_Union_2020_2300_bis.csv")
 # -------------------------------------------------------------------
 
 # Prepare a NICE2020 model instance in global_carbon_tax mode

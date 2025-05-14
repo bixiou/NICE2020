@@ -15,7 +15,7 @@ Pkg.activate(joinpath(@__DIR__, ".."))
 Pkg.instantiate()
 
 # Load required Julia packages.
-using Mimi, MimiFAIRv2, DataFrames, CSVFiles
+using Mimi, MimiFAIRv2, DataFrames, CSVFiles, CSV
 
 println("Load NICE2020 source code.")
 # Load NICE2020 source code.
@@ -40,8 +40,35 @@ recycle_share = ones(nb_country,nb_quantile) .* 1/nb_quantile
 # CARBON TAX PATHWAY
 # ----------------------------------------------------
 
+################## CHOICE 1 #####################################
 #Example linear uniform carbon tax pathway (not optimised), 2017 USD per tCO2
 global_co2_tax = MimiNICE2020.linear_tax_trajectory(tax_start_value = 90, increase_value=7, year_tax_start=2020, year_tax_end=2200)
+
+
+################ CHOICE 2 ######################################
+# retrieve the list of years in base_model
+years = collect(dim_keys(base_model, :time))
+
+# prepare an empty vector for the nb_steps length tax
+global_co2_tax = zeros(Float64, nb_steps)
+
+# charge CSV (time, global_tax)
+df_tax = CSV.read(joinpath(@__DIR__, "..", "cap_and_share", "data", "output", "calibrated_global_tax_union_bis.csv"), DataFrame)
+df_tax.time       = Int.(df_tax.time)   # be sure it is Int
+df_tax.global_tax = Float64.(df_tax.global_tax)
+
+# create a dict year→tax
+tax_dict = Dict(row.time => row.global_tax for row in eachrow(df_tax))
+
+# fullfil global_co2_tax[i] = tax_dict[years[i]] or zero if not defined
+for (i, y) in enumerate(years)
+    if haskey(tax_dict, y)
+        global_co2_tax[i] = tax_dict[y]
+    else
+        # here : zero, or `error("no tax for $y")`
+        global_co2_tax[i] = 0.0
+    end
+end
 
 #------------
 # DIRECTORIES

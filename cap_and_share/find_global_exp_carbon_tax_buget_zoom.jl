@@ -12,9 +12,9 @@ Pkg.instantiate()
 using Mimi, MimiFAIRv2, DataFrames, CSVFiles
 
 # --- Tax and budget start parameters ---
-const tax_start_year        = 2025     # tax start year (2025, 2030…)
-const evaluation_end_year   = 2100     # the end of the year for budgeting and well-being
-const emission_budget_limit = 1000.0   # budget max GtCO2 from tax_start_year to evaluation_end_year
+const tax_start_year        = 2030     # tax start year (2025, 2030…)
+const evaluation_end_year   = 2080     # the end of the year for budgeting and well-being
+const emission_budget_limit = 653.37   # budget max GtCO2 from tax_start_year to evaluation_end_year
 rho = 0.015                       # discount rate
 # ---------------------------------------------------------
 
@@ -23,7 +23,7 @@ rho = 0.015                       # discount rate
 # ——————————————————————————————————————————————————————————————
 include(joinpath(@__DIR__, "..", "data", "parameters.jl"))
 
-const scenario_name     = :All_World # Choice of scenario by name (:All_World, :All_Except_Oil_Countries, :Optimistic, :Generous_EU, :Partnership)
+const scenario_name     = :Union # Choice of scenario by name (:All_World, :All_Except_Oil_Countries, :Optimistic, :Generous_EU, :Partnership, :Union)
 
 const policy_scenario   = scenario_index[scenario_name]
 
