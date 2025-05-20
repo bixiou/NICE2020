@@ -42,8 +42,8 @@ recycle_share = ones(nb_country,nb_quantile) .* 1/nb_quantile
 
 ################## CHOICE 1 #####################################
 #Example linear uniform carbon tax pathway (not optimised), 2017 USD per tCO2
-global_co2_tax = MimiNICE2020.linear_tax_trajectory(tax_start_value = 90, increase_value=7, year_tax_start=2020, year_tax_end=2200)
-
+global_co2_tax = MimiNICE2020.linear_tax_trajectory(tax_start_value = 184, increase_value=7, year_tax_start=2030, year_tax_end=2100)
+################# END CHOICE 1 ##################################
 
 ################ CHOICE 2 ######################################
 # retrieve the list of years in base_model
@@ -53,7 +53,7 @@ years = collect(dim_keys(base_model, :time))
 global_co2_tax = zeros(Float64, nb_steps)
 
 # charge CSV (time, global_tax)
-df_tax = CSV.read(joinpath(@__DIR__, "..", "cap_and_share", "data", "output", "calibrated_global_tax_union_bis.csv"), DataFrame)
+df_tax = CSV.read(joinpath(@__DIR__, "..", "cap_and_share", "data", "output", "calibrated_global_tax_union.csv"), DataFrame)
 df_tax.time       = Int.(df_tax.time)   # be sure it is Int
 df_tax.global_tax = Float64.(df_tax.global_tax)
 
@@ -69,6 +69,32 @@ for (i, y) in enumerate(years)
         global_co2_tax[i] = 0.0
     end
 end
+################## END CHOICE 2 ########################
+
+
+################# CHOICE 3 #######################
+# après : progression géométrique à +2.32%/an
+const τ0     = 184.0           # taxe de départ en 2030
+const r      = 0.0232          # taux de croissance annuel (2.32%)
+const t0     = 2030
+
+# Récupère la grille de temps du modèle
+years = collect(dim_keys(base_model, :time))
+T     = length(years)
+
+# Construit le vecteur de taxes de longueur T, initialisé à zéro
+global_co2_tax = zeros(Float64, T)
+
+# Pour chaque indice i correspond à l'année years[i], calcule la taxe
+for (i, y) in enumerate(years)
+    if y >= t0 && y <= 2100
+        global_co2_tax[i] = τ0 * (1 + r)^(y - t0)
+    else
+        global_co2_tax[i] = 0.0  # ou laissé à zéro avant 2030 / après 2100
+    end
+end
+
+################## END CHOICE 3 #######################
 
 #------------
 # DIRECTORIES
@@ -123,7 +149,6 @@ update_param!(nice2020_uniform_tax, :abatement, :control_regime, 1) # Switch for
 update_param!(nice2020_uniform_tax, :abatement, :global_carbon_tax, global_co2_tax)
 update_param!(nice2020_uniform_tax, :switch_recycle, switch_recycle)
 update_param!(nice2020_uniform_tax, :policy_scenario, MimiNICE2020.scenario_index[switch_scenario])
-update_param!(nice2020_uniform_tax, :redistribution_switch, redistribution_switch)
 
 println("Running the updated model and saving the output in the directory: ", output_directory_uniform,)
 

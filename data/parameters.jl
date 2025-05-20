@@ -93,13 +93,13 @@ personalized_countries = unique(vcat(eu27_countries, africa_countries, ["NOR", "
 union_countries = ["AFG", "AGO", "ALB", "ARG", "AUT", "BDI", "BEL", "BEN", "BFA", "BGD", "BGR", "BHS", "BIH", "BLZ", "BOL",
 "BRA", "BRB", "BTN", "BWA", "CAF", "CHE", "CHL", "CHN", "CIV", "CMR", "COD", "COG", "COL", "COM", "CPV",
 "CRI", "CUB", "CYP", "CZE", "DEU", "DJI", "DNK", "DOM", "DZA", "ECU", "EGY", "ERI", "ESP", "EST", "ETH",
-  "FIN", "FRA", "GAB", "GBR", "GHA", "GIN", "GMB", "GNB", "GNQ", "GRC", "GTM", "GUY", "HND", "HRV", "HTI",
-  "HUN", "IDN", "IND", "IRL", "ISL", "ITA", "JAM", "JPN", "KEN", "KHM", "KOR", "LAO", "LBR", "LBY", "LKA",
-  "LSO", "LTU", "LUX", "LVA", "MAR", "MDA", "MDG", "MDV", "MEX", "MLI", "MLT", "MMR", "MNG", "MOZ", "MRT",
-  "MUS", "MWI", "MYS", "NAM", "NER", "NGA", "NIC", "NLD", "NOR", "NPL", "PAK", "PAN", "PER", "PHL", "PNG",
- "POL", "PRT", "PRY", "ROU", "RWA", "SDN", "SEN", "SGP", "SLE", "SLV", "SOM", "SRB", "SSD", "SUR", "SVK",
- "SVN", "SWE", "SWZ", "TCD", "TGO", "THA", "TLS", "TTO", "TUN", "TWN" ,"TZA", "UGA", "URY", "VEN", "VNM",
- "ZAF", "ZMB", "ZWE", "PRK"]
+"FIN", "FRA", "GAB", "GBR", "GHA", "GIN", "GMB", "GNB", "GNQ", "GRC", "GTM", "GUY", "HND", "HRV", "HTI",
+"HUN", "IDN", "IND", "IRL", "IRN", "ISL", "ITA", "JAM", "JPN", "KEN", "KHM", "KOR", "LAO", "LBR", "LBY",
+"LKA", "LSO", "LTU", "LUX", "LVA", "MAR", "MDA", "MDG", "MDV", "MEX", "MLI", "MLT", "MMR", "MNG", "MOZ",
+"MRT", "MUS", "MWI", "MYS", "NAM", "NER", "NGA", "NIC", "NLD", "NOR", "NPL", "PAK", "PAN", "PER", "PHL",
+"PNG", "POL", "PRT", "PRY", "ROU", "RWA", "SDN", "SEN", "SGP", "SLE", "SLV", "SRB", "SUR", "SVK", "SVN",
+"SWE", "SWZ", "TCD", "TGO", "THA", "TKM", "TLS", "TUN", "TWN" ,"TZA", "UGA", "URY", "VNM", "ZAF", "ZMB", 
+"ZWE"]
 
 club_countries = [
     Symbol.(countries),                            # Scenario 1

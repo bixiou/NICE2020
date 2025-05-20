@@ -1,7 +1,5 @@
 ################################################################################################
-# calibrate_global_tax_dichotomy.jl
-#
-# Calibrates a uniform global carbon tax in NICE2020 for a given participation scenario,
+# Calibrates a uniform global carbon tax in NICE2020 for a given participation scenario (with club level emissions),
 # using:
 #  - for 2025 (t₀): exponentiation + dichotomy bracket,
 #  - for t>2025: bracket centered on tax_{t−1} with initial step = 20 + dichotomy.
@@ -30,7 +28,7 @@ const participation_vec = club_countries_binary[policy_scenario, :]
 
 # -------------------------------------------------------------------
 # Target file (global aggregated): columns `time` (Int) and `E_gtco2` (Float64)
-const target_csv = joinpath(@__DIR__, "data", "input", "E_Union_2020_2300_bis.csv")
+const target_csv = joinpath(@__DIR__, "data", "input", "E_Union_2020_2300.csv")
 # -------------------------------------------------------------------
 
 # Prepare a NICE2020 model instance in global_carbon_tax mode
@@ -210,5 +208,4 @@ out = DataFrame(
     time       = years[start_idx:end_idx],
     global_tax = tax_vec[start_idx:end_idx]
 )
-CSV.write("calibrated_global_tax_union_bis.csv", out)
-println("Results saved to 'calibrated_global_tax_dichotomy.csv'.")
+CSV.write("cap_and_share/data/output/calibrated_global_tax_union.csv", out)
