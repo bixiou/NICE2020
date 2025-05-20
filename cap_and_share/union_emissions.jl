@@ -86,6 +86,6 @@ rename!(result_extended, Dict("total_rights_proposed"=>"E_gtco2"))
 sort!(result_extended, :time)
 
 # Saving results
-CSV.write("cap_and_share/data/input/Final_E_Union_2020_2300.csv", result_extended)
+CSV.write("cap_and_share/data/input/E_Union_2020_2300.csv", result_extended)
 
 
