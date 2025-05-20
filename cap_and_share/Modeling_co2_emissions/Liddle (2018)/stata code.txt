@@ -1,0 +1,84 @@
+tsset country year
+gen ltradesh=log(tradesh)
+gen lexsh=log(exsh)
+gen limsh=log(imsh)
+gen ltffsh=log(tffsh)
+gen lprice=log(price)
+gen loilpri=log(oilpri)
+gen lindsh=log(indsh)
+gen lgaspr=log(gaspr)
+
+
+drop if country==7
+drop if country==15
+drop if country==17
+drop if country==35 
+drop if country==43
+drop if country==58
+drop if country==60
+drop if country==64
+drop if country==65
+drop if country==67
+drop if country==80
+drop if country==88 
+drop if country==91
+drop if country==92
+drop if country==103
+drop if country==110
+drop if country==112
+
+Table 3
+
+xtmg co2c gdp ltradesh lindsh ltffsh, cce robust res(cfr)
+xtmg co2t gdp ltradesh lindsh ltffsh, cce robust res(tfr)
+xtcd cfr tfr, resid
+xtmg co2c gdp lexsh limsh ltffsh, cce robust res(cfr2)
+xtmg co2t gdp lexsh limsh ltffsh, cce robust res(tfr2)
+xtcd cfr2 tfr2, resid
+
+Table 4
+
+xtmg co2c gdp lexsh limsh ltffsh if oecd==1, cce robust res(cor)
+xtmg co2t gdp lexsh limsh ltffsh if oecd==1, cce robust res(tor)
+xtcd cor tor, resid
+xtmg co2c gdp lexsh limsh ltffsh if oecd==0, cce robust res(cnr)
+xtmg co2t gdp lexsh limsh ltffsh if oecd==0, cce robust res(tnr)
+xtcd cnr tnr, resid
+
+
+
+Table 5
+
+xtmg co2c gdp lexsh limsh ltffsh if low==1, cce robust res(clr)
+xtmg co2t gdp lexsh limsh ltffsh if low==1, cce robust res(tlr)
+xtcd clr tlr, resid
+xtmg co2c gdp lexsh limsh ltffsh if lowmid==1, cce robust res(clmr)
+xtmg co2t gdp lexsh limsh ltffsh if lowmid==1, cce robust res(tlmr)
+xtcd clmr tlmr, resid
+xtmg co2c gdp lexsh limsh ltffsh if upmid==1, cce robust res(cumr)
+xtmg co2t gdp lexsh limsh ltffsh if upmid==1, cce robust res(tumr)
+xtcd cumr tumr, resid
+xtmg co2c gdp lexsh limsh ltffsh if high==1, cce robust res(chr)
+xtmg co2t gdp lexsh limsh ltffsh if high==1, cce robust res(thr)
+xtcd chr thr, resid
+
+xtmg co2t gdp lexsh limsh ltffsh if (high+low==0), cce robust res(tmr)
+xtmg co2c gdp lexsh limsh ltffsh if (high+low==0), cce robust res(cmr)
+xtcd tmr cmr, resid
+
+Table 6
+
+xtmg co2c gdp lexsh limsh ltffsh lprice if oecd==1, cce robust res(copr)
+xtmg co2t gdp lexsh limsh ltffsh lprice if oecd==1, cce robust res(topr)
+xtcd copr topr, resid
+xtmg co2t gdp lexsh limsh ltffsh loilpri if oecd==1, cce robust res(tpr)
+xtmg co2c gdp lexsh limsh ltffsh loilpri if oecd==1, cce robust res(cpr)
+xtcd tpr cpr, resid
+xtmg co2c gdp lexsh limsh ltffsh lgaspr, cce robust res(cgpr)
+xtmg co2t gdp lexsh limsh ltffsh lgaspr, cce robust res(tgpr)
+xtcd cgpr tgpr, resid
+xtmg co2c gdp lexsh limsh ltffsh lgaspr if oecd==1, cce robust res(cogpr)
+xtmg co2t gdp lexsh limsh ltffsh lgaspr if oecd==1, cce robust res(togpr)
+xtcd cogpr togpr, resid
+
+
