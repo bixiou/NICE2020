@@ -53,11 +53,11 @@ update_param!(nice_v2, :abatement, :control_regime, 1)
 nb_steps   = length(dim_keys(nice_v2, :time))
 
 # Run function over ranges for start rate and growth rate
-start_first = 125
+start_first = 240
 start_step = 1
-start_last = 135
+start_last = 250
 g_rate_first = 0.022
-g_rate_step  = 0.0001
+g_rate_step  = 0.001
 g_rate_last  = 0.025
 nb_tests = length(collect(start_first:start_step:start_last)) * length(collect(g_rate_first:g_rate_step:g_rate_last))
 println("Number of trajectories tested: ", nb_tests)
@@ -102,7 +102,7 @@ end_date_welfare = 2100
 rho = 0.015
 
 # Keep values between 2020 and 2120
-temperature = temperature[years_vec .<= 2120 , :]
+temperature = temperature[years_vec .<= 2100 , :]
 welfare = welfare[years_vec .<= end_date_welfare , :]
 
 # Create vector for discounting
@@ -116,7 +116,7 @@ temperature = DataFrame(temperature, Symbol.(c_tax_paths))
 welfare_disc = DataFrame(welfare_disc, Symbol.(c_tax_paths))
 
 # Drop trajectories that lead to temperatures above 2.01°C by 2120
-temperature_constrained = temperature[!, Not(any.(>(2.01), eachcol(temperature)))] 
+temperature_constrained = temperature[!, Not(any.(>(1.81), eachcol(temperature)))] 
 
 # Sum global welfare over 2020-2100 
 tot_welfare_disc = combine(welfare_disc, names(welfare_disc) .=> sum .=> names(welfare_disc))

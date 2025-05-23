@@ -53,7 +53,7 @@ years = collect(dim_keys(base_model, :time))
 global_co2_tax = zeros(Float64, nb_steps)
 
 # charge CSV (time, global_tax)
-df_tax = CSV.read(joinpath(@__DIR__, "..", "cap_and_share", "data", "output", "calibrated_global_tax_union.csv"), DataFrame)
+df_tax = CSV.read(joinpath(@__DIR__, "..", "cap_and_share", "data", "output", "2calibrated_global_tax_union.csv"), DataFrame)
 df_tax.time       = Int.(df_tax.time)   # be sure it is Int
 df_tax.global_tax = Float64.(df_tax.global_tax)
 
@@ -74,8 +74,8 @@ end
 
 ################# CHOICE 3 #######################
 # après : progression géométrique à +2.32%/an
-const τ0     = 184.0           # taxe de départ en 2030
-const r      = 0.0232          # taux de croissance annuel (2.32%)
+const τ0     = 375.0           # taxe de départ en 2030
+const r      = 0.025          # taux de croissance annuel (2.32%)
 const t0     = 2030
 
 # Récupère la grille de temps du modèle
