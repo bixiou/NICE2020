@@ -3,6 +3,9 @@
 *.aux
 *.log
 *.synctex.gz
+*.RData
+*.Rhistory
+*.Rproj
 
 # macOS
 .DS_Store
