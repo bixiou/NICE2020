@@ -523,6 +523,7 @@ mean_absolute_error_initial_cons
 test_regression <- pmg(log_territorial ~ log_gdp_fossil, data=pred_table,index = c("country", "year"), model = "cmg" )
 summary(test_regression)
 pcdtest(test_regression)
+pbnftest(test_regression)
 
 coeffs_test_regression <- as.data.frame(t(as.data.frame(test_regression$indcoef)))
 colnames(coeffs_test_regression) <- paste0("beta_", colnames(coeffs_test_regression))
