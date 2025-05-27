@@ -20,7 +20,10 @@
     redistribution_switch= Parameter() #Switch, to choose whether the redistribution macro effects are added
     switch_recycle     = Parameter() #Switch, recycling of tax revenues
     switch_scope_recycle = Parameter() #Switch, carbon tax revenues recycled at country (0) or  global (1) level
-    
+    switch_custom_transfers   = Parameter()                          # 0=old calculations, 1=new transfers
+    transfer_over_gdp         = Parameter(index=[time, country])    # % of GDP
+    transfer_pc               = Parameter(index=[time, country])    # $ per capita
+
 
     # Variables
 
@@ -43,8 +46,10 @@
         for c in d.country
 
             # Output net of abatement costs and damages
-            v.Y[t,c] = (1.0 - p.ABATEFRAC[t,c]) ./ (1.0 + p.LOCAL_DAMFRAC_KW[t,c]) * p.YGROSS[t,c] + p.redistribution_switch*(p.country_pc_dividend[t,c]*p.l[t,c] - p.tax_revenue[t,c]/1e3)*p.switch_recycle*p.switch_scope_recycle
+            #v.Y[t,c] = (1.0 - p.ABATEFRAC[t,c]) ./ (1.0 + p.LOCAL_DAMFRAC_KW[t,c]) * p.YGROSS[t,c] + p.redistribution_switch*(p.country_pc_dividend[t,c]*p.l[t,c] - p.tax_revenue[t,c]/1e3)*p.switch_recycle*p.switch_scope_recycle
 
+            v.Y[t,c] = (1.0 - p.ABATEFRAC[t,c]) ./ (1.0 + p.LOCAL_DAMFRAC_KW[t,c]) * p.YGROSS[t,c] + p.redistribution_switch*(p.switch_custom_transfers * (p.transfer_over_gdp[t,c] * p.YGROSS[t,c]) + (1.0 - p.switch_custom_transfers) * ( (p.country_pc_dividend[t,c] * p.l[t,c] - p.tax_revenue[t,c] / 1e3)* p.switch_recycle* p.switch_scope_recycle ))
+            
             # Investment
             v.I[t,c] = p.s[t,c] * v.Y[t,c]
 

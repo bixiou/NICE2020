@@ -24,6 +24,11 @@
 	quantile_consumption_shares = Parameter(index=[time, country, quantile]) 	# Income shares of deciles
     recycle_share           	= Parameter(index=[country, quantile]) 		    # Share of carbon tax revenue recycled back to each quantile
     redistribution_switch       = Parameter()                                   # Switch, to choose whether the redistribution macro effects are added
+    # --- New International Transfer Parameters ---
+    switch_custom_transfers     = Parameter()                          # 0=anciens calculs, 1=nouveaux transferts
+    transfer_over_gdp           = Parameter(index=[time, country])    # % of GDP
+    transfer_pc                 = Parameter(index=[time, country])    # $ per capita
+
 
     CO2_income_elasticity    	= Variable(index=[time, country])             	# Elasticity of CO2 price exposure with respect to income
     abatement_cost_dist		 	= Variable(index=[time, country, quantile]) 	# Quantile distribution shares of mitigation costs

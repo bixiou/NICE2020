@@ -15,6 +15,12 @@
     policy_scenario             = Parameter()                                    # Policy scenario for the country, used to determine which countries are in the club
     club_countries_binary       	= Parameter(index=[scenario, country])          # Countries in the club for each scenario (1) or not (0)
 
+     # --- New International Transfer Parameters ---
+    switch_custom_transfers   = Parameter()                          # 0=anciens calculs, 1=nouveaux transferts
+    rights_proposed           = Parameter(index=[time, country])    # droits alloués (GtCO2 par pays/an)
+    E_gtco2_scenario           = Parameter(index=[time])             # émissions du club (GtCO2/an)
+    YGROSS                    = Parameter(index=[time, country])    # PIB par pays/an
+    
     tax_revenue 				= Variable(index=[time, country]) 				# Country carbon tax revenue (thousand 2017USD per year)
     tax_pc_revenue              = Variable(index=[time, country]) 				# Carbon tax revenue per capita (thousand 2017USD per capita per year)
     total_tax_revenue           = Variable(index=[time]) 		         		# Total carbon tax revenue (thousand 2017USD per year), sum of tax revenue in all countries
@@ -23,8 +29,42 @@
     country_pc_dividend_domestic_transfers = Variable(index=[time, country]) 	# Per capita carbon tax dividends from domestic redistribution (thousand 2017USD per year)
     country_pc_dividend_global_transfers = Variable(index=[time, country]) 		# Per capita carbon tax dividends from international transfers (thousand 2017USD per year)
 
+    # --- New International Transfer Variables ---
+    transfer_over_gdp         = Variable(index=[time, country])    # % du PIB
+    transfer_pc               = Variable(index=[time, country])    # $ par habitant
 
     function run_timestep(p, v, d, t)
+        # — INIT 
+        for c in d.country
+            v.transfer_over_gdp[t,c]           = 0.0
+            v.transfer_pc[t,c]                 = 0.0
+            
+        end
+
+        # — 
+        if p.switch_custom_transfers == 1
+            # new transfers calculation :
+            for c in d.country
+                Δ = p.rights_proposed[t,c] - p.E_gtco2[t,c]
+                v.transfer_over_gdp[t,c] = p.country_carbon_tax[t,c] * Δ / p.YGROSS[t,c]
+                v.transfer_pc[t,c]       = p.country_carbon_tax[t,c] * Δ / p.l[t,c]
+            end
+
+            # all* old component variables are neutralized :
+            for c in d.country
+                v.tax_revenue[t,c]                         = 0.0
+                v.tax_pc_revenue[t,c]                      = 0.0
+                v.country_pc_dividend_domestic_transfers[t,c] = 0.0
+                v.country_pc_dividend_global_transfers[t,c]   = 0.0
+                v.country_pc_dividend[t,c]                   = 0.0
+            end
+            v.total_tax_revenue[t] = 0.0
+            v.global_revenue[t]   = 0.0
+
+            return   # exit: you do **not** want to run the “standard” suite
+        end
+
+        # — IFELSE (switch_custom_transfers == 0) — execute ALL existing calculations :
 
         #######################################
         ## Compute country carbon tax revenues 
