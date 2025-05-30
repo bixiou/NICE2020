@@ -14,6 +14,10 @@ library(rlang)
 library(plm)
 library(stats)
 library(tidyverse)
+library(broom)
+library(lmtest)
+library(forecast)
+library(tibble)
 
 #############################################################################################################
 #Loading data and treating some of it
@@ -52,6 +56,9 @@ regression_data <- regression_data%>%
 test_data <- regression_data%>%
   mutate(transfer_emissions = consumption_emissions - territorial_emissions)
 
+test_data <- regression_data%>%
+  filter(country == "QAT")
+
 sigma_transfer = sqrt(var(test_data$transfer_emissions, na.rm = TRUE))
 sigma_transfer
 
@@ -74,7 +81,7 @@ regression_emissions <- function(data = regression_data, emissions, explanatory_
   cols_to_exclude_present <- intersect(cols_to_exclude, explanatory_variables)
   
   restricted_data <- data%>%
-    select(c("year", "country", "territorial_emissions.share" ,emissions, explanatory_variables, "territorial_emissions.share"))
+    select(c("year", "country", "territorial_emissions.share" ,emissions, explanatory_variables))
     
   while(dim(annoying_countries)[1] > countries_aside){
     if(end_year > last_year){
@@ -105,7 +112,6 @@ prediction_regression <- function(data = regression_data, emissions, explanatory
   regression_test <- pmg(as.character(formula), data = data, index = c("country","year"), model = "mg")
   print(summary(regression_test))
   print(pcdtest(regression_test))
-  print(pbnftest(regression_test))
   
   coeffs_regression_test <- as.data.frame(t(as.data.frame(regression_test$indcoef)))
   colnames(coeffs_regression_test) <- paste0("beta_", colnames(coeffs_regression_test))
@@ -127,15 +133,98 @@ prediction_regression <- function(data = regression_data, emissions, explanatory
   if(isTRUE(fixed_effect)){
     prediction_table <- prediction_table%>%
       mutate(fitted_values = fitted_values + intercept,
-             absolute_error = abs(.data[[emissions]] - fitted_values)
+             residuals = .data[[emissions]] - fitted_values,
+             absolute_error = abs(residuals)
       )}
   if(isTRUE(logged_emissions)){
     prediction_table<- prediction_table%>%
       mutate(true_emissions = exp(.data[[emissions]]),
              true_fitted_values = exp(fitted_values),
-             absolute_error = abs(true_emissions - true_fitted_values))
+             residuals = true_emissions - true_fitted_values,
+             absolute_error = abs(residuals))
   }
   return(prediction_table)
+}
+
+#This function runs the required regressions and returns a tables of predicted data for the asked year
+regression_residuals <- function(data = regression_data, emissions, explanatory_variables, predicted_data, 
+                                  logged_emissions=FALSE, fixed_effect = FALSE){
+  rhs <- paste(explanatory_variables, collapse = " + ")
+  formula = paste0(emissions, "~ ", rhs, " - 1")
+  if(isTRUE(fixed_effect)){
+    formula = paste0(emissions, "~ ", rhs)
+  }
+  regression_test <- pmg(as.character(formula), data = data, index = c("country","year"), model = "mg")
+  print(summary(regression_test))
+  print(pcdtest(regression_test))
+  
+  coeffs_regression_test <- as.data.frame(t(as.data.frame(regression_test$indcoef)))
+  colnames(coeffs_regression_test) <- paste0("beta_", colnames(coeffs_regression_test))
+  coeffs_regression_test <- rownames_to_column(coeffs_regression_test, "country")
+  if(isTRUE(fixed_effect)){
+    coeffs_regression_test <- coeffs_regression_test%>%
+      rename(intercept = "beta_(Intercept)")
+  }
+  regression_table <- merge(x=coeffs_regression_test, y = data, by="country", all.y=TRUE)
+  
+  for (var in explanatory_variables) {
+    regression_table[[paste0("term_", var)]] <- regression_table[[var]] * regression_table[[paste0("beta_", var)]]
+  }
+  regression_table <- regression_table %>%
+    rowwise() %>%
+    mutate(fitted_values = sum(c_across(starts_with("term_"))),
+           residuals = .data[[emissions]] - fitted_values) %>%
+    ungroup()
+  if(isTRUE(fixed_effect)){
+    regression_table <- regression_table%>%
+      mutate(fitted_values = fitted_values + intercept,
+             residuals = .data[[emissions]] - fitted_values
+      )}
+  if(isTRUE(logged_emissions)){
+    regression_table<- regression_table%>%
+      mutate(true_emissions = exp(.data[[emissions]]),
+             true_fitted_values = exp(fitted_values),
+             residuals = true_emissions - true_fitted_values)
+  }
+  return(regression_table)
+}
+
+auto_correlation_test <- function(data = regression_data){
+  country_code = c("AAA")
+  durbin = c(0)
+  ljung = c(0)
+  results <- data.frame(country = country_code, dw_stat = durbin, ljung_pval = ljung)
+  
+  for (c in unique(data$country)) {
+    data_country <- data %>%
+      filter(country == c) %>%
+      arrange(year)
+    
+    resid <- data_country$residuals
+    # On continue seulement si au moins 8 valeurs
+    if (length(resid) >= 8 && !all(is.na(resid))) {
+      
+      # Test de Durbin-Watson
+      dw <- tryCatch({
+        model <- lm(resid ~ seq_along(resid))
+        dwtest(model)$statistic
+      }, error = function(e) NA)
+      
+      # Ljung-Box test (jusqu'au lag 3 par ex.)
+      lb <- tryCatch({
+        Box.test(resid, lag = 3, type = "Ljung-Box")$p.value
+      }, error = function(e) NA)
+      
+      # Ajouter à la table
+      results <- rbind(results, c( c, dw, lb))
+    }
+  }
+  # Voir les pays avec autocorrélation significative
+  results <- results %>%
+    mutate(auto_corr = ifelse(ljung_pval < 0.05, "Yes", "No"))%>%
+    filter(country != "AAA")
+  data_merge <- merge(x=data, y=results, by = "country", all = TRUE)
+  return(data_merge)
 }
 
 #This function computes the mean absoluter error from a prediction table
@@ -148,15 +237,24 @@ mean_absolute_error_5Y <- function(data=regression_data, last_year = 2020){
   data2<- data%>%
     group_by(country)%>%
     mutate(absolute_error_5Y = mean(absolute_error))%>%
-    ungroup()%>%
+    ungroup()
   return(data2)
+}
+
+absolute_error_percent_5Y<- function(data = regression_data){
+  data2 <- data%>%
+    mutate(absolute_error_percent = absolute_error/consumption_emissions*100)%>%
+    group_by(country)%>%
+    mutate(percent_error_5Y = mean(absolute_error_percent))%>%
+    ungroup()
+    return(data2)
 }
 
 #############################################################################################################
 #The next part of the code runs regressions on the data
 
 
-#Regression 1 : territorial emissions ~ emissions.bar + ffsh + ffsh.bar + gdp + gdp.bar
+#Regression 1 : territorial emissions ~ emissions.bar + ffsh + gdp + gdp.bar
 data_table <- regression_emissions(data = regression_data, "territorial_emissions",  c("emissions_pc.world", "fossil_fuel_share", "gdp", "gdp.world", "fossil_fuel_share.world"))
 
 data_base <- data_table %>%  
@@ -175,13 +273,22 @@ regression_results_1 <- prediction_regression(data = data_base, emissions = "ter
                                               predicted_data = data_pred, fixed_effect = TRUE
                                               )
 
+test_table <- regression_residuals(data = data_base, emissions = "territorial_emissions", 
+                                   explanatory_variables = c("emissions_pc.world", "fossil_fuel_share", "gdp", "gdp.world"),
+                                   predicted_data = data_pred, fixed_effect = TRUE)
+
+test_table <- auto_correlation_test(test_table)
+
+test_table <- test_table%>%
+  select(country, year, residuals, dw_stat, ljung_pval)
+
 summary(regression_results_1$absolute_error)
 #Min.   1st Qu.    Median      Mean   3rd Qu.      Max.      NA's 
-# 0.001127  0.113349  0.617200  2.064845  1.773080 28.312253         2
+# 0.001127  0.113349  0.617200  2.064845  1.773080 28.312253         2 
 
 mea_regression_1 <- mean_absolute_error(regression_results_1)
 mea_regression_1
-#1.890
+#1.890395
 
 regression_results_1_5Y <- prediction_regression(data = data_base, emissions = "territorial_emissions", 
                                               explanatory_variables = c("emissions_pc.world", "fossil_fuel_share", "gdp", "gdp.world"),
@@ -193,18 +300,19 @@ regression_results_1 <- mean_absolute_error_5Y(data = regression_results_1_5Y)%>
 
 summary(regression_results_1$absolute_error_5Y)
 #Min.  1st Qu.   Median     Mean  3rd Qu.     Max.     NA's 
-# 0.01265  0.13665  0.56101  1.53213  1.42143 19.21694        2    
+# 0.01265  0.13665  0.56101  1.53213  1.42143 19.21694        2   
 
 mea_regression_1 <- mean_absolute_error(regression_results_1, column = "absolute_error_5Y")
 mea_regression_1
-# 1.384468
+# 1.3844
 
 
 #Regression 2
+#log_imports_gns_percent.world and log_exports_gns_percent.world should be the same so one of them goes away
 data_table_2 <- regression_emissions(data = regression_data, "log_consumption", 
                                      c("log_emissions_pc.world", "log_territorial", "log_gdp", "log_gdp.world", 
                                        "log_imports_gns_percent", "log_imports_gns_percent.world", "log_exports_gns_percent",
-                                       "log_exports_gns_percent.world"))
+                                       "log_exports_gns_percent.world", "consumption_emissions"))
 
 data_base <- data_table_2 %>%  
   filter(year <= 2010) #select ten years before the end year for prediction
@@ -218,36 +326,40 @@ data_pred_5Y <- data_table_2%>%
 
 regression_results_2 <- prediction_regression(data = data_base, emissions = "log_consumption",
                                               explanatory_variables = c("log_emissions_pc.world", "log_territorial", "log_gdp", "log_gdp.world", 
-                                                                        "log_imports_gns_percent", "log_imports_gns_percent.world", "log_exports_gns_percent",
-                                                                        "log_exports_gns_percent.world"),
+                                                                        "log_imports_gns_percent", "log_exports_gns_percent.world", "log_exports_gns_percent"
+                                                                        ),
                                               predicted_data = data_pred, logged_emissions = TRUE)
 
 
 summary(regression_results_2$absolute_error)
 
-#Min.  1st Qu.   Median     Mean  3rd Qu.     Max. 
-#0.01083  0.15678  0.38556  1.34644  1.01906 20.13011 
+#Min.   1st Qu.    Median      Mean   3rd Qu.      Max. 
+#0.000135  0.132127  0.463264  1.373232  1.166617 22.407738
 
 mea_regression_2 <- mean_absolute_error(regression_results_2)
 mea_regression_2
-#0.503
+#0.4774391
 
 regression_results_2_5Y <- prediction_regression(data = data_base, emissions = "log_consumption",
                                               explanatory_variables = c("log_emissions_pc.world", "log_territorial", "log_gdp", "log_gdp.world", 
-                                                                        "log_imports_gns_percent", "log_imports_gns_percent.world", "log_exports_gns_percent",
-                                                                        "log_exports_gns_percent.world"),
+                                                                        "log_imports_gns_percent", "log_exports_gns_percent",
+                                                                        "log_imports_gns_percent.world"),
                                               predicted_data = data_pred_5Y, logged_emissions = TRUE)
 
+regression_results_2_5Y <- absolute_error_percent_5Y(data = regression_results_2_5Y)
 regression_results_2 <- mean_absolute_error_5Y(data = regression_results_2_5Y)%>%
   filter (year==2020)
 
 summary(regression_results_2$absolute_error_5Y)
-#Min.  1st Qu.   Median     Mean  3rd Qu.     Max. 
-#0.01525  0.15678  0.38523  1.32904  1.07043 24.67282   
+#Min.   1st Qu.    Median      Mean   3rd Qu.      Max. 
+#0.008357  0.171313  0.333318  1.202489  1.015812 26.642325  
 
 mea_regression_2 <- mean_absolute_error(regression_results_2, column = "absolute_error_5Y")
 mea_regression_2
-# 0.4979511
+# 0.4670147
+
+summary(regression_results_2$percent_error_5Y)
+
 
 #Regression 3 : Regressions from Liddle(2018)
 #I will need to add fossil_fuel_share.world when I have the info
@@ -276,7 +388,7 @@ summary(regression_results_3$absolute_error)
 
 mea_regression_3 <- mean_absolute_error(regression_results_3)
 mea_regression_3
-#1.56
+#1.555699
 
 regression_results_3_5Y <- prediction_regression(data = data_base, emissions = "log_territorial", explanatory_variables =c("log_gdp", 
                                                                                                                         "log_gdp.world", "fossil_fuel_share",
@@ -288,8 +400,8 @@ regression_results_3 <- mean_absolute_error_5Y(data = regression_results_3_5Y)%>
   filter (year==2020)
 
 summary(regression_results_3$absolute_error_5Y)
-#Min.  1st Qu.   Median     Mean  3rd Qu.     Max. 
-#0.01027  0.16220  0.37621  0.96154  0.80654 28.63058   
+#Min.   1st Qu.    Median      Mean   3rd Qu.      Max. 
+#0.01027  0.16220  0.37621  0.96154  0.80654 28.63058    
 
 mea_regression_3 <- mean_absolute_error(regression_results_3, column = "absolute_error_5Y")
 mea_regression_3
@@ -398,34 +510,34 @@ data_pred_5Y <- data_table_6%>%
   filter(year>=2016)
 
 regression_results_6 <- prediction_regression(data = data_base, emissions = "log_territorial", explanatory_variables = c("log_gdp", 
-                                              "log_ffsh", "log_exports_gns_percent", "log_imports_gns_percent", "log_exports_gns_percent.world", 
+                                              "log_ffsh", "log_exports_gns_percent", "log_exports_gns_percent", 
                                               "log_imports_gns_percent.world"), predicted_data = data_pred, logged_emissions = TRUE,
-                                              fixed_effect = TRUE)
+                                              fixed_effect = FALSE)
 
 summary(regression_results_6$absolute_error)
-#Min.  1st Qu.   Median     Mean  3rd Qu.     Max.     NA's 
-# 0.000967 0.111415 0.462469 0.937628 1.048739 7.102272        2 
+#Min.   1st Qu.    Median      Mean   3rd Qu.      Max. 
+#0.001464  0.187781  0.619084  1.397154  1.683666 10.625201
 
 mea_regression_6 <- mean_absolute_error(regression_results_6)
 mea_regression_6
-# 1.895
+# 1.728472
 
 regression_results_6_5Y <- prediction_regression(data = data_base, emissions = "log_territorial", explanatory_variables = c("log_gdp", 
-                                                                                                                         "log_ffsh", "log_exports_gns_percent", "log_imports_gns_percent", "log_exports_gns_percent.world", 
-                                                                                                                         "log_imports_gns_percent.world"), 
+                                                                                                                         "log_ffsh", "log_exports_gns_percent", "log_imports_gns_percent", 
+                                                                                                                         "log_exports_gns_percent.world"), 
                                               predicted_data = data_pred_5Y , logged_emissions = TRUE,
-                                              fixed_effect = TRUE)
+                                              fixed_effect = FALSE)
 
 regression_results_6 <- mean_absolute_error_5Y(data = regression_results_6_5Y)%>%
   filter (year==2020)
 
 summary(regression_results_6$absolute_error_5Y)
-#Min.  1st Qu.   Median     Mean  3rd Qu.     Max.     NA's
-#0.007696 0.116420 0.318099 0.832059 0.992751 8.539532        2  
+#Min.  1st Qu.   Median     Mean  3rd Qu.     Max. 
+#0.009868 0.190144 0.534787 1.031816 1.373161 8.118032 
 
 mea_regression_6 <- mean_absolute_error(regression_results_6, column = "absolute_error_5Y")
 mea_regression_6
-# 1.562676
+# 0.7995528
 
 #Regression 7
 # test of the relevance of this formula
@@ -450,7 +562,7 @@ data_pred_5Y <- data_table_7%>%
   filter(year<=2020)
 
 regression_results_7 <- prediction_regression(data = data_base, emissions = "difference_variable", explanatory_variables = c("log_exports_gns_percent", "log_imports_gns_percent", 
-                                              "log_exports_gns_percent.world", "log_imports_gns_percent.world", "log_gdp.world", "log_industry_share",
+                                              "log_exports_gns_percent.world", "log_gdp.world", "log_industry_share",
                                               "log_industry_share.world", "log_emissions_pc.world"), 
                                               predicted_data = data_pred, logged_emissions = FALSE, fixed_effect = FALSE)
 
@@ -459,15 +571,15 @@ regression_results_7 <- regression_results_7%>%
   mutate(absolute_error = abs(emissions_fitted_values - territorial_emissions))
 
 summary(regression_results_7$absolute_error)
-#Min.  1st Qu.   Median     Mean  3rd Qu.     Max. 
-#0.00871  0.12188  0.42502  0.89835  0.85330 11.36495
+#Min.   1st Qu.    Median      Mean   3rd Qu.      Max. 
+#0.004959  0.140062  0.411449  0.908262  0.930567 11.504264
 
 mea_regression_7 <- mean_absolute_error(regression_results_7)
 mea_regression_7
-# 1.010743
+# 1.022132
 
 regression_results_7_5Y <- prediction_regression(data = data_base, emissions = "difference_variable", explanatory_variables = c("log_exports_gns_percent", "log_imports_gns_percent", 
-                                                                                                                                "log_exports_gns_percent.world", "log_imports_gns_percent.world", "log_gdp.world", "log_industry_share",
+                                                                                                                                "log_exports_gns_percent.world", "log_gdp.world", "log_industry_share",
                                                                                                                                 "log_industry_share.world", "log_emissions_pc.world"), 
                                                  predicted_data = data_pred_5Y, logged_emissions = FALSE, fixed_effect = FALSE)
 
@@ -479,24 +591,12 @@ regression_results_7 <- mean_absolute_error_5Y(data = regression_results_7)%>%
   filter (year==2020)
 
 summary(regression_results_7$absolute_error_5Y)
-#Min.  1st Qu.   Median     Mean  3rd Qu.     Max. 
-#0.009496 0.143098 0.388661 0.752737 0.903281 5.732110 
+#Min. 1st Qu.  Median    Mean 3rd Qu.    Max. 
+#0.01083 0.13526 0.39478 0.77493 0.84616 7.27365 
 
 mea_regression_7 <- mean_absolute_error(regression_results_7, column = "absolute_error_5Y")
 mea_regression_7
-# 0.8449248
-
-
-regression_results_8 <- mean_absolute_error_5Y(data = regression_results_8)%>%
-  filter (year==2020)
-
-summary(regression_results_8$absolute_error_5Y)
-#Min.  1st Qu.   Median     Mean  3rd Qu.     Max.     NA's 
-# 0.0446  0.6597  1.6451  4.1688  3.7144 63.4992       3     
-
-mea_regression_8 <-mean_absolute_error(regression_results_8, column = "absolute_error_5Y")
-mea_regression_8
-# 1.658866
+# 0.8925552
 
 #Regression 8 : attempt to predict consumption_emisssions with this formula
 #cons_emissions = territorial *(1+ (export_percent_emissions - import_emissions)/100)
@@ -515,7 +615,7 @@ data_pred_5Y <- data_table_8%>%
   filter(year <= 2020)
 
 regression_results_8 <- prediction_regression(data = data_base, emissions = "emissions_balance_percent", explanatory_variables = c("log_gdp", "fossil_fuel_share", "exports_gns_percent", "imports_gns_percent", 
-                                                                                                          "exports_gns_percent.world", "imports_gns_percent.world", "gdp.world", "industry_share",
+                                                                                                          "exports_gns_percent.world", "gdp.world", "industry_share",
                                                                                                           "industry_share.world","territorial_emissions", "emissions_pc.world"), 
                                               predicted_data = data_pred, logged_emissions = FALSE, fixed_effect=TRUE)
 
@@ -525,14 +625,14 @@ regression_results_8 <- regression_results_8%>%
 
 summary(regression_results_8$absolute_error)
 #Min.  1st Qu.   Median     Mean  3rd Qu.     Max.     NA's 
-# 0.00063  0.54349  1.71067  4.29618  4.42769 50.17011        3 
+# 0.04887  0.40413  1.43508  3.64426  4.02704 50.27105        3 
 
 mea_regression_8 <- mean_absolute_error(regression_results_8)
 mea_regression_8
-#1.866836
+#1.443498
 
 regression_results_8_5Y <- prediction_regression(data = data_base, emissions = "emissions_balance_percent", explanatory_variables =  c("log_gdp", "fossil_fuel_share", "exports_gns_percent", "imports_gns_percent", 
-                                                                                                                                       "exports_gns_percent.world", "imports_gns_percent.world", "gdp.world", "industry_share",
+                                                                                                                                       "exports_gns_percent.world", "gdp.world", "industry_share",
                                                                                                                                        "industry_share.world","territorial_emissions", "emissions_pc.world"), 
                                                  predicted_data = data_pred_5Y, logged_emissions = FALSE, fixed_effect = TRUE)
 
@@ -546,17 +646,17 @@ regression_results_8 <- mean_absolute_error_5Y(data = regression_results_8)%>%
 
 summary(regression_results_8$absolute_error_5Y)
 #Min.  1st Qu.   Median     Mean  3rd Qu.     Max.     NA's 
-# 0.0446  0.6597  1.6451  4.1688  3.7144 63.4992       3     
+# 0.05394  0.36080  1.36176  3.49143  3.23635 63.65582        3   
 
 mea_regression_8 <-mean_absolute_error(regression_results_8, column = "absolute_error_5Y")
 mea_regression_8
-# 1.658866
+# 1.207752
 
 #Regression 8bis : the same one without a fixed effect
 #It is better because it makes some variables significant
 
 regression_results_8bis <- prediction_regression(data = data_base, emissions = "emissions_balance_percent", explanatory_variables = c("log_gdp", "fossil_fuel_share", "exports_gns_percent", "imports_gns_percent", 
-                                                                                                                                   "exports_gns_percent.world", "imports_gns_percent.world", "gdp.world", "industry_share",
+                                                                                                                                   "exports_gns_percent.world", "gdp.world", "industry_share",
                                                                                                                                    "industry_share.world","territorial_emissions", "emissions_pc.world"), 
                                               predicted_data = data_pred, logged_emissions = FALSE, fixed_effect=FALSE)
 
@@ -566,14 +666,14 @@ regression_results_8bis <- regression_results_8bis%>%
 
 summary(regression_results_8bis$absolute_error)
 #Min.  1st Qu.   Median     Mean  3rd Qu.     Max. 
-#0.01991  0.33057  1.21740  3.79091  3.88369 51.78078
+#0.01349  0.33015  1.17965  3.47261  3.65821 45.24033 
 
 mea_regression_8bis <- mean_absolute_error(regression_results_8bis)
 mea_regression_8bis
-# 1.768472
+# 1.916851
 
 regression_results_8_5Y <- prediction_regression(data = data_base, emissions = "emissions_balance_percent", explanatory_variables =  c("log_gdp", "fossil_fuel_share", "exports_gns_percent", "imports_gns_percent", 
-                                                                                                                                       "exports_gns_percent.world", "imports_gns_percent.world", "gdp.world", "industry_share",
+                                                                                                                                       "exports_gns_percent.world", "gdp.world", "industry_share",
                                                                                                                                        "industry_share.world","territorial_emissions", "emissions_pc.world"), 
                                                  predicted_data = data_pred_5Y, logged_emissions = FALSE, fixed_effect = FALSE)
 
@@ -587,11 +687,11 @@ regression_results_8 <- mean_absolute_error_5Y(data = regression_results_8)%>%
 
 summary(regression_results_8$absolute_error_5Y)
 #Min.  1st Qu.   Median     Mean  3rd Qu.     Max. 
-#0.02873  0.39408  1.09510  3.43863  3.84431 43.23503     
+#0.02817  0.37086  0.98504  2.93163  3.33147 38.49574      
 
 mea_regression_8 <-mean_absolute_error(regression_results_8, column = "absolute_error_5Y")
 mea_regression_8
-# 1.514736
+# 1.507348
 
 #Regression 9 : same idea with less explanatory variables because nothing is significant then
 #cons_emissions = territorial *(1+ (export_percent_emissions - import_emissions)/100)
@@ -1165,23 +1265,23 @@ data_pred_5Y <- data_table_21%>%
 
 regression_results_21 <- prediction_regression(data = data_base, emissions = "emissions_balance_percent", explanatory_variables = c("trade_balance_gns_percent", "balance_fuel_percent_gdp",
                                                                                                            "log_gdp", "fossil_fuel_share"), 
-                      predicted_data = data_pred, logged_emissions = FALSE, fixed_effect = TRUE)
+                      predicted_data = data_pred, logged_emissions = FALSE, fixed_effect = FALSE)
 
 regression_results_21 <- regression_results_21%>%
   mutate(emissions_fitted_values = (fitted_values/100+1)*territorial_emissions)%>%
   mutate(absolute_error = abs(emissions_fitted_values - consumption_emissions))
 
 summary(regression_results_21$absolute_error)
-#Min.  1st Qu.   Median     Mean  3rd Qu.     Max.     NA's 
-#  0.0016   0.1781   0.5331   5.2364   1.4414 334.4257        2 
+#Min.  1st Qu.   Median     Mean  3rd Qu.     Max. 
+#0.02686  0.19026  0.53002  1.26143  1.41514 13.49528 
 
 mea_regression_21 <-mean_absolute_error(regression_results_21)
 mea_regression_21
-# 3.342385
+# 1.044052
 
 regression_results_21_5Y <- prediction_regression(data = data_base, emissions = "emissions_balance_percent", explanatory_variables = c("trade_balance_gns_percent", "balance_fuel_percent_gdp",
                                                                                                                                     "log_gdp", "fossil_fuel_share"), 
-                                               predicted_data = data_pred_5Y, logged_emissions = FALSE, fixed_effect = TRUE)
+                                               predicted_data = data_pred_5Y, logged_emissions = FALSE, fixed_effect = FALSE)
 
 regression_results_21 <- regression_results_21_5Y%>%
   mutate(emissions_fitted_values = (fitted_values/100+1)*territorial_emissions)%>%
@@ -1192,49 +1292,213 @@ regression_results_21 <- mean_absolute_error_5Y(data = regression_results_21)%>%
   filter (year==2020)
 
 summary(regression_results_21$absolute_error_5Y)
-#Min.   1st Qu.    Median      Mean   3rd Qu.      Max.      NA's 
-#  0.00916   0.19862   0.56381   2.76257   1.14993 107.98853         2 
+#Min.  1st Qu.   Median     Mean  3rd Qu.     Max. 
+#0.02145  0.19203  0.45880  1.17538  1.07112 15.89085
 
 mea_regression_21 <-mean_absolute_error(regression_results_21, column = "absolute_error_5Y")
 mea_regression_21
-# 1.609775
+# 0.8416661
+
+#Regression 22
+data_table_22 <- regression_emissions(data = regression_data, "log_consumption", c("log_gdp","log_ffsh", "log_gdp", "log_ffsh", "log_emissions_pc.world", "log_gdp.world"),
+                                      last_year = 2020, countries_aside =90)
+
+data_base <- data_table_22 %>%  
+  filter(year <= 2010) #select ten years before the end year for prediction
+
+data_pred_5Y <- data_table_22%>%
+  filter(year <=2020)%>%
+  filter(year >= 2016)
+
+regression_results_22_5Y <- prediction_regression(data = data_base, emissions = "log_consumption", explanatory_variables = c("log_gdp", "log_ffsh", "log_emissions_pc.world", "log_gdp.world"), 
+                                                  predicted_data = data_pred_5Y, logged_emissions = TRUE, fixed_effect = FALSE)
+
+
+regression_results_22 <- mean_absolute_error_5Y(data = regression_results_22_5Y)%>%
+  filter (year==2020)
+
+summary(regression_results_22$absolute_error_5Y)
+#Min.   1st Qu.    Median      Mean   3rd Qu.      Max. 
+#0.008395  0.275370  0.683776  1.399820  1.577859 11.469046 
+
+mea_regression_22 <-mean_absolute_error(regression_results_22, column = "absolute_error_5Y")
+mea_regression_22
+# 1.336118
+
+#Regression 23
+data_table_23 <- regression_emissions(data = regression_data, "log_consumption", c("log_gdp","log_ffsh", "log_gdp", "log_emissions_pc.world", "log_gdp.world"),
+                                      last_year = 2020, countries_aside =90)
+
+data_base <- data_table_23 %>%  
+  filter(year <= 2010) #select ten years before the end year for prediction
+
+data_pred_5Y <- data_table_23%>%
+  filter(year <=2020)%>%
+  filter(year >= 2016)
+
+regression_results_23_5Y <- prediction_regression(data = data_base, emissions = "log_consumption", explanatory_variables = c("log_gdp", "log_emissions_pc.world", "log_gdp.world"), 
+                                                  predicted_data = data_pred_5Y, logged_emissions = TRUE, fixed_effect = FALSE)
+
+
+regression_results_23 <- mean_absolute_error_5Y(data = regression_results_23_5Y)%>%
+  filter (year==2020)
+
+summary(regression_results_23$absolute_error_5Y)
+#Min.  1st Qu.   Median     Mean  3rd Qu.     Max. 
+#0.02007  0.23088  0.52045  2.18899  1.73223 39.14342  
+
+mea_regression_23 <-mean_absolute_error(regression_results_23, column = "absolute_error_5Y")
+mea_regression_23
+# 1.160092
+
+#Regression 24
+data_table_24 <- regression_emissions(data = regression_data, "log_consumption", c("log_territorial", "log_emissions_pc.world"),
+                                      last_year = 2020, countries_aside =90)
+
+data_base <- data_table_24 %>%  
+  filter(year <= 2010) #select ten years before the end year for prediction
+
+data_pred_5Y <- data_table_24%>%
+  filter(year <=2020)%>%
+  filter(year >= 2016)
+
+regression_results_24_5Y <- prediction_regression(data = data_base, emissions = "log_consumption", explanatory_variables = c("log_territorial", "log_emissions_pc.world"), 
+                                                  predicted_data = data_pred_5Y, logged_emissions = TRUE, fixed_effect = TRUE)
+
+
+regression_results_24 <- mean_absolute_error_5Y(data = regression_results_24_5Y)%>%
+  filter (year==2020)
+
+summary(regression_results_24$absolute_error_5Y)
+#Min. 1st Qu.  Median    Mean 3rd Qu.    Max. 
+#0.01137 0.16788 0.41095 0.85195 0.99913 8.96389  
+
+mea_regression_24 <-mean_absolute_error(regression_results_24, column = "absolute_error_5Y")
+mea_regression_24
+# 0.869099
+
+#Regression 25
+
+data_table_25 <- regression_emissions(data = regression_data, "consumption_emissions", c("territorial_emissions", "gdp", "emissions_pc.world", "trade_balance_gns", "trade_balance_goods", "gdp.world"),
+                                      last_year = 2020, countries_aside =90)
+
+data_base <- data_table_25 %>%  
+  filter(year <= 2010) #select ten years before the end year for prediction
+
+data_pred_5Y <- data_table_25%>%
+  filter(year <=2020)%>%
+  filter(year >= 2016)
+
+regression_results_25_5Y <- prediction_regression(data = data_base, emissions = "consumption_emissions", explanatory_variables = c("territorial_emissions", "gdp", "emissions_pc.world", "trade_balance_gns", "trade_balance_goods", "gdp.world"), 
+                                                  predicted_data = data_pred_5Y, logged_emissions = FALSE, fixed_effect = TRUE)
+
+regression_results_25 <- mean_absolute_error_5Y(data = regression_results_25_5Y)%>%
+  filter (year==2020)
+
+summary(regression_results_25$absolute_error_5Y)
+#Min.  1st Qu.   Median     Mean  3rd Qu.     Max. 
+#0.01607  0.28523  0.65104  2.03520  1.79500 23.16737  
+
+mea_regression_25 <-mean_absolute_error(regression_results_25, column = "absolute_error_5Y")
+mea_regression_25
+# 0.9782042
+
+#Regression 26
+
+data_table_26 <- regression_emissions(data = regression_data, "consumption_emissions", c("territorial_emissions", "emissions_pc.world"),
+                                      last_year = 2020, countries_aside =90)
+
+data_base <- data_table_26 %>%  
+  filter(year <= 2010) #select ten years before the end year for prediction
+
+data_pred_5Y <- data_table_26%>%
+  filter(year <=2020)%>%
+  filter(year >= 2016)
+
+regression_results_26_5Y <- prediction_regression(data = data_base, emissions = "consumption_emissions", explanatory_variables = c("territorial_emissions", "emissions_pc.world"),
+                                                  predicted_data = data_pred_5Y, logged_emissions = FALSE, fixed_effect = TRUE)
+
+regression_results_26 <- mean_absolute_error_5Y(data = regression_results_26_5Y)%>%
+  filter (year==2020)
+
+summary(regression_results_26$absolute_error_5Y)
+#Min.  1st Qu.   Median     Mean  3rd Qu.     Max. 
+#0.009646 0.147919 0.424105 0.921362 1.111834 7.999177  
+
+mea_regression_26 <-mean_absolute_error(regression_results_26, column = "absolute_error_5Y")
+mea_regression_26
+# 0.8329376
+
+
 
 ################################################################################################################################
 #In this part the table of absolute errors per country and the summary table for regressions are established
 
 absolute_error_table <- function(first_regression = 8, last_regression = 21){
-  table =countries
+  table =regression_data%>%
+    filter(year == 2020)%>%
+    select(country, consumption_emissions, territorial_emissions.share)
   for (i in first_regression:last_regression){
+    if(!(i %in% c(1,3,6,7))){
     reg_name <- paste0("regression_results_", i)
     regression_table <- get(reg_name)
     table <- merge(x = table, y = regression_table[, c("country", "absolute_error_5Y")], by = "country", all.x = TRUE) %>%
       rename(!!paste0("regression_error_", i) := absolute_error_5Y)
+    }
   }
-  table <- table%>%
-    select(-LABEL.EN, -LABEL.FR)
   return(table)
 }
 
-error_table <- absolute_error_table()%>%
+error_table <- absolute_error_table(first_regression = 1, last_regression = 26)%>%
   rowwise() %>%
   mutate(min_error = min(c_across(starts_with("regression_error_")), na.rm = TRUE))%>%
   mutate(min_error = na_if(min_error, Inf))%>%
   mutate(best_regression = ifelse(is.na(min_error), NA, names(.)[1+which.min(c_across(starts_with("regression_error_")))])
   ) %>% 
+  mutate(best_error_percent = min_error/consumption_emissions*100)
   ungroup()
-
-specific_emissions_data <- regression_data%>%
-  filter(year == 2020)%>%
-  select(country, territorial_emissions.share)
-
-error_table <- merge(x=error_table, y= specific_emissions_data, by="country")
 
 mean_min_error = mean_absolute_error(data = error_table, column = "min_error")  
 mean_min_error
-# 0.157716
+# 0.1282598
 
 summary(error_table$min_error)
-#Min.    1st Qu. Median    Mean    3rd Qu.    Max.    NA's 
-#0.00785 0.06189 0.16892   0.36474 0.33810    3.85329 73
+#Min. 1st Qu.  Median    Mean 3rd Qu.    Max.    NA's 
+#0.00691 0.04783 0.11796 0.28393 0.29395 2.22246      66 
+
+test_data <- error_table%>%
+  filter(min_error > 0.5)%>%
+  select(country, min_error, best_error_percent, consumption_emissions)
+
+test_data
+#There are 15 countries in that case
+#It means that the method up to now has identified 98 countries for which consumption-based emissions are correct à 0.5tCO2.pc.py
+
+summary(error_table$best_error_percent)
+#Min. 1st Qu.  Median    Mean 3rd Qu.    Max.    NA's 
+# 0.5191  1.8179  3.4046  6.9427  7.2084 60.0508      66 
+
+test_data <- error_table%>%
+  filter(best_error_percent > 10)%>%
+  select(country, best_error_percent, min_error, consumption_emissions)%>%
+  arrange(desc(best_error_percent))
+
+write.xlsx(test_data, "annoying_predictions.xlsx")
+
+corrected_error_table <- error_table%>%
+  filter(!(country %in% test_data$country))%>%
+  filter(!(is.na(min_error)))
+
+corrected_mean_min_error = mean_absolute_error(data = corrected_error_table, column = "min_error")
+corrected_mean_min_error
+#0.104097
+
+summary(corrected_error_table$min_error)
+#Min.  1st Qu.   Median     Mean  3rd Qu.     Max. 
+#0.006907 0.041123 0.098143 0.140490 0.214641 0.481683 
+
+predicted_emissions_share = sum(corrected_error_table$territorial_emissions.share)
+predicted_emissions_share
+#0.9455673
 
 write.xlsx(error_table, "error_table.xlsx")
