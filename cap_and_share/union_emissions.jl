@@ -1,5 +1,5 @@
 #############################################
-# Building a dataframe for Union emissions from 2020 to 2300
+# Building a dataframe for Union emissions from 2020 to 2300 from ffu_rights_proposed_allocation
 #############################################
 
 
