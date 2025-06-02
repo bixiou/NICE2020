@@ -46,6 +46,8 @@ global_co2_tax = MimiNICE2020.linear_tax_trajectory(tax_start_value = 184, incre
 ################# END CHOICE 1 ##################################
 
 ################ CHOICE 2 ######################################
+# Tax year by year
+
 # retrieve the list of years in base_model
 years = collect(dim_keys(base_model, :time))
 
@@ -53,7 +55,7 @@ years = collect(dim_keys(base_model, :time))
 global_co2_tax = zeros(Float64, nb_steps)
 
 # charge CSV (time, global_tax)
-df_tax = CSV.read(joinpath(@__DIR__, "..", "cap_and_share", "data", "output", "2calibrated_global_tax_union.csv"), DataFrame)
+df_tax = CSV.read(joinpath(@__DIR__, "..", "cap_and_share", "data", "output", "calibrated_global_tax_union.csv"), DataFrame)
 df_tax.time       = Int.(df_tax.time)   # be sure it is Int
 df_tax.global_tax = Float64.(df_tax.global_tax)
 
@@ -73,24 +75,25 @@ end
 
 
 ################# CHOICE 3 #######################
-# après : progression géométrique à +2.32%/an
+# Exponential carbon tax
+
 const τ0     = 375.0           # taxe de départ en 2030
 const r      = 0.025          # taux de croissance annuel (2.32%)
 const t0     = 2030
 
-# Récupère la grille de temps du modèle
+# Retrieves the model's time grid
 years = collect(dim_keys(base_model, :time))
 T     = length(years)
 
-# Construit le vecteur de taxes de longueur T, initialisé à zéro
+# Builds the tax vector of length T, initialized to zero
 global_co2_tax = zeros(Float64, T)
 
-# Pour chaque indice i correspond à l'année years[i], calcule la taxe
+# For each index i corresponding to the year years[i], calculate the tax
 for (i, y) in enumerate(years)
     if y >= t0 && y <= 2100
         global_co2_tax[i] = τ0 * (1 + r)^(y - t0)
     else
-        global_co2_tax[i] = 0.0  # ou laissé à zéro avant 2030 / après 2100
+        global_co2_tax[i] = 0.0  # or left at zero before 2030 / after 2100
     end
 end
 
@@ -104,10 +107,10 @@ end
 df_r = joinpath(@__DIR__, "..", "cap_and_share", "data", "input", "ffu_rights_proposed_allocation.csv")
 df_r = CSV.read(df_r, DataFrame)
 
-# Colonnes « rights_proposed_YYYY »
+# Columns « rights_proposed_YYYY »
 year_cols  = filter(c -> startswith(string(c), "rights_proposed_"), names(df_r))
 
-# Passage en format long : (country, region_tiam, participate_union, year_str, rights_proposed)
+# Switch to long format : (country, region_tiam, participate_union, year_str, rights_proposed)
 df_r_long  = stack(
     df_r,
     year_cols;
@@ -115,31 +118,31 @@ df_r_long  = stack(
     value_name    = :rights_proposed
 )
 
-# Convertir en milliards si nécessaire
+# Convert to billions if necessary
 df_r_long.rights_proposed .= df_r_long.rights_proposed ./ 1e9
 
-# Extraire l’année  (year_str = "rights_proposed_2030" → time=2030)
+# Extract year  (year_str = "rights_proposed_2030" → time=2030)
 df_r_long.time = parse.(Int, replace.(df_r_long.year_str, "rights_proposed_" => ""))
 select!(df_r_long, Not(:year_str))
 
-# Renommer code_country → country si besoin
+# Rename code_country → country if necessary
 rename!(df_r_long, "code" => "country")
 
-# — 2) Récupérer la grille temps & liste des pays du modèle —
+# — 2) Retrieve the time grid & list of model countries —
 years_model     = collect(dim_keys(base_model, :time))     # ex. 2020:2300
 countries_model = dim_keys(base_model, :country)           # ex. 179 codes
 
 T = length(years_model)
 C = length(countries_model)
 
-# — 3) Préparer la matrice rights_mat (T×C), initialisée à 0.0 —
+# — 3) Prepare the rights_mat matrix (T×C), initialized to 0.0 —
 rights_mat = zeros(Float64, T, C)
 
-# Index pour lookup rapide
+# 
 idx_year    = Dict(y => i for (i,y) in enumerate(years_model))
 idx_country = Dict(string(c) => j for (j,c) in enumerate(countries_model))
 
-# — 4) Remplir rights_mat là où on a des données dans df_r_long —
+# — 4) Fill rights_mat where there is data in df_r_long —
 for row in eachrow(df_r_long)
     y = row.time
     c = string(row.country)
@@ -266,9 +269,9 @@ println("Updating some parameters of the previously created NICE2020 instance.")
 switch_recycle                  = 1 # ON     Recycle revenues to households
 switch_scope_recycle            = 1 # ON     Carbon tax revenues recycled globally
 switch_global_pc_recycle        = 1 # ON    Carbon tax revenues recycled on an equal per capita basis
-switch_scenario                 = :All_World  # Choice of scenario by name (:All_World, :All_Except_Oil_Countries, :Optimistic, :Generous_EU, :Partnership)
+switch_scenario                 = :Union  # Choice of scenario by name (:All_World, :All_Except_Oil_Countries, :Optimistic, :Generous_EU, :Partnership)
 redistribution_switch           = 1 # Can compute economic data including redistributive effect 
-update_param!(nice2020_uniform_tax, :switch_custom_transfers, 0)
+update_param!(nice2020_uniform_tax, :switch_custom_transfers, 1)
 
 # Rule for share of global tax revenues recycled at global level (switch_recycle and switch_scope_recycle must be ON)
 global_recycle_share            = 1 # 100%   Share of tax revenues recycled globally 
