@@ -30,7 +30,7 @@ include(joinpath("components", "welfare.jl"))
 function create_nice2020()
 
 	# Get an instance of Mimi-FAIRv2 with SSP2-45 emissions and radiative forcing.
-	m = MimiFAIRv2.get_model(emissions_forcing_scenario="ssp245", start_year=2020, end_year=2300, param_type = "Number")
+	m = MimiFAIRv2.get_model(emissions_forcing_scenario="ssp126", start_year=2020, end_year=2300, param_type = "Number")
 
 	# Set country dimension
 	c = Symbol.(countries)

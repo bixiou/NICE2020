@@ -38,15 +38,15 @@ package("rnaturalearthdata")
 
 # Path of the folder with baseline scenario 
 
-path_baseline_scenario = "results/bau_no_policy_at_all/no_revenue_recycling"
+path_baseline_scenario = "C:/Users/Erwan Akrour/Desktop/Stage_CIRED/PortableGit/NICE2020/results/bau_no_policy_at_all/no_revenue_recycling"
 
 # Path of the folder with policy scenario of interest
 
-path_policy_interest = "results/uniform_tax_example/revenue_recycling/global_per_capita"
+path_policy_interest = "C:/Users/Erwan Akrour/Desktop/Stage_CIRED/PortableGit/NICE2020/results/uniform_tax_example/revenue_recycling/global_per_capita"
 
 # The year you want to represent on maps
 
-year_represent = 2030
+year_represent = 2060
 
 #Choose discount rate
 
@@ -383,6 +383,75 @@ create_transfer_diff_map <- function(path_baseline_scenario, path_policy_interes
   
 }
 
+#Creates map for transfer_over_gdp
+create_transfer_over_gdp_map <- function(path_policy_interest,
+                                         year_represent,
+                                         save_folder = "cap_and_share/map") {
+  
+  # 1. Lecture du CSV ------------------------------------------------
+  #    → attend les colonnes : time | country | transfer_over_gdp
+  gdp_df <- read.csv(file.path(path_policy_interest,
+                               "country_output",
+                               "transfer_over_gdp.csv"))
+  
+  # 2. Filtrer l'année demandée --------------------------------------
+  gdp_year <- subset(gdp_df, time == year_represent)
+  
+  # 3. Définir breaks / labels / couleurs ----------------------------
+  #    Ici, on coupe à ±10 % du PIB, avec pas mal de granularité autour de 0.
+  breaks_gdp <- c(-Inf, -0.10, -0.05, -0.02, -0.01, -0.00000000000000001,
+                  0,
+                  0.01, 0.02, 0.05, 0.10, Inf)
+  
+  labels_gdp <- c(
+    "< -10 %",
+    "-10 % à -5 %",
+    "-5 % à -2 %",
+    "-2 % à -1 %",
+    "-1 % à 0 %",
+    "0",
+    "0 % à 1 %",
+    "1 % à 2 %",
+    "2 % à 5 %",
+    "5 % à 10 %",
+    "> 10 %"
+  )
+  
+  # Palette divergente rouge-blanc-bleu
+  colors_gdp <- c(
+    "#67001F",  # < -10 %
+    "#B2182B",  # -10 % à -5 %
+    "#D6604D",  # -5 % à -2 %
+    "#F4A582",  # -2 % à -1 %
+    "#FDDBC7",  # -1 % à 0 %
+    "grey80",
+    "#D1E5F0",  # 0 % à 1 %
+    "#92C5DE",  # 1 % à 2 %
+    "#4393C3",  # 2 % à 5 %
+    "#2166AC",  # 5 % à 10 %
+    "#053061"   # > 10 %
+  )
+  
+  # 4. Appel à la fonction générique ---------------------------------
+  plot_world_map(
+    var    = "transfer_over_gdp",
+    df     = gdp_year,
+    along  = "country",
+    breaks = breaks_gdp,
+    labels = labels_gdp,
+    colors = colors_gdp,
+    legend = paste("Transfers as % of GDP –", year_represent),
+    save   = TRUE,
+    format = c("png", "pdf"),
+    folder = save_folder,
+    zeroindata = FALSE
+  )
+}
+
+
+  
+
+
 
 ###############################
 ###############################
@@ -396,3 +465,5 @@ create_transfer_diff_map(path_baseline_scenario, path_policy_interest, year_repr
 
 #Call this function to create the map about changes in EDE consumption
 create_EDE_diff_map(path_baseline_scenario, path_policy_interest, year_represent, save_folder = "cap_and_share/map")
+
+create_transfer_over_gdp_map(path_policy_interest, year_represent, save_folder = "cap_and_share/map")
