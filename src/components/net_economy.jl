@@ -21,6 +21,7 @@
     switch_recycle     = Parameter() #Switch, recycling of tax revenues
     switch_scope_recycle = Parameter() #Switch, carbon tax revenues recycled at country (0) or  global (1) level
     switch_custom_transfers   = Parameter()                          # 0=old calculations, 1=new transfers
+    transfer                  = Parameter(index=[time, country])
     transfer_over_gdp         = Parameter(index=[time, country])    # % of GDP
     transfer_pc               = Parameter(index=[time, country])    # $ per capita
 

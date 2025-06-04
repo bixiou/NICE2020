@@ -144,6 +144,14 @@ Bhattacharya et.al (2019) Examine the convergence of consumption-based and terri
 Same problem about download : https://www.sciencedirect.com/science/article/pii/S0140988319304293?fr=RR-2&ref=pdf_download&rr=937d8a728fa8d11b \ 
 Mahlkow and Wanner (2023) establish stylized facts about the links between consumption-based emissions and trade imbalances
 
+TODO:
+- voir d'où vient la différence d'1 Gt entre les deux bases de données
+- ajouter termes quadratiques
+- estimer une régression unique
+- comment inclure les derniers pays
+- estimer l'erreur avant/après avoir réviser les prédictions pour que ça somme à zéro
+- estimer une régression sous contrainte que ça somme à zéro
+
 
 ## 7. Modéliser prix nominal
 - est-ce que ça a du sens de modéliser empreinte carbone et nominal dans un modèle sans secteurs ? la relation PPP/nominal est-elle stable dans le temps ?

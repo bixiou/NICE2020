@@ -31,7 +31,7 @@ select!(df_rights_long, Not(:year_str))
 rename!(df_rights_long, Dict("code"=>"country"))
 
 
-# Définir la liste de pays
+# Define country list
 pays_autorises = [
     "AFG", "AGO", "ALB", "ARG", "AUT", "BDI", "BEL", "BEN", "BFA", "BGD", "BGR", "BHS", "BIH", "BLZ", "BOL",
     "BRA", "BRB", "BTN", "BWA", "CAF", "CHE", "CHL", "CHN", "CIV", "CMR", "COD", "COG", "COL", "COM", "CPV",
@@ -45,7 +45,7 @@ pays_autorises = [
     "ZWE"
 ]
 
-# Filtrer les pays présents dans la liste
+# Filter countries in the list
 df_true = filter(:country => x -> x in pays_autorises, df_rights_long)
 
 # 1.Filter to keep only countries when participate_union == true
@@ -75,11 +75,11 @@ values1 = [
 ]
 extra1 = DataFrame(time = years1, total_rights_proposed = values1)
 
-# Création des années 2080–2300 à zéro ---
+# Creating the years 2080-2300 at zero ---
 years2 = 2080:2300
 extra2 = DataFrame(time = years2, total_rights_proposed = zeros(Float64, length(years2)))
 
-# Concaténation et tri ---
+# Concatenation and sorting ---
 result_extended = vcat(result, extra1, extra2)
 
 rename!(result_extended, Dict("total_rights_proposed"=>"E_gtco2"))
