@@ -18,6 +18,7 @@ library(broom)
 library(lmtest)
 library(forecast)
 library(tibble)
+library(ggplot2)
 
 #############################################################################################################
 #Loading data and treating some of it
@@ -51,7 +52,8 @@ regression_data <- regression_data%>%
   mutate(trade_balance_gns_percent = exports_gns_percent - imports_gns_percent)%>%
   mutate(emissions_balance_percent = ((consumption_emissions/territorial_emissions)-1)*100)%>%
   mutate(trade_balance_goods_percent = exports_goods_percent - imports_goods_percent)%>%
-  mutate(balance_fuel_percent_gdp = fuel_exports_percent_gdp - fuel_imports_percent_gdp)
+  mutate(balance_fuel_percent_gdp = fuel_exports_percent_gdp - fuel_imports_percent_gdp)%>%
+  mutate(log_gdp_square = log_gdp^2)
 
 test_data <- regression_data%>%
   mutate(transfer_emissions = consumption_emissions - territorial_emissions)
@@ -81,7 +83,7 @@ regression_emissions <- function(data = regression_data, emissions, explanatory_
   cols_to_exclude_present <- intersect(cols_to_exclude, explanatory_variables)
   
   restricted_data <- data%>%
-    select(c("year", "country", "territorial_emissions.share" ,emissions, explanatory_variables))
+    select(c("year", "country", "territorial_emissions.share" ,"population", emissions, explanatory_variables))
     
   while(dim(annoying_countries)[1] > countries_aside){
     if(end_year > last_year){
@@ -300,7 +302,18 @@ regression_results_1 <- mean_absolute_error_5Y(data = regression_results_1_5Y)%>
 
 summary(regression_results_1$absolute_error_5Y)
 #Min.  1st Qu.   Median     Mean  3rd Qu.     Max.     NA's 
-# 0.01265  0.13665  0.56101  1.53213  1.42143 19.21694        2   
+# 0.01265  0.13665  0.56101  1.53213  1.42143 19.21694        2 
+
+regression_results_1 <- regression_results_1%>%
+  filter(!(is.na(residuals)))
+
+#Testing for the balance of the estimations
+sum_emissions = sum(regression_results_1$territorial_emissions*regression_results_1$population)/1000000
+sum_emissions
+sum_residuals = sum(regression_results_1$residuals*regression_results_1$population, na.rm = TRUE)/1000000
+sum_residuals
+error_percent = (sum_residuals/sum_emissions)*100
+error_percent
 
 mea_regression_1 <- mean_absolute_error(regression_results_1, column = "absolute_error_5Y")
 mea_regression_1
@@ -349,6 +362,16 @@ regression_results_2_5Y <- prediction_regression(data = data_base, emissions = "
 regression_results_2_5Y <- absolute_error_percent_5Y(data = regression_results_2_5Y)
 regression_results_2 <- mean_absolute_error_5Y(data = regression_results_2_5Y)%>%
   filter (year==2020)
+
+#Testing for the balance of the estimations
+sum_emissions = sum(regression_results_2$consumption_emissions*regression_results_2$population)/1000000
+sum_emissions
+sum_residuals = sum(regression_results_2$residuals*regression_results_2$population, na.rm = TRUE)/1000000
+sum_residuals
+
+error_percent = (sum_residuals/sum_emissions)*100
+error_percent
+# -0.07%
 
 summary(regression_results_2$absolute_error_5Y)
 #Min.   1st Qu.    Median      Mean   3rd Qu.      Max. 
@@ -411,7 +434,7 @@ mea_regression_3
 #Regression 4
 #I will need to add fossil_fuel_share.world when I have decided what to do with it
 data_table_4 <- regression_emissions(data = regression_data, "log_consumption", c("log_gdp", "log_gdp.world", "fossil_fuel_share","fossil_fuel_share.world",
-                                                                                  "industry_share", "industry_share.world", "trade_share", "trade_gns_percent.world"))
+                                                                                  "industry_share", "industry_share.world", "trade_share", "trade_gns_percent.world", "consumption_emissions"))
 data_base <- data_table_4 %>%  
   filter(year <= 2010) #select ten years before the end year for prediction
 
@@ -443,6 +466,16 @@ regression_results_4_5Y <- prediction_regression(data = data_base, emissions = "
 regression_results_4 <- mean_absolute_error_5Y(data = regression_results_4_5Y)%>%
   filter (year==2020)
 
+#Testing for the balance of the estimations
+sum_emissions = sum(regression_results_4$consumption_emissions*regression_results_4$population)/1000000
+sum_emissions
+sum_residuals = sum(regression_results_4$residuals*regression_results_4$population, na.rm = TRUE)/1000000
+sum_residuals
+
+error_percent = (sum_residuals/sum_emissions)*100
+error_percent
+# -15.63%
+
 summary(regression_results_4$absolute_error_5Y)
 #   Min.  1st Qu.   Median     Mean  3rd Qu.     Max.
 #0.00691  0.33313  0.87941  2.69152  1.95955 37.19393   
@@ -454,7 +487,7 @@ mea_regression_4
 #Regression 5
 
 data_table_5 <- regression_emissions(data = regression_data, "log_consumption", c("log_gdp", "log_ffsh", "log_exports_gns_percent", "log_imports_gns_percent", 
-                                                                                  "log_exports_gns_percent.world", "log_imports_gns_percent.world"))
+                                                                                  "log_exports_gns_percent.world", "log_imports_gns_percent.world", "consumption_emissions"))
 
 data_base <- data_table_5 %>%  
   filter(year <= 2010) #select ten years before the end year for prediction
@@ -487,13 +520,26 @@ regression_results_5_5Y <- prediction_regression(data = data_base, emissions = "
 regression_results_5 <- mean_absolute_error_5Y(data = regression_results_5_5Y)%>%
   filter (year==2020)
 
+regression_results_5 <- regression_results_5%>%
+  filter(!(is.na(residuals)))
+
+#Testing for the balance of the estimations
+sum_emissions = sum(regression_results_5$consumption_emissions*regression_results_5$population)/1000000
+sum_emissions
+sum_residuals = sum(regression_results_5$residuals*regression_results_5$population, na.rm = TRUE)/1000000
+sum_residuals
+
+error_percent = (sum_residuals/sum_emissions)*100
+error_percent
+# -0.37%
+
 summary(regression_results_5$absolute_error_5Y)
 #Min.  1st Qu.   Median Mean    3rd Qu. Max.      NA's
 #0.03   0.26     0.57   392.55  1.44    37917.66  2   
 
 mea_regression_5 <- mean_absolute_error(regression_results_5, column = "absolute_error_5Y")
 mea_regression_5
-# 3.024377
+# 3.031946
 
 #Regression 6
 data_table_6 <- regression_emissions(data = regression_data, "log_territorial", c("log_gdp", "log_ffsh", "log_exports_gns_percent", "log_imports_gns_percent", 
@@ -530,6 +576,7 @@ regression_results_6_5Y <- prediction_regression(data = data_base, emissions = "
 
 regression_results_6 <- mean_absolute_error_5Y(data = regression_results_6_5Y)%>%
   filter (year==2020)
+
 
 summary(regression_results_6$absolute_error_5Y)
 #Min.  1st Qu.   Median     Mean  3rd Qu.     Max. 
@@ -638,11 +685,25 @@ regression_results_8_5Y <- prediction_regression(data = data_base, emissions = "
 
 regression_results_8 <- regression_results_8_5Y%>%
   mutate(emissions_fitted_values = (fitted_values/100+1)*territorial_emissions)%>%
-  mutate(absolute_error = abs(emissions_fitted_values - consumption_emissions))
+  mutate(residuals = emissions_fitted_values - consumption_emissions,
+         absolute_error = abs(residuals))
 
 
 regression_results_8 <- mean_absolute_error_5Y(data = regression_results_8)%>%
   filter (year==2020)
+
+regression_results_8 <- regression_results_8%>%
+  filter(!(is.na(residuals)))
+
+#Testing for the balance of the estimations
+sum_emissions = sum(regression_results_8$consumption_emissions*regression_results_8$population)/1000000
+sum_emissions
+sum_residuals = sum(regression_results_8$residuals*regression_results_8$population)/1000000
+sum_residuals
+
+error_percent = (sum_residuals/sum_emissions)*100
+error_percent
+# 4.39%
 
 summary(regression_results_8$absolute_error_5Y)
 #Min.  1st Qu.   Median     Mean  3rd Qu.     Max.     NA's 
@@ -650,7 +711,7 @@ summary(regression_results_8$absolute_error_5Y)
 
 mea_regression_8 <-mean_absolute_error(regression_results_8, column = "absolute_error_5Y")
 mea_regression_8
-# 1.207752
+# 1.231603
 
 #Regression 8bis : the same one without a fixed effect
 #It is better because it makes some variables significant
@@ -679,11 +740,25 @@ regression_results_8_5Y <- prediction_regression(data = data_base, emissions = "
 
 regression_results_8 <- regression_results_8_5Y%>%
   mutate(emissions_fitted_values = (fitted_values/100+1)*territorial_emissions)%>%
-  mutate(absolute_error = abs(emissions_fitted_values - consumption_emissions))
+  mutate(residuals = emissions_fitted_values - consumption_emissions,
+         absolute_error = abs(residuals))
 
 
 regression_results_8 <- mean_absolute_error_5Y(data = regression_results_8)%>%
   filter (year==2020)
+
+regression_results_8 <- regression_results_8%>%
+  filter(!(is.na(residuals)))
+
+#Testing for the balance of the estimations
+sum_emissions = sum(regression_results_8$consumption_emissions*regression_results_8$population)/1000000
+sum_emissions
+sum_residuals = sum(regression_results_8$residuals*regression_results_8$population)/1000000
+sum_residuals
+
+error_percent = (sum_residuals/sum_emissions)*100
+error_percent
+# 7.65%
 
 summary(regression_results_8$absolute_error_5Y)
 #Min.  1st Qu.   Median     Mean  3rd Qu.     Max. 
@@ -719,11 +794,22 @@ regression_results_9_5Y <- prediction_regression(data = data_base, emissions = "
 
 regression_results_9 <- regression_results_9_5Y%>%
   mutate(emissions_fitted_values = (fitted_values/100+1)*territorial_emissions)%>%
-  mutate(absolute_error = abs(emissions_fitted_values - consumption_emissions))
+  mutate(residuals = emissions_fitted_values - consumption_emissions,
+         absolute_error = abs(residuals))
 
 
 regression_results_9 <- mean_absolute_error_5Y(data = regression_results_9)%>%
   filter (year==2020)
+
+#Testing for the balance of the estimations
+sum_emissions = sum(regression_results_9$consumption_emissions*regression_results_9$population)/1000000
+sum_emissions
+sum_residuals = sum(regression_results_9$residuals*regression_results_9$population)/1000000
+sum_residuals
+
+error_percent = (sum_residuals/sum_emissions)*100
+error_percent
+# -1.97
 
 summary(regression_results_9$absolute_error_5Y)
 #Min.  1st Qu.   Median     Mean  3rd Qu.     Max. 
@@ -756,11 +842,22 @@ regression_results_10_5Y <- prediction_regression(data = data_base, emissions = 
 
 regression_results_10 <- regression_results_10_5Y%>%
   mutate(emissions_fitted_values = (fitted_values/100+1)*territorial_emissions)%>%
-  mutate(absolute_error = abs(emissions_fitted_values - consumption_emissions))
+  mutate(residuals = emissions_fitted_values - consumption_emissions,
+         absolute_error = abs(residuals))
 
 
 regression_results_10 <- mean_absolute_error_5Y(data = regression_results_10)%>%
   filter (year==2020)
+
+#Testing for the balance of the estimations
+sum_emissions = sum(regression_results_10$consumption_emissions*regression_results_10$population)/1000000
+sum_emissions
+sum_residuals = sum(regression_results_10$residuals*regression_results_10$population)/1000000
+sum_residuals
+
+error_percent = (sum_residuals/sum_emissions)*100
+error_percent
+# -2.29%
 
 summary(regression_results_10$absolute_error_5Y)
 #Min.      1st Qu.   Median  Mean     3rd Qu.     Max. 
@@ -793,11 +890,22 @@ regression_results_11_5Y <- prediction_regression(data = data_base, emissions = 
 
 regression_results_11 <- regression_results_11_5Y%>%
   mutate(emissions_fitted_values = (fitted_values/100+1)*territorial_emissions)%>%
-  mutate(absolute_error = abs(emissions_fitted_values - consumption_emissions))
+  mutate(residuals = emissions_fitted_values - consumption_emissions,
+         absolute_error = abs(residuals))
 
 
 regression_results_11 <- mean_absolute_error_5Y(data = regression_results_11)%>%
   filter (year==2020)
+
+#Testing for the balance of the estimations
+sum_emissions = sum(regression_results_11$consumption_emissions*regression_results_11$population)/1000000
+sum_emissions
+sum_residuals = sum(regression_results_11$residuals*regression_results_11$population)/1000000
+sum_residuals
+
+error_percent = (sum_residuals/sum_emissions)*100
+error_percent
+# -2.30%
 
 summary(regression_results_11$absolute_error_5Y)
 #Min.      1st Qu.   Median  Mean     3rd Qu.     Max. 
@@ -845,11 +953,22 @@ regression_results_12_5Y <- prediction_regression(data = data_base, emissions = 
 
 regression_results_12 <- regression_results_12_5Y%>%
   mutate(emissions_fitted_values = (fitted_values/100+1)*territorial_emissions)%>%
-  mutate(absolute_error = abs(emissions_fitted_values - consumption_emissions))
+  mutate(residuals = emissions_fitted_values - consumption_emissions,
+         absolute_error = abs(residuals))
 
 
 regression_results_12 <- mean_absolute_error_5Y(data = regression_results_12)%>%
   filter (year==2019)
+
+#Testing for the balance of the estimations
+sum_emissions = sum(regression_results_12$consumption_emissions*regression_results_12$population)/1000000
+sum_emissions
+sum_residuals = sum(regression_results_12$residuals*regression_results_12$population)/1000000
+sum_residuals
+
+error_percent = (sum_residuals/sum_emissions)*100
+error_percent
+# 17.95%
 
 summary(regression_results_12$absolute_error_5Y)
 #Min.      1st Qu.   Median     Mean  3rd Qu.     Max. 
@@ -884,11 +1003,22 @@ regression_results_13_5Y <- prediction_regression(data = data_base, emissions = 
 
 regression_results_13 <- regression_results_13_5Y%>%
   mutate(emissions_fitted_values = (fitted_values/100+1)*territorial_emissions)%>%
-  mutate(absolute_error = abs(emissions_fitted_values - consumption_emissions))
+  mutate(residuals = emissions_fitted_values - consumption_emissions,
+         absolute_error = abs(residuals))
 
 
 regression_results_13 <- mean_absolute_error_5Y(data = regression_results_13)%>%
   filter (year==2019)
+
+#Testing for the balance of the estimations
+sum_emissions = sum(regression_results_13$consumption_emissions*regression_results_13$population)/1000000
+sum_emissions
+sum_residuals = sum(regression_results_13$residuals*regression_results_13$population)/1000000
+sum_residuals
+
+error_percent = (sum_residuals/sum_emissions)*100
+error_percent
+# 1.56%%
 
 summary(regression_results_13$absolute_error_5Y)
 #Min.  1st Qu.   Median     Mean  3rd Qu.     Max. 
@@ -937,11 +1067,22 @@ regression_results_14_5Y <- prediction_regression(data = data_base, emissions = 
 
 regression_results_14 <- regression_results_14_5Y%>%
   mutate(emissions_fitted_values = (fitted_values/100+1)*territorial_emissions)%>%
-  mutate(absolute_error = abs(emissions_fitted_values - consumption_emissions))
+  mutate(residuals = emissions_fitted_values - consumption_emissions,
+         absolute_error = abs(residuals))
 
 
 regression_results_14 <- mean_absolute_error_5Y(data = regression_results_14)%>%
   filter (year==2020)
+
+#Testing for the balance of the estimations
+sum_emissions = sum(regression_results_14$consumption_emissions*regression_results_14$population)/1000000
+sum_emissions
+sum_residuals = sum(regression_results_14$residuals*regression_results_14$population)/1000000
+sum_residuals
+
+error_percent = (sum_residuals/sum_emissions)*100
+error_percent
+# 48.4%
 
 summary(regression_results_14$absolute_error_5Y)
 #Min.  1st Qu.   Median     Mean  3rd Qu.     Max. 
@@ -991,11 +1132,22 @@ regression_results_15_5Y <- prediction_regression(data = data_base, emissions = 
 
 regression_results_15 <- regression_results_15_5Y%>%
   mutate(emissions_fitted_values = (fitted_values/100+1)*territorial_emissions)%>%
-  mutate(absolute_error = abs(emissions_fitted_values - consumption_emissions))
+  mutate(residuals = emissions_fitted_values - consumption_emissions,
+         absolute_error = abs(residuals))
 
 
 regression_results_15 <- mean_absolute_error_5Y(data = regression_results_15)%>%
   filter (year==2020)
+
+#Testing for the balance of the estimations
+sum_emissions = sum(regression_results_15$consumption_emissions*regression_results_15$population)/1000000
+sum_emissions
+sum_residuals = sum(regression_results_15$residuals*regression_results_15$population)/1000000
+sum_residuals
+
+error_percent = (sum_residuals/sum_emissions)*100
+error_percent
+# 7.05%%
 
 summary(regression_results_15$absolute_error_5Y)
 #Min. 1st Qu.  Median    Mean 3rd Qu.    Max. 
@@ -1043,11 +1195,21 @@ regression_results_16_5Y <- prediction_regression(data = data_base, emissions = 
 
 regression_results_16 <- regression_results_16_5Y%>%
   mutate(emissions_fitted_values = (fitted_values/100+1)*territorial_emissions)%>%
-  mutate(absolute_error = abs(emissions_fitted_values - consumption_emissions))
-
+  mutate(residuals = emissions_fitted_values - consumption_emissions,
+         absolute_error = abs(residuals))
 
 regression_results_16 <- mean_absolute_error_5Y(data = regression_results_16)%>%
   filter (year==2020)
+
+#Testing for the balance of the estimations
+sum_emissions = sum(regression_results_16$consumption_emissions*regression_results_16$population)/1000000
+sum_emissions
+sum_residuals = sum(regression_results_16$residuals*regression_results_16$population)/1000000
+sum_residuals
+
+error_percent = (sum_residuals/sum_emissions)*100
+error_percent
+# -2.1%
 
 summary(regression_results_16$absolute_error_5Y)
 #Min.  1st Qu.   Median     Mean  3rd Qu.     Max. 
@@ -1094,11 +1256,22 @@ predicted_data = data_pred_5Y, logged_emissions = FALSE, fixed_effect = FALSE)
 
 regression_results_17 <- regression_results_17_5Y%>%
   mutate(emissions_fitted_values = (fitted_values/100+1)*territorial_emissions)%>%
-  mutate(absolute_error = abs(emissions_fitted_values - consumption_emissions))
+  mutate(residuals = emissions_fitted_values - consumption_emissions,
+         absolute_error = abs(residuals))
 
 
 regression_results_17 <- mean_absolute_error_5Y(data = regression_results_17)%>%
   filter (year==2020)
+
+#Testing for the balance of the estimations
+sum_emissions = sum(regression_results_17$consumption_emissions*regression_results_17$population)/1000000
+sum_emissions
+sum_residuals = sum(regression_results_17$residuals*regression_results_17$population)/1000000
+sum_residuals
+
+error_percent = (sum_residuals/sum_emissions)*100
+error_percent
+# -2.63%
 
 summary(regression_results_17$absolute_error_5Y)
 #Min.  1st Qu.   Median     Mean  3rd Qu.     Max. 
@@ -1130,11 +1303,22 @@ regression_results_18_5Y <- prediction_regression(data = data_base, emissions = 
 
 regression_results_18 <- regression_results_18_5Y%>%
   mutate(emissions_fitted_values = (fitted_values/100+1)*territorial_emissions)%>%
-  mutate(absolute_error = abs(emissions_fitted_values - consumption_emissions))
+  mutate(residuals = emissions_fitted_values - consumption_emissions,
+         absolute_error = abs(residuals))
 
 
 regression_results_18 <- mean_absolute_error_5Y(data = regression_results_18)%>%
   filter (year==2020)
+
+#Testing for the balance of the estimations
+sum_emissions = sum(regression_results_18$consumption_emissions*regression_results_18$population)/1000000
+sum_emissions
+sum_residuals = sum(regression_results_18$residuals*regression_results_18$population)/1000000
+sum_residuals
+
+error_percent = (sum_residuals/sum_emissions)*100
+error_percent
+# -3.5%
 
 summary(regression_results_18$absolute_error_5Y)
 #Min.  1st Qu.   Median     Mean  3rd Qu.     Max. 
@@ -1184,11 +1368,22 @@ regression_results_19_5Y <- prediction_regression(data = data_base, emissions = 
 
 regression_results_19 <- regression_results_19_5Y%>%
   mutate(emissions_fitted_values = (fitted_values/100+1)*territorial_emissions)%>%
-  mutate(absolute_error = abs(emissions_fitted_values - consumption_emissions))
+  mutate(residuals = emissions_fitted_values - consumption_emissions,
+         absolute_error = abs(residuals))
 
 
 regression_results_19 <- mean_absolute_error_5Y(data = regression_results_19)%>%
   filter (year==2020)
+
+#Testing for the balance of the estimations
+sum_emissions = sum(regression_results_19$consumption_emissions*regression_results_19$population)/1000000
+sum_emissions
+sum_residuals = sum(regression_results_19$residuals*regression_results_19$population)/1000000
+sum_residuals
+
+error_percent = (sum_residuals/sum_emissions)*100
+error_percent
+# 4.61%
 
 summary(regression_results_19$absolute_error_5Y)
 #Min.  1st Qu.   Median     Mean  3rd Qu.     Max. 
@@ -1232,11 +1427,22 @@ regression_results_20_5Y <- prediction_regression(data = data_base, emissions = 
 
 regression_results_20 <- regression_results_20_5Y%>%
   mutate(emissions_fitted_values = (fitted_values/100+1)*territorial_emissions)%>%
-  mutate(absolute_error = abs(emissions_fitted_values - consumption_emissions))
+  mutate(residuals = emissions_fitted_values - consumption_emissions,
+         absolute_error = abs(residuals))
 
 
 regression_results_20 <- mean_absolute_error_5Y(data = regression_results_20)%>%
   filter (year==2020)
+
+#Testing for the balance of the estimations
+sum_emissions = sum(regression_results_20$consumption_emissions*regression_results_20$population)/1000000
+sum_emissions
+sum_residuals = sum(regression_results_20$residuals*regression_results_20$population)/1000000
+sum_residuals
+
+error_percent = (sum_residuals/sum_emissions)*100
+error_percent
+# 0.04%
 
 summary(regression_results_20$absolute_error_5Y)
 #Min. 1st Qu.  Median    Mean 3rd Qu.    Max. 
@@ -1285,11 +1491,22 @@ regression_results_21_5Y <- prediction_regression(data = data_base, emissions = 
 
 regression_results_21 <- regression_results_21_5Y%>%
   mutate(emissions_fitted_values = (fitted_values/100+1)*territorial_emissions)%>%
-  mutate(absolute_error = abs(emissions_fitted_values - consumption_emissions))
+  mutate(residuals = emissions_fitted_values - consumption_emissions,
+         absolute_error = abs(residuals))
 
 
 regression_results_21 <- mean_absolute_error_5Y(data = regression_results_21)%>%
   filter (year==2020)
+
+#Testing for the balance of the estimations
+sum_emissions = sum(regression_results_21$consumption_emissions*regression_results_21$population)/1000000
+sum_emissions
+sum_residuals = sum(regression_results_21$residuals*regression_results_21$population)/1000000
+sum_residuals
+
+error_percent = (sum_residuals/sum_emissions)*100
+error_percent
+# 8.45%
 
 summary(regression_results_21$absolute_error_5Y)
 #Min.  1st Qu.   Median     Mean  3rd Qu.     Max. 
@@ -1300,7 +1517,7 @@ mea_regression_21
 # 0.8416661
 
 #Regression 22
-data_table_22 <- regression_emissions(data = regression_data, "log_consumption", c("log_gdp","log_ffsh", "log_gdp", "log_ffsh", "log_emissions_pc.world", "log_gdp.world"),
+data_table_22 <- regression_emissions(data = regression_data, "log_consumption", c("consumption_emissions", "log_gdp", "log_gdp", "log_ffsh", "log_emissions_pc.world", "log_gdp.world"),
                                       last_year = 2020, countries_aside =90)
 
 data_base <- data_table_22 %>%  
@@ -1317,6 +1534,16 @@ regression_results_22_5Y <- prediction_regression(data = data_base, emissions = 
 regression_results_22 <- mean_absolute_error_5Y(data = regression_results_22_5Y)%>%
   filter (year==2020)
 
+#Testing for the balance of the estimations
+sum_emissions = sum(regression_results_22$consumption_emissions*regression_results_22$population)/1000000
+sum_emissions
+sum_residuals = sum(regression_results_22$residuals*regression_results_22$population)/1000000
+sum_residuals
+
+error_percent = (sum_residuals/sum_emissions)*100
+error_percent
+# 13.31%
+
 summary(regression_results_22$absolute_error_5Y)
 #Min.   1st Qu.    Median      Mean   3rd Qu.      Max. 
 #0.008395  0.275370  0.683776  1.399820  1.577859 11.469046 
@@ -1326,7 +1553,7 @@ mea_regression_22
 # 1.336118
 
 #Regression 23
-data_table_23 <- regression_emissions(data = regression_data, "log_consumption", c("log_gdp","log_ffsh", "log_gdp", "log_emissions_pc.world", "log_gdp.world"),
+data_table_23 <- regression_emissions(data = regression_data, "log_consumption", c("consumption_emissions","log_gdp","log_ffsh", "log_gdp", "log_emissions_pc.world", "log_gdp.world"),
                                       last_year = 2020, countries_aside =90)
 
 data_base <- data_table_23 %>%  
@@ -1343,6 +1570,16 @@ regression_results_23_5Y <- prediction_regression(data = data_base, emissions = 
 regression_results_23 <- mean_absolute_error_5Y(data = regression_results_23_5Y)%>%
   filter (year==2020)
 
+#Testing for the balance of the estimations
+sum_emissions = sum(regression_results_23$consumption_emissions*regression_results_23$population)/1000000
+sum_emissions
+sum_residuals = sum(regression_results_23$residuals*regression_results_23$population)/1000000
+sum_residuals
+
+error_percent = (sum_residuals/sum_emissions)*100
+error_percent
+# 3.246%
+
 summary(regression_results_23$absolute_error_5Y)
 #Min.  1st Qu.   Median     Mean  3rd Qu.     Max. 
 #0.02007  0.23088  0.52045  2.18899  1.73223 39.14342  
@@ -1352,7 +1589,7 @@ mea_regression_23
 # 1.160092
 
 #Regression 24
-data_table_24 <- regression_emissions(data = regression_data, "log_consumption", c("log_territorial", "log_emissions_pc.world"),
+data_table_24 <- regression_emissions(data = regression_data, "log_consumption", c("consumption_emissions","log_territorial", "log_emissions_pc.world"),
                                       last_year = 2020, countries_aside =90)
 
 data_base <- data_table_24 %>%  
@@ -1369,6 +1606,19 @@ regression_results_24_5Y <- prediction_regression(data = data_base, emissions = 
 regression_results_24 <- mean_absolute_error_5Y(data = regression_results_24_5Y)%>%
   filter (year==2020)
 
+regression_results_8 <- regression_results_8%>%
+  filter(!(is.na(residuals)))
+
+#Testing for the balance of the estimations
+sum_emissions = sum(regression_results_24$consumption_emissions*regression_results_24$population)/1000000
+sum_emissions
+sum_residuals = sum(regression_results_24$residuals*regression_results_24$population)/1000000
+sum_residuals
+
+error_percent = (sum_residuals/sum_emissions)*100
+error_percent
+# 7.79%
+
 summary(regression_results_24$absolute_error_5Y)
 #Min. 1st Qu.  Median    Mean 3rd Qu.    Max. 
 #0.01137 0.16788 0.41095 0.85195 0.99913 8.96389  
@@ -1379,7 +1629,7 @@ mea_regression_24
 
 #Regression 25
 
-data_table_25 <- regression_emissions(data = regression_data, "consumption_emissions", c("territorial_emissions", "gdp", "emissions_pc.world", "trade_balance_gns", "trade_balance_goods", "gdp.world"),
+data_table_25 <- regression_emissions(data = regression_data, "consumption_emissions", c("territorial_emissions", "consumption_emissions", "gdp", "emissions_pc.world", "trade_balance_gns", "trade_balance_goods", "gdp.world"),
                                       last_year = 2020, countries_aside =90)
 
 data_base <- data_table_25 %>%  
@@ -1394,6 +1644,16 @@ regression_results_25_5Y <- prediction_regression(data = data_base, emissions = 
 
 regression_results_25 <- mean_absolute_error_5Y(data = regression_results_25_5Y)%>%
   filter (year==2020)
+
+#Testing for the balance of the estimations
+sum_emissions = sum(regression_results_25$consumption_emissions*regression_results_25$population)/1000000
+sum_emissions
+sum_residuals = sum(regression_results_25$residuals*regression_results_25$population)/1000000
+sum_residuals
+
+error_percent = (sum_residuals/sum_emissions)*100
+error_percent
+# -5.20%
 
 summary(regression_results_25$absolute_error_5Y)
 #Min.  1st Qu.   Median     Mean  3rd Qu.     Max. 
@@ -1421,6 +1681,16 @@ regression_results_26_5Y <- prediction_regression(data = data_base, emissions = 
 regression_results_26 <- mean_absolute_error_5Y(data = regression_results_26_5Y)%>%
   filter (year==2020)
 
+#Testing for the balance of the estimations
+sum_emissions = sum(regression_results_26$consumption_emissions*regression_results_26$population)/1000000
+sum_emissions
+sum_residuals = sum(regression_results_26$residuals*regression_results_26$population)/1000000
+sum_residuals
+
+error_percent = (sum_residuals/sum_emissions)*100
+error_percent
+# 6.14%
+
 summary(regression_results_26$absolute_error_5Y)
 #Min.  1st Qu.   Median     Mean  3rd Qu.     Max. 
 #0.009646 0.147919 0.424105 0.921362 1.111834 7.999177  
@@ -1428,8 +1698,6 @@ summary(regression_results_26$absolute_error_5Y)
 mea_regression_26 <-mean_absolute_error(regression_results_26, column = "absolute_error_5Y")
 mea_regression_26
 # 0.8329376
-
-
 
 ################################################################################################################################
 #In this part the table of absolute errors per country and the summary table for regressions are established
@@ -1502,3 +1770,273 @@ predicted_emissions_share
 #0.9455673
 
 write.xlsx(error_table, "error_table.xlsx")
+
+##############################################################################################
+#This is a test to see how many tons of CO2 are unaccounted for in the current computations
+
+added_df <- regression_data%>%
+  filter(year==2020)%>%
+  select(country, population, territorial_emissions.country)
+
+test_data <- merge(x= error_table, y=added_df, by = "country")%>%
+  mutate(consumption_emissions.country = consumption_emissions*population)%>%
+  filter(!(is.na(consumption_emissions.country)))
+
+sum_territorial = sum(test_data$territorial_emissions.country)
+sum_consumption = sum(test_data$consumption_emissions.country)
+
+sum_territorial
+sum_consumption
+
+diff = (sum_consumption/sum_territorial-1)*100
+diff
+
+total_emissions = sum_territorial/predicted_emissions_share
+total_emissions
+
+sup_data <- regression_data%>%
+  filter(year ==2020)
+total_emissions = sum(sup_data$territorial_emissions.country, na.rm=TRUE)
+total_emissions
+
+missing = 35127000000 - total_emissions
+missing
+
+#############################################################################################
+#This is a test to see how to model quadratic terms 
+
+p <- ggplot(regression_data, aes(x = log_gdp, y = emissions_balance_percent)) +
+  geom_point() +
+  theme_minimal()
+
+print(p)
+
+ggsave(filename = "emissions_ratio.png", plot = p, height = 6, width = 10)
+
+cut_data <- regression_data %>%
+  filter(year == 2020)
+
+p <- ggplot(regression_data, aes(x = log_gdp, y = emissions_balance_percent)) +
+  geom_point() +
+  theme_minimal()
+
+print(p)
+
+ggsave(filename = "emissions_ratio_2020.png", plot = p, height = 6, width = 10)
+
+p <- ggplot(regression_data, aes(x = trade_balance_gns_percent, y = emissions_balance_percent)) +
+  geom_point() +
+  theme_minimal()
+
+print(p)
+
+################################################################################################
+#This is the test of a pooled model
+
+data_table_pooled <- regression_data%>%
+  select(country, year, emissions_balance_percent, log_gdp, log_gdp_square, trade_balance_gns_percent, 
+         trade_balance_goods_percent, balance_fuel_percent_gdp)%>%
+  filter(year <= 2010)
+
+regression_pooled <- lm(emissions_balance_percent~ log_gdp + log_gdp_square + trade_balance_gns_percent + trade_balance_goods_percent
+                        + balance_fuel_percent_gdp,data = data_table_pooled, na.action = na.omit)
+
+summary(regression_pooled)
+coefficients <- regression_pooled$coefficients
+coefficients[2]
+
+regression_prediction <- regression_data%>%
+  select(country, year, territorial_emissions, consumption_emissions, population, emissions_balance_percent, log_gdp, log_gdp_square, trade_balance_gns_percent, 
+         trade_balance_goods_percent, balance_fuel_percent_gdp)%>%
+  filter(year <= 2020)%>%
+  mutate(estimate_regression = coefficients[1] + coefficients[2]*log_gdp + coefficients[3]*log_gdp_square 
+                              + coefficients[4]*trade_balance_gns_percent + coefficients[5]*trade_balance_goods_percent
+                              + coefficients[6]*balance_fuel_percent_gdp)%>%
+  mutate(residual_percent = emissions_balance_percent - estimate_regression)%>%
+  filter(!(is.na(residual_percent)))
+
+regression_evaluation <- regression_prediction%>%
+  filter(year == 2020)%>%
+  arrange(residual_percent)
+
+summary(regression_evaluation$residual_percent)
+
+balance_emissions = sum(regression_evaluation$residual_percent*regression_evaluation$territorial_emissions*regression_evaluation$population/100)
+balance_emissions
+
+sum_territorial = sum(regression_evaluation$territorial_emissions*regression_evaluation$population)
+sum_territorial
+sum_consumption = sum(regression_evaluation$consumption_emissions*regression_evaluation$population)
+sum_consumption
+
+
+error_percent = balance_emissions/sum_territorial*100
+error_percent
+
+#####################################################################################################
+#In this part we first make a pooled regression of the ratio on log_gdp and log_gdp_square and the three balances
+#to extract the global trend, after we extract the variable ration - log_gdp*beta - log_gdp_square*beta_square
+#and then we run a pmg of the residuals on the three trade balances, and evaluate the relevance of the method
+
+data_table_semi <- regression_data%>%
+  select(country, year, emissions_balance_percent, log_gdp, log_gdp_square, trade_balance_gns_percent, 
+         trade_balance_goods_percent, balance_fuel_percent_gdp)%>%
+  filter(year <= 2010)
+
+regression_semi <- lm(emissions_balance_percent~ log_gdp + log_gdp_square ,data = data_table_semi, na.action = na.omit)
+
+summary(regression_semi)
+coefficients <- regression_pooled$coefficients
+
+regression_prediction_semi <- regression_data%>%
+  select(country, year, territorial_emissions, consumption_emissions, population, emissions_balance_percent, log_gdp, log_gdp_square, trade_balance_gns_percent, 
+         trade_balance_goods_percent, balance_fuel_percent_gdp, territorial_emissions.share)%>%
+  filter(year <= 2020)%>%
+  mutate(new_residuals = emissions_balance_percent - coefficients[1] - coefficients[2]*log_gdp - coefficients[3]*log_gdp_square)
+
+regression_semi2 <- pmg(new_residuals ~ trade_balance_gns_percent + balance_fuel_percent_gdp -1, 
+                        data = regression_prediction_semi, index = c("country", "year"), model = "mg")
+summary(regression_semi2)
+pcdtest(regression_semi2)
+
+coeffs_2 <- as.data.frame(t(regression_semi2$indcoef))
+colnames(coeffs_2) <- c("beta_gns_balance", "beta_fuel_balance")
+coeffs_2 <- rownames_to_column(coeffs_2, "country")
+
+regression_prediction_semi2 <- regression_prediction_semi%>%
+  filter(year <= 2020)%>%
+  filter(year >= 2016)
+
+regression_prediction_semi2 <- merge(x=regression_prediction_semi2, y= coeffs_2, by= "country", all.y = TRUE)
+
+regression_prediction_semi2 <- regression_prediction_semi2%>%
+  mutate(residuals = (new_residuals - beta_gns_balance*trade_balance_gns_percent - beta_fuel_balance*balance_fuel_percent_gdp)*territorial_emissions/100,
+         absolute_error = abs(residuals),
+         residuals.country = residuals*population,
+         territorial_emissions.country = territorial_emissions*population,
+         consumption_emissions.country = consumption_emissions*population)%>%
+  filter(!(is.na(residuals)))
+
+regression_prediction_semi2 <- mean_absolute_error_5Y(data = regression_prediction_semi2)%>%
+  filter(year == 2020)
+
+
+summary(regression_prediction_semi2$absolute_error_5Y)
+#Min.  1st Qu.   Median     Mean  3rd Qu.     Max. 
+#0.005094 0.112858 0.311313 0.784921 0.924432 9.142964 
+
+mea_semi2 = mean_absolute_error(data = regression_prediction_semi2, column = "absolute_error_5Y")
+mea_semi2
+#0.7883787
+
+sum_residuals = sum(regression_prediction_semi2$residuals.country)
+sum_residuals
+# -1013953296
+sum_territorial = sum(regression_prediction_semi2$territorial_emissions.country)
+sum_territorial
+sum_consumption = sum(regression_prediction_semi2$consumption_emissions.country)
+sum_consumption
+
+error_percent = sum_residuals/sum_territorial*100
+error_percent
+# -3.13%
+
+semi_table <- regression_prediction_semi2%>%
+  select(country, absolute_error_5Y, residuals.country, consumption_emissions)%>%
+  mutate(error_percent = absolute_error_5Y/consumption_emissions*100)%>%
+  arrange(desc(error_percent))%>%
+  rename(absolute_error_5Y_semi = absolute_error_5Y,
+         error_percent_semi = error_percent,
+         residuals.country_semi = residuals.country)%>%
+  select(-consumption_emissions)
+
+
+#####################################################################################################
+# Now we test the possibility of just taking the mean ratio to predict consumption_emissions
+
+data_table_simple <- regression_data%>%
+  select(country, year, emissions_balance_percent)%>%
+  filter(year <= 2010)%>%
+  group_by(country)%>%
+  mutate(mean_ratio = mean(emissions_balance_percent, na.rm = TRUE))%>%
+  ungroup()
+
+data_estimate_ratio <- data_table_simple%>%
+  filter(year == 2010)%>%
+  select(country, mean_ratio)
+
+data_prediction <- regression_data%>%
+  select(country, year, territorial_emissions, consumption_emissions, emissions_balance_percent, territorial_emissions.share, population)%>%
+  filter(year <= 2020)%>%
+  filter(year >= 2016)
+
+data_prediction <- merge( x= data_prediction, y= data_estimate_ratio, by = "country", all.y = TRUE)%>%
+  mutate(predicted_emissions = territorial_emissions*(1+mean_ratio/100),
+         residuals = consumption_emissions - predicted_emissions,
+         absolute_error = abs(residuals),
+         residuals.country = residuals*population,
+         territorial_emissions.country = territorial_emissions*population)
+
+data_prediction <- mean_absolute_error_5Y(data = data_prediction)%>%
+  filter(year == 2020)%>%
+  filter(!(is.na(residuals)|is.na(population)))
+
+summary(data_prediction$absolute_error_5Y)
+
+mea_simple = mean_absolute_error(data = data_prediction, column = "absolute_error_5Y")
+mea_simple
+# 0.5318479
+
+sum_residuals = sum(data_prediction$residuals.country)
+sum_residuals
+#967360393
+
+sum_territorial = sum(data_prediction$territorial_emissions.country)
+sum_territorial
+# 32716968919
+
+error_percent = sum_residuals/sum_territorial*100
+error_percent
+#2.96%
+
+data_compare <- data_prediction%>%
+  mutate(error_percent = absolute_error_5Y/consumption_emissions*100)%>%
+  arrange(desc(error_percent))%>%
+  select(country, territorial_emissions, consumption_emissions, error_percent, residuals.country, absolute_error_5Y)%>%
+  rename(error_percent_simple = error_percent,
+         absolute_error_5Y_simple = absolute_error_5Y,
+         residuals.country_simple=residuals.country )
+
+data_summary <- merge( x= data_compare, y= semi_table, by = "country", all = TRUE)%>%
+  mutate(min_error_percent = case_when(
+    is.na(error_percent_simple) ~ error_percent_semi,
+    is.na(error_percent_semi) ~ error_percent_simple,
+    error_percent_simple <= error_percent_semi ~ error_percent_simple,
+    TRUE ~ error_percent_semi
+  ))%>%
+  mutate(best_residuals.country = case_when(
+    is.na(error_percent_simple) ~ residuals.country_semi,
+    is.na(error_percent_semi) ~ residuals.country_simple,
+    error_percent_simple <= error_percent_semi ~ residuals.country_simple,
+    TRUE ~ residuals.country_semi
+  ))%>%
+  arrange(desc(min_error_percent))
+
+sum_residuals = sum(data_summary$best_residuals.country)
+sum_residuals
+#218367358
+
+total_balance = sum_residuals/sum_consumption*100
+total_balance
+#0.67%
+
+write.csv(data_summary, "results_two_regressions.csv")
+error_table <- read.xlsx("error_table.xlsx")
+
+additional_regression_data <- error_table%>%
+  filter(country %in% c("LAO", "PAN", "ZMB", "TGO", "GIN", "CYP", "VNM", "BEN", "RWA", "MOZ", "MLT", "TJK",
+                        "BGD", "KAZ", "NPL", "BWA", "BHR", "LVA", "TUR", "GRC", "EST", "DOM", "NAM"))
+
+uncovered_countries <- regression_data%>%
+  filter(year == 2020)%>%
+  filter(!(country %in% data_summary$country))

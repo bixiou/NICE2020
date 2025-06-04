@@ -105,7 +105,7 @@ territorial_emissions_raw = read.csv("Emissions/emissions_co2_fossil_territorial
 consumption_emissions_raw = read.csv("Emissions/emissions_co2_fossil_consumption_based_pc.csv")
 
 #Define a function to make the processing of WDI data faster
-process_wdi_data <- function(data, extra_columns, name_variable, first_column){
+process_wdi_data <- function(data, extra_columns, name_variable, first_column, select_countries = TRUE){
   for(i in first_column:length(data)){
     names(data)[i] <- gsub(".*?(\\d{4}).*", "\\1", names(data)[i])
   }
@@ -118,8 +118,12 @@ process_wdi_data <- function(data, extra_columns, name_variable, first_column){
       cols = -Country.Code,          # Toutes les colonnes sauf "country"
       names_to = "year",        # Les noms des colonnes deviennent la variable "year"
       values_to = name_variable   # Les valeurs deviennent la variable "emissions"
-    ) %>%
-    filter (Country.Code %in% countries$country)%>%
+    )
+  if(select_countries == TRUE){
+    data_clean<- data_clean%>%
+      filter (Country.Code %in% countries$country)
+  }
+  data_clean <- data_clean%>%
     filter(year != 2024)%>%
     rename(country=Country.Code)%>%
   return(data_clean)
@@ -140,6 +144,8 @@ territorial_emissions <- territorial_emissions %>%
     names_to = "country",        # Les noms des colonnes deviennent la variable "year"
     values_to = "territorial_emissions"   # Les valeurs deviennent la variable "emissions"
   )
+
+write.csv( territorial_emissions, "territorial_emissions.csv")
 
 consumption_emissions <- consumption_emissions_raw %>%
   slice(2:n()) %>% 
@@ -177,6 +183,8 @@ data_emissions_clean <- merge(x=data_emissions, y=countries, by.x = "country", b
   arrange(country, year)%>%
   select(country.y, year, consumption_emissions, territorial_emissions, land_use_emissions)%>%
   rename(country = country.y)
+
+write.csv(data_emissions_clean, "data_emissions_clean.csv")
 
 #Processing WDI data using the function
 GDP_clean <- process_wdi_data(data = GDP, extra_columns = c(1,3,4), name_variable = "gdp", first_column = 5)
@@ -355,6 +363,36 @@ test_table_5 <- test_table_4 %>%
          
 test_data <- test_table_5 %>%
   filter(country %in% c("BRN", "SAU", "OMN", "TKM"))
+
+#####################################################
+#A test to see where there are unaccounted emissions#
+#####################################################
+
+data_emissions_2 <- data_emissions%>%
+  filter(!(country %in% countries$LABEL.FR),
+         year == 2020,
+         territorial_emissions > 0)%>%
+  select(country, territorial_emissions)%>%
+  mutate(country_code = "AAA")
+
+write.csv(data_emissions_2, "data_emissions_2.csv")
+data_emissions_3 = read.csv("data_emissions_3.csv")%>%
+  filter(country_code != "AAA")%>%
+  rename(name_country = "country",
+         country = country_code)
+
+population <- process_wdi_data(data = pop, extra_columns =c(1,3,4), name_variable = "population", first_column = 5, select_countries = FALSE )%>%
+  filter(year == 2020)
+
+missing_emissions = merge( x= data_emissions_3, y= population, by ="country", all.x = TRUE)%>%
+  select(-X, -year)%>%
+  mutate(population = as.numeric(population),
+         territorial_emissions = as.numeric(territorial_emissions),
+         territorial_emissions.country = population*territorial_emissions)
+
+sum_emissions = sum(missing_emissions$territorial_emissions.country ,na.rm = TRUE)
+sum_emissions
+
 #############################
 ## Testing some regressions##
 #############################
