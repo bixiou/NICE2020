@@ -194,3 +194,156 @@ function save_nice2020_results(m::Model, output_directory::String; revenue_recyc
     save(joinpath(quantile_path, "post_recycle_share_consumption.csv"), filter!(:time => x -> x<2121, getdataframe(m, :quantile_recycle => :qc_share)))
 
 end
+
+function save_nice2020_results_cap_and_share(
+    m::Model,
+    output_directory::String;
+    revenue_recycling::Bool=true,
+    recycling_type::Int64=0,
+    result_year_end::Int64=2100,
+    switch_custom_transfers::Int64=0
+)
+
+    # 1) Choice of “transfer” label based on switch_redistribution
+    # 0 → “old_transfer”, 1 → “new_transfer”
+    transfer_label = switch_custom_transfers == 1 ? "new_transfer" : "old_transfer"
+
+    # 2) Path construction based on revenue_recycling and recycling_type
+    if revenue_recycling == true
+
+     if recycling_type == 1
+            recycling_type_label = "within_country"
+        elseif recycling_type == 2
+            recycling_type_label = "global_per_capita"
+        else
+            error("recycling_type doit être 1 ou 2.")
+        end
+
+        base_rr = joinpath(
+            output_directory,
+            "revenue_recycling",
+            recycling_type_label,
+            transfer_label
+        )
+
+        global_path   = joinpath(base_rr, "global_output")
+        regional_path = joinpath(base_rr, "regional_output")
+        country_path  = joinpath(base_rr, "country_output")
+        quantile_path = joinpath(base_rr, "quantile_output")
+
+        mkpath(global_path)
+        mkpath(regional_path)
+        mkpath(country_path)
+        mkpath(quantile_path)
+
+    else
+
+     base_nrr = joinpath(
+            output_directory,
+            "no_revenue_recycling",
+            transfer_label
+        )
+
+        global_path   = joinpath(base_nrr, "global_output")
+        regional_path = joinpath(base_nrr, "regional_output")
+        country_path  = joinpath(base_nrr, "country_output")
+        quantile_path = joinpath(base_nrr, "quantile_output")
+
+        mkpath(global_path)
+        mkpath(regional_path)
+        mkpath(country_path)
+        mkpath(quantile_path)
+    end
+
+    # 3) Save CSV files in each of these four folders
+
+    # ————— Global Output —————
+    save(joinpath(global_path, "temperature.csv"),             getdataframe(m, :temperature => :T))
+    save(joinpath(global_path, "global_gross_output.csv"),     getdataframe(m, :grosseconomy => :YGROSS_global))
+    save(joinpath(global_path, "global_gtco2_emissions.csv"),  getdataframe(m, :emissions   => :E_Global_gtco2))
+    save(joinpath(global_path, "global_consumption_gini.csv"), getdataframe(m, :quantile_recycle => :gini_cons_global))
+    save(joinpath(global_path, "global_consumption_EDE.csv"),  getdataframe(m, :welfare         => :cons_EDE_global))
+    save(joinpath(global_path, "total_tax_revenue.csv"),       getdataframe(m, :revenue_recycle => :total_tax_revenue))
+    save(joinpath(global_path, "globally_recycled_tax_revenue.csv"),
+         getdataframe(m, :revenue_recycle => :global_revenue))
+    save(joinpath(global_path, "global_CPC_post_recycle.csv"),    getdataframe(m, :quantile_recycle => :CPC_post_global))
+    save(joinpath(global_path, "global_club_gtco2_emissions.csv"),
+         getdataframe(m, :emissions => :E_gtco2_scenario))
+
+    # ————— Regional Output —————
+    save(joinpath(regional_path, "regional_gtco2_emissions.csv"),
+         getdataframe(m, :emissions => :E_gtco2_rwpp))
+    save(joinpath(regional_path, "regional_consumption_per_capita.csv"),
+         getdataframe(m, :neteconomy => :CPC_rwpp))
+    save(joinpath(regional_path, "regional_net_output_per_capita.csv"),
+         getdataframe(m, :neteconomy => :Y_pc_rwpp))
+    save(joinpath(regional_path, "regional_consumption_per_capita_post_recycle.csv"),
+         getdataframe(m, :quantile_recycle => :CPC_post_rwpp))
+    save(joinpath(regional_path, "regional_consumption_gini.csv"),
+         getdataframe(m, :quantile_recycle => :gini_cons_rwpp))
+    save(joinpath(regional_path, "regional_consumption_EDE.csv"),
+         getdataframe(m, :welfare => :cons_EDE_rwpp))
+
+    # ————— Country Output —————
+    save(joinpath(country_path, "gross_output.csv"),
+         getdataframe(m, :grosseconomy => :YGROSS))
+    save(joinpath(country_path, "nice_net_output.csv"),
+         getdataframe(m, :neteconomy => :Y))
+    save(joinpath(country_path, "consumption.csv"),
+         getdataframe(m, :neteconomy => :C))
+    save(joinpath(country_path, "population.csv"),
+         getdataframe(m, :neteconomy => :l))
+    save(joinpath(country_path, "consumption_per_capita.csv"),
+         getdataframe(m, :neteconomy => :CPC))
+    save(joinpath(country_path, "net_output_per_capita.csv"),
+         getdataframe(m, :neteconomy => :Y_pc))
+    save(joinpath(country_path, "local_temp_anomaly.csv"),
+         getdataframe(m, :damages => :local_temp_anomaly))
+    save(joinpath(country_path, "local_damage_cost_share_KW.csv"),
+         getdataframe(m, :damages => :LOCAL_DAMFRAC_KW))
+    save(joinpath(country_path, "abatement_cost_share.csv"),
+         getdataframe(m, :abatement => :ABATEFRAC))
+    save(joinpath(country_path, "country_carbon_tax.csv"),
+         getdataframe(m, :abatement => :country_carbon_tax))
+    save(joinpath(country_path, "industrial_co2_emissions.csv"),
+         getdataframe(m, :emissions => :E_gtco2))
+    save(joinpath(country_path, "country_tax_revenue.csv"),
+         getdataframe(m, :revenue_recycle => :tax_revenue))
+    save(joinpath(country_path, "country_pc_tax_dividend.csv"),
+         getdataframe(m, :revenue_recycle => :country_pc_dividend))
+    save(joinpath(country_path, "country_pc_dividend_domestic_transfers.csv"),
+         getdataframe(m, :revenue_recycle => :country_pc_dividend_domestic_transfers))
+    save(joinpath(country_path, "country_pc_dividend_global_transfers.csv"),
+         getdataframe(m, :revenue_recycle => :country_pc_dividend_global_transfers))
+
+    save(joinpath(country_path, "consumption_per_capita_post_recycle.csv"),
+         getdataframe(m, :quantile_recycle => :CPC_post))
+    save(joinpath(country_path, "consumption_gini.csv"),
+         getdataframe(m, :quantile_recycle => :gini_cons))
+    save(joinpath(country_path, "consumption_EDE.csv"),
+         getdataframe(m, :welfare => :cons_EDE_country))
+    save(joinpath(country_path, "transfer_over_gdp.csv"),
+         getdataframe(m, :revenue_recycle => :transfer_over_gdp))
+    save(joinpath(country_path, "transfer_pc.csv"),
+         getdataframe(m, :revenue_recycle => :transfer_pc))
+
+    # ————— Quantile Output —————
+    save(joinpath(quantile_path, "co2_tax_distribution.csv"),
+         filter!(:time => x -> x < 2121,
+                 getdataframe(m, :quantile_recycle => :carbon_tax_dist)))
+    save(joinpath(quantile_path, "base_pc_consumption.csv"),
+         filter!(:time => x -> x < 2121,
+                 getdataframe(m, :quantile_recycle => :qcpc_base)))
+    save(joinpath(quantile_path, "post_damage_abatement_pc_consumption.csv"),
+         filter!(:time => x -> x < 2121,
+                 getdataframe(m, :quantile_recycle => :qcpc_post_damage_abatement)))
+    save(joinpath(quantile_path, "post_tax_pc_consumption.csv"),
+         filter!(:time => x -> x < 2121,
+                 getdataframe(m, :quantile_recycle => :qcpc_post_tax)))
+    save(joinpath(quantile_path, "post_recycle_pc_consumption.csv"),
+         filter!(:time => x -> x < 2121,
+                 getdataframe(m, :quantile_recycle => :qcpc_post_recycle)))
+    save(joinpath(quantile_path, "post_recycle_share_consumption.csv"),
+         filter!(:time => x -> x < 2121,
+                 getdataframe(m, :quantile_recycle => :qc_share)))
+end

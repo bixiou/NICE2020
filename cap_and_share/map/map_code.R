@@ -38,15 +38,17 @@ package("rnaturalearthdata")
 
 # Path of the folder with baseline scenario 
 
-path_baseline_scenario = "C:/Users/Erwan Akrour/Desktop/Stage_CIRED/PortableGit/NICE2020/results/bau_no_policy_at_all/no_revenue_recycling"
+path_baseline_scenario = "C:/Users/Erwan Akrour/Desktop/Stage_CIRED/PortableGit/NICE2020/cap_and_share/output//bau_no_policy_at_all/no_revenue_recycling"
 
 # Path of the folder with policy scenario of interest
 
-path_policy_interest = "C:/Users/Erwan Akrour/Desktop/Stage_CIRED/PortableGit/NICE2020/results/uniform_tax_example/revenue_recycling/global_per_capita"
+path_policy_interest_new_transfer = "C:/Users/Erwan Akrour/Desktop/Stage_CIRED/PortableGit/NICE2020/cap_and_share/output/revenue_recycling/global_per_capita/new_transfer"
+path_policy_interest_old_transfer = "C:/Users/Erwan Akrour/Desktop/Stage_CIRED/PortableGit/NICE2020/cap_and_share/output/revenue_recycling/global_per_capita/old_transfer"
+
 
 # The year you want to represent on maps
 
-year_represent = 2060
+year_represent = 2030
 
 #Choose discount rate
 
@@ -461,9 +463,9 @@ create_transfer_over_gdp_map <- function(path_policy_interest,
 
 
 #Call this function to create the maps about transfers
-create_transfer_diff_map(path_baseline_scenario, path_policy_interest, year_represent, save_folder = "cap_and_share/map")
+create_transfer_diff_map(path_baseline_scenario, path_policy_interest_old_transfer, year_represent, save_folder = "cap_and_share/output/revenue_recycling/global_per_capita/old_transfer")
 
 #Call this function to create the map about changes in EDE consumption
-create_EDE_diff_map(path_baseline_scenario, path_policy_interest, year_represent, save_folder = "cap_and_share/map")
+create_EDE_diff_map(path_baseline_scenario, path_policy_interest_new_transfer, year_represent, save_folder = "cap_and_share/output/revenue_recycling/global_per_capita/new_transfer")
 
-create_transfer_over_gdp_map(path_policy_interest, year_represent, save_folder = "cap_and_share/map")
+create_transfer_over_gdp_map(path_policy_interest_new_transfer, year_represent, save_folder = "cap_and_share/map/cap_and_share/map")

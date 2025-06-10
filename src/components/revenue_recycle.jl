@@ -47,10 +47,10 @@
         if p.switch_custom_transfers == 1
             # new transfers calculation :
             for c in d.country
-                Δ = p.rights_proposed[t,c] - p.E_gtco2[t,c]
+                Δ = (p.rights_proposed[t,c] - p.E_gtco2[t,c]) * 1e9
                 v.transfer[t,c]          = p.country_carbon_tax[t,c] * Δ
-                v.transfer_over_gdp[t,c] = p.country_carbon_tax[t,c] * Δ / p.YGROSS[t,c]
-                v.transfer_pc[t,c]       = p.country_carbon_tax[t,c] * Δ / p.l[t,c]
+                v.transfer_over_gdp[t,c] = (p.country_carbon_tax[t,c] * Δ ) / (p.YGROSS[t,c] * 1e6)
+                v.transfer_pc[t,c]       = (p.country_carbon_tax[t,c] * Δ ) / p.l[t,c]
             end
 
             # all* old component variables are neutralized :
