@@ -38,12 +38,12 @@
     switch_scope_recycle	   	= Parameter() 									# Switch, carbon tax revenues recycled at country (0) or  global (1) level
     switch_global_pc_recycle    = Parameter()                                   # Switch, carbon tax revenues recycled globally equal per capital (1)
     policy_scenario             = Parameter()                                    # Policy scenario for the country, used to determine which countries are in the club
-    club_countries_binary       	= Parameter(index=[scenario, country])          # Countries in the club for each scenario (1) or not (0)
+    club_country       	= Parameter(index=[scenario, country])          # Countries in the club for each scenario (1) or not (0)
 
      # --- New International Transfer Parameters ---
     switch_custom_transfers   = Parameter()                          # 0=anciens calculs, 1=nouveaux transferts
     rights_proposed           = Parameter(index=[time, country])    # droits alloués (GtCO2 par pays/an)
-    E_gtco2_scenario          = Parameter(index=[time])             # émissions du club (GtCO2/an)
+    E_gtco2_club          = Parameter(index=[time])             # émissions du club (GtCO2/an)
     YGROSS                    = Parameter(index=[time, country])    # PIB par pays/an
     
     tax_revenue 				= Variable(index=[time, country]) 				# Country carbon tax revenue (thousand 2017USD per year)
@@ -161,7 +161,7 @@
                     ## Globally recycled revenues recycled on a per capita basis =======================
                     if p.switch_global_pc_recycle==1
                         # if country is in the club, it receives a share of global revenue
-                        v.country_pc_dividend_global_transfers[t,c] = v.global_revenue[t]*p.club_countries_binary[p.policy_scenario,c] / ((p.l[t,:]' *p.club_countries_binary[p.policy_scenario,:])*1e3)
+                        v.country_pc_dividend_global_transfers[t,c] = v.global_revenue[t]*p.club_country[p.policy_scenario,c] / ((p.l[t,:]' *p.club_country[p.policy_scenario,:])*1e3)
                     else 
                         v.country_pc_dividend_global_transfers[t,c] = 0
                         end

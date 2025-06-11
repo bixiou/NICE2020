@@ -151,7 +151,7 @@ function save_nice2020_results(m::Model, output_directory::String; revenue_recyc
     save(joinpath(global_path, "total_tax_revenue.csv"),                        getdataframe(m, :revenue_recycle => :total_tax_revenue))
     save(joinpath(global_path, "globally_recycled_tax_revenue.csv"),            getdataframe(m, :revenue_recycle => :global_revenue))
     save(joinpath(global_path, "global_CPC_post_recycle.csv"),                  getdataframe(m, :quantile_recycle => :CPC_post_global))
-    save(joinpath(global_path, "global_club_gtco2_emissions.csv"),              getdataframe(m, :emissions => :E_gtco2_scenario))
+    save(joinpath(global_path, "global_club_gtco2_emissions.csv"),              getdataframe(m, :emissions => :E_gtco2_club))
 
 
     # Save Regional Output
@@ -184,6 +184,7 @@ function save_nice2020_results(m::Model, output_directory::String; revenue_recyc
     save(joinpath(country_path, "consumption_EDE.csv"),                 getdataframe(m, :welfare => :cons_EDE_country))
     save(joinpath(country_path, "transfer_over_gdp.csv"),                 getdataframe(m, :revenue_recycle => :transfer_over_gdp))
     save(joinpath(country_path, "transfer_pc.csv"),                    getdataframe(m, :revenue_recycle => :transfer_pc))
+    save(joinpath(country_path, "transfer.csv"),                       getdataframe(m, :revenue_recycle => :transfer))
 
     # Save Quantile Output.
     save(joinpath(quantile_path, "co2_tax_distribution.csv"), filter!(:time => x -> x<2121, getdataframe(m, :quantile_recycle => :carbon_tax_dist)))
@@ -268,7 +269,7 @@ function save_nice2020_results_cap_and_share(
          getdataframe(m, :revenue_recycle => :global_revenue))
     save(joinpath(global_path, "global_CPC_post_recycle.csv"),    getdataframe(m, :quantile_recycle => :CPC_post_global))
     save(joinpath(global_path, "global_club_gtco2_emissions.csv"),
-         getdataframe(m, :emissions => :E_gtco2_scenario))
+         getdataframe(m, :emissions => :E_gtco2_club))
 
     # ————— Regional Output —————
     save(joinpath(regional_path, "regional_gtco2_emissions.csv"),
@@ -325,7 +326,9 @@ function save_nice2020_results_cap_and_share(
     save(joinpath(country_path, "transfer_over_gdp.csv"),
          getdataframe(m, :revenue_recycle => :transfer_over_gdp))
     save(joinpath(country_path, "transfer_pc.csv"),
-         getdataframe(m, :revenue_recycle => :transfer_pc))
+         getdataframe(m, :revenue_recycle => :transfer_pc)),
+    save(joinpath(country_path, "transfer.csv"),
+         getdataframe(m, :revenue_recycle => :transfer))    
 
     # ————— Quantile Output —————
     save(joinpath(quantile_path, "co2_tax_distribution.csv"),
