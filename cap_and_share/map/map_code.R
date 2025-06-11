@@ -38,15 +38,17 @@ package("rnaturalearthdata")
 
 # Path of the folder with baseline scenario 
 
-path_baseline_scenario = "C:/Users/Erwan Akrour/Desktop/Stage_CIRED/PortableGit/NICE2020/results/bau_no_policy_at_all/no_revenue_recycling"
+path_baseline_scenario = "cap_and_share/output/bau_no_policy_at_all/no_revenue_recycling/old_transfer"
 
 # Path of the folder with policy scenario of interest
 
-path_policy_interest = "C:/Users/Erwan Akrour/Desktop/Stage_CIRED/PortableGit/NICE2020/results/uniform_tax_example/revenue_recycling/global_per_capita"
+path_policy_interest_new_transfer = "cap_and_share/output/revenue_recycling/global_per_capita/new_transfer"
+path_policy_interest_old_transfer = "cap_and_share/output/revenue_recycling/global_per_capita/old_transfer"
+
 
 # The year you want to represent on maps
 
-year_represent = 2060
+year_represent = 2070
 
 #Choose discount rate
 
@@ -203,7 +205,7 @@ plot_world_map <- function(var, df, along = "country", breaks, labels, colors,
   # Sauvegarde si demandé
   if (save) {
     if (is.null(filename)) {
-      filename <- paste0(var, "_map")
+      filename <- paste0(var, "_map_", year_represent)
     }
     for (fmt in format) {
       ggsave(filename = paste0(folder, "/", filename, ".", fmt),
@@ -213,7 +215,7 @@ plot_world_map <- function(var, df, along = "country", breaks, labels, colors,
 }
 
 #Creates the map from the path to data
-create_EDE_diff_map <- function(path_baseline_scenario, path_policy_interest, year_represent, save_folder = "cap_and_share/map") {
+create_EDE_diff_map <- function(path_baseline_scenario, path_policy_interest, year_represent, save_folder = "cap_and_share/output/revenue_recycling/global_per_capita/new_transfer") {
   # Breaks for consumption
   breaks_EDE <- c(-Inf, -0.05, -0.025, -0.01, -0.0001, 0.0001,
                   0.01, 0.025, 0.05, 0.1, 0.3, Inf)
@@ -260,14 +262,14 @@ create_EDE_diff_map <- function(path_baseline_scenario, path_policy_interest, ye
     legend = paste0("Change in equally distributed \nequivalent (EDE) consumption \ncompared to baseline (", year_represent, ") \nin %"),
     save = TRUE,
     format = c("png", "pdf"),
-    folder = "cap_and_share/map"  # Crée le dossier automatiquement si pas présent
+    folder = "cap_and_share/output/revenue_recycling/global_per_capita/new_transfer"  # Crée le dossier automatiquement si pas présent
   )
   
 }
 
 
 #Creates two ther maps about the amount of transfers
-create_transfer_diff_map <- function(path_baseline_scenario, path_policy_interest, year_represent, save_folder = "cap_and_share/map") {
+create_transfer_diff_map <- function(path_baseline_scenario, path_policy_interest, year_represent, save_folder = "cap_and_share/output/revenue_recycling/global_per_capita/old_transfer") {
   
   # Placeholder pour lecture de fichiers
   country_tax_revenue <- read.csv(file.path(path_policy_interest, "country_output", "country_tax_revenue.csv"))
@@ -337,7 +339,7 @@ create_transfer_diff_map <- function(path_baseline_scenario, path_policy_interes
     legend = paste("Per capita yearly net transfers \n(USD, 2017) in ", year_represent),
     save = TRUE,
     format = c("png", "pdf"),
-    folder = "cap_and_share/map",
+    folder = "cap_and_share/output/revenue_recycling/global_per_capita/old_transfer",
     zeroindata=TRUE
   )
   
@@ -377,7 +379,7 @@ create_transfer_diff_map <- function(path_baseline_scenario, path_policy_interes
     legend = paste("Net present value of transfers \nper capita between 2020 and 100 \nin (USD, 2017),\ndisount rate  =", discount_rate),
     save = TRUE,
     format = c("png", "pdf"),
-    folder = "cap_and_share/map",
+    folder = "cap_and_share/output/revenue_recycling/global_per_capita/old_transfer",
     zeroindata=TRUE
   )
   
@@ -386,7 +388,7 @@ create_transfer_diff_map <- function(path_baseline_scenario, path_policy_interes
 #Creates map for transfer_over_gdp
 create_transfer_over_gdp_map <- function(path_policy_interest,
                                          year_represent,
-                                         save_folder = "cap_and_share/map") {
+                                         save_folder = "cap_and_share/output/revenue_recycling/global_per_capita/new_transfer") {
   
   # 1. Lecture du CSV ------------------------------------------------
   #    → attend les colonnes : time | country | transfer_over_gdp
@@ -443,7 +445,7 @@ create_transfer_over_gdp_map <- function(path_policy_interest,
     legend = paste("Transfers as % of GDP –", year_represent),
     save   = TRUE,
     format = c("png", "pdf"),
-    folder = save_folder,
+    folder = "cap_and_share/output/revenue_recycling/global_per_capita/new_transfer",
     zeroindata = FALSE
   )
 }
@@ -461,9 +463,9 @@ create_transfer_over_gdp_map <- function(path_policy_interest,
 
 
 #Call this function to create the maps about transfers
-create_transfer_diff_map(path_baseline_scenario, path_policy_interest, year_represent, save_folder = "cap_and_share/map")
+create_transfer_diff_map(path_baseline_scenario, path_policy_interest_old_transfer, year_represent, save_folder = "cap_and_share/output/revenue_recycling/global_per_capita/old_transfer")
 
 #Call this function to create the map about changes in EDE consumption
-create_EDE_diff_map(path_baseline_scenario, path_policy_interest, year_represent, save_folder = "cap_and_share/map")
+create_EDE_diff_map(path_baseline_scenario, path_policy_interest_new_transfer, year_represent, save_folder = "cap_and_share/output/revenue_recycling/global_per_capita/new_transfer")
 
-create_transfer_over_gdp_map(path_policy_interest, year_represent, save_folder = "cap_and_share/map")
+create_transfer_over_gdp_map(path_policy_interest_new_transfer, year_represent, save_folder = "cap_and_share/output/revenue_recycling/global_per_capita/new_transfer")

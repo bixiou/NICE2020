@@ -167,6 +167,8 @@ Francis Dennig avait une modélisation des inégalités non-paramétriques.
 ## 9. Réduire la taille des données
 Actuellement, chaque run produit 60 Mo de données, c'est beaucoup trop.
 
+TODO: faire tourner code de Marie et vérifier qu'on a la même chose que ce qu'ils avaient au départ.
+
 
 ## Questions 
 - Does NICE model the feedback effect of transfers on GDP? => No.

@@ -160,8 +160,14 @@ end
 output_directory_bau = joinpath(@__DIR__, "..", "results", "bau_no_policy_at_all")
 mkpath(output_directory_bau)
 
+output_directory_bau_cap_and_share = joinpath(@__DIR__, "..", "cap_and_share", "output", "bau_no_policy_at_all")
+mkpath(output_directory_bau)
+
 output_directory_uniform = joinpath(@__DIR__, "..", "results", "uniform_tax_example")
 mkpath(output_directory_uniform)
+
+output_directory_uniform_cap_and_share = joinpath(@__DIR__, "..", "cap_and_share", "output")
+mkpath(output_directory_uniform_cap_and_share)
 
 #---------------------------------------------------------------------------------------------------
 #0- Run a baseline version of the model without CO2 mitigation.
@@ -182,7 +188,8 @@ println("Running the updated model and saving the output in the directory: ", ou
 run(bau_model)
 
 # Save the bau (see helper functions for saving function details)
-MimiNICE2020.save_nice2020_results(bau_model, output_directory_bau, revenue_recycling=false)
+#MimiNICE2020.save_nice2020_results(bau_model, output_directory_bau, revenue_recycling=false)
+MimiNICE2020.save_nice2020_results_cap_and_share(bau_model, output_directory_bau_cap_and_share, revenue_recycling=false)
 
 
 # ----------------------------------------------------------------------------------------------
@@ -215,7 +222,9 @@ println("Running the updated model and saving the output in the directory: ", ou
 run(nice2020_uniform_tax)
 
 # Save the run (see helper functions for saving function details)
-MimiNICE2020.save_nice2020_results(nice2020_uniform_tax, output_directory_uniform, revenue_recycling=false)
+#MimiNICE2020.save_nice2020_results(nice2020_uniform_tax, output_directory_uniform, revenue_recycling=false)
+MimiNICE2020.save_nice2020_results_cap_and_share(nice2020_uniform_tax, output_directory_uniform_cap_and_share, revenue_recycling=false)
+
 
 
 # -------------------------------------------------------------------------------------
@@ -233,7 +242,9 @@ switch_scope_recycle            = 0 # OFF    Carbon tax revenues recycled at cou
 switch_global_pc_recycle        = 0 # OFF    Carbon tax revenues recycled on an equal per capita basis
 switch_scenario                 = :Partnership  # Choice of scenario by name (:All_World, :All_Except_Oil_Countries, :Optimistic, :Generous_EU, :Partnership)
 redistribution_switch           = 1 # Can compute economic data including redistributive effect 
-update_param!(nice2020_uniform_tax, :switch_custom_transfers, 1)
+
+switch_custom_transfers = 1
+update_param!(nice2020_uniform_tax, :switch_custom_transfers, switch_custom_transfers)
 
 
 # Set uniform taxes, revenue recycling switches and run the model
@@ -245,6 +256,7 @@ update_param!(nice2020_uniform_tax, :switch_scope_recycle, switch_scope_recycle)
 update_param!(nice2020_uniform_tax, :revenue_recycle, :switch_global_pc_recycle, switch_global_pc_recycle)
 update_param!(nice2020_uniform_tax, :policy_scenario, MimiNICE2020.scenario_index[switch_scenario])
 update_param!(nice2020_uniform_tax, :redistribution_switch, redistribution_switch)
+update_param!(nice2020_uniform_tax, :switch_custom_transfers, switch_custom_transfers)
 
 println("Selected Scenario : ", switch_scenario)
 
@@ -253,7 +265,8 @@ println("Running the updated model and saving the output in the directory: ", ou
 run(nice2020_uniform_tax)
 
 # Save the recycle run (see helper functions for saving function details)
-MimiNICE2020.save_nice2020_results(nice2020_uniform_tax, output_directory_uniform, revenue_recycling=true, recycling_type=1)
+#MimiNICE2020.save_nice2020_results(nice2020_uniform_tax, output_directory_uniform, revenue_recycling=true, recycling_type=1)
+MimiNICE2020.save_nice2020_results_cap_and_share(nice2020_uniform_tax, output_directory_uniform_cap_and_share, revenue_recycling=true, recycling_type=1, switch_custom_transfers = switch_custom_transfers)
 
 
 #------------------------------------------------------------------------------------------------
@@ -271,7 +284,9 @@ switch_scope_recycle            = 1 # ON     Carbon tax revenues recycled global
 switch_global_pc_recycle        = 1 # ON    Carbon tax revenues recycled on an equal per capita basis
 switch_scenario                 = :Union  # Choice of scenario by name (:All_World, :All_Except_Oil_Countries, :Optimistic, :Generous_EU, :Partnership)
 redistribution_switch           = 1 # Can compute economic data including redistributive effect 
-update_param!(nice2020_uniform_tax, :switch_custom_transfers, 1)
+switch_custom_transfers         = 1
+
+update_param!(nice2020_uniform_tax, :switch_custom_transfers, switch_custom_transfers)
 
 # Rule for share of global tax revenues recycled at global level (switch_recycle and switch_scope_recycle must be ON)
 global_recycle_share            = 1 # 100%   Share of tax revenues recycled globally 
@@ -295,7 +310,8 @@ println("Running the updated model and saving the output in the directory: ", ou
 run(nice2020_uniform_tax)
 
 # Save the recycle run (see helper functions for saving function details)
-MimiNICE2020.save_nice2020_results(nice2020_uniform_tax, output_directory_uniform, revenue_recycling=true, recycling_type=2)
+#MimiNICE2020.save_nice2020_results(nice2020_uniform_tax, output_directory_uniform, revenue_recycling=true, recycling_type=2)
+MimiNICE2020.save_nice2020_results_cap_and_share(nice2020_uniform_tax, output_directory_uniform_cap_and_share, revenue_recycling=true, recycling_type=2, switch_custom_transfers = switch_custom_transfers)
 
 
 #------------------------------------------------------------------------------------------------

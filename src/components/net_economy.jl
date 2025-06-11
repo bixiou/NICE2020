@@ -49,7 +49,7 @@
             # Output net of abatement costs and damages
             #v.Y[t,c] = (1.0 - p.ABATEFRAC[t,c]) ./ (1.0 + p.LOCAL_DAMFRAC_KW[t,c]) * p.YGROSS[t,c] + p.redistribution_switch*(p.country_pc_dividend[t,c]*p.l[t,c] - p.tax_revenue[t,c]/1e3)*p.switch_recycle*p.switch_scope_recycle
 
-            v.Y[t,c] = (1.0 - p.ABATEFRAC[t,c]) ./ (1.0 + p.LOCAL_DAMFRAC_KW[t,c]) * p.YGROSS[t,c] + p.redistribution_switch*(p.switch_custom_transfers * (p.transfer_over_gdp[t,c] * p.YGROSS[t,c]) + (1.0 - p.switch_custom_transfers) * ( (p.country_pc_dividend[t,c] * p.l[t,c] - p.tax_revenue[t,c] / 1e3)* p.switch_recycle* p.switch_scope_recycle ))
+            v.Y[t,c] = (1.0 - p.ABATEFRAC[t,c]) ./ (1.0 + p.LOCAL_DAMFRAC_KW[t,c]) * p.YGROSS[t,c] + p.redistribution_switch*(p.switch_custom_transfers * p.transfer[t,c] / 1e6 + (1.0 - p.switch_custom_transfers) * ( (p.country_pc_dividend[t,c] * p.l[t,c] - p.tax_revenue[t,c] / 1e3)* p.switch_recycle* p.switch_scope_recycle ))
             
             # Investment
             v.I[t,c] = p.s[t,c] * v.Y[t,c]
