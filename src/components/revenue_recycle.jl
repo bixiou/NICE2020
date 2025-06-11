@@ -1,5 +1,30 @@
 @defcomp revenue_recycle begin
 
+ # TODOs:
+ # - rename E_gtco2_scenario -> E_gtco2_club 
+ # - rename club_countries_binary -> club_country 
+ # - make units more consistent (not thousands for one and millions for another), e.g. everything in tCO2, $, etc. Or at least specify the unit where each variable is defined, and in the documentation. For example, why is country_pc_dividend in *thousands* $?
+ # - rename redistribution_switch -> switch_transfers_affect_growth
+ # - rename switch_scope_recycle -> switch_global_recycling
+ # - rename carbon_tax_dist -> tax_burden_distr or emission_share_quantile
+ # - rename qcpc_... -> conso_pc_... 
+ # - rename Δ -> excess_rights
+ # - rename folder names old/new_transfer into equal_pc_transfer / [beginning of name of .csv used to define rights, e.g. "ffu"]_custom_transfers
+ # - specify unit in transfer (net_economy.jl)
+ # - be more explicit instead of "0=old calculations, 1=new transfers"
+ # * replace net_economy.jl:52 by the following (parentheses changed)?  v.Y[t,c] = (1.0 - p.ABATEFRAC[t,c]) ./ (1.0 + p.LOCAL_DAMFRAC_KW[t,c]) * p.YGROSS[t,c] + p.redistribution_switch*(p.switch_custom_transfers * p.transfer[t,c] / 1e6 + (1.0 - p.switch_custom_transfers) * (p.country_pc_dividend[t,c] * p.l[t,c] - p.tax_revenue[t,c] / 1e3) )* p.switch_recycle* p.switch_scope_recycle 
+ # * Aren't cases missing in revenue_recycle.jl:100?
+
+ # Questions:
+ # - Why transfer is defined only when switch_custom_transfers==1? Why not defining net_economy.jl:52 as v.Y[t,c] = (1.0 - p.ABATEFRAC[t,c]) ./ (1.0 + p.LOCAL_DAMFRAC_KW[t,c]) * p.YGROSS[t,c] + p.redistribution_switch*p.transfer[t,c]* p.switch_recycle* p.switch_scope_recycle, country_pc_dividend as rights_proposed*carbon_price/population, and transfer as the thing that was in parentheses in :52?
+ # * is "1e6 / p.l[t,c] / 1e3" working as inteneded (quantile_recycle.jl)
+ # - in quantile_recycle.jl:107, why tax_pc_revenue isn't valid for both cases of switch_custom_transfers? same question for country_pc_dividend :116
+ # * I don't understand the end of quantile_recycle.jl:107, :116, shouldn't it be -s*feedback instead of -(1-s)*feedback?
+ # - Why isn't quantile_recycle.jl:112 simply v.qcpc_post_tax[t,c,q] =  v.qcpc_post_damage_abatement[t,c,q] ?
+ # * Why lines 56-65 in revenue_recycle.jl?
+ # - What are :Union and :Partnership?
+ # - Comment ça marche le système des connect! dans nice2020_module?
+ 
     country          = Index()
     scenario         = Index()
 

@@ -20,7 +20,6 @@
     control_regime          = Parameter()                       # Switch for emissions control regime  1:"global_carbon_tax", 2:"country_carbon_tax", 3:"country_abatement_rate"
     μ_input                 = Parameter(index=[time, country])  # Input mitigation rate, used with option 3 "country_abatement_rate"
     policy_scenario         = Parameter()                       # Policy scenario for the country, used to determine which countries are in the club
-    policy_scenario         = Parameter()                       # Policy scenario for the country, used to determine which countries are in the club
     club_countries_binary      = Parameter(index=[scenario, country])  # Countries in the club for each scenario (1) or not (0)
     direct_country_tax = Parameter(index=[time, country])
 
