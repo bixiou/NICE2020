@@ -1809,7 +1809,21 @@ p <- ggplot(regression_data, aes(x = log_gdp, y = emissions_balance_percent)) +
   geom_point() +
   theme_minimal()
 
+# Créer une séquence de x pour tracer la courbe
+x_curve <- seq(6, 12, length.out = 300)
+y_curve <- 3.35 * x_curve^2 - 59.11 * x_curve + 230
+curve_df <- data.frame(x = x_curve, y = y_curve)
+print(p + geom_line(data = curve_df, aes(x = x, y = y), color = "red", size = 1))
+
 print(p)
+
+test_table <- regression_data%>%
+  filter(country =="FRA")%>%
+  select(year, country, territorial_emissions, consumption_emissions, gdp, population,
+         emissions_balance_percent)
+
+test_table2 <- regression_data%>%
+  filter(year, country, )
 
 ggsave(filename = "emissions_ratio.png", plot = p, height = 6, width = 10)
 
@@ -1843,17 +1857,31 @@ regression_pooled <- lm(emissions_balance_percent~ log_gdp + log_gdp_square + tr
 
 summary(regression_pooled)
 coefficients <- regression_pooled$coefficients
-coefficients[2]
 
 regression_prediction <- regression_data%>%
   select(country, year, territorial_emissions, consumption_emissions, population, emissions_balance_percent, log_gdp, log_gdp_square, trade_balance_gns_percent, 
          trade_balance_goods_percent, balance_fuel_percent_gdp)%>%
   filter(year <= 2020)%>%
+  filter(year >= 2016)%>%
   mutate(estimate_regression = coefficients[1] + coefficients[2]*log_gdp + coefficients[3]*log_gdp_square 
                               + coefficients[4]*trade_balance_gns_percent + coefficients[5]*trade_balance_goods_percent
                               + coefficients[6]*balance_fuel_percent_gdp)%>%
   mutate(residual_percent = emissions_balance_percent - estimate_regression)%>%
+  mutate(residuals = residual_percent*territorial_emissions/100)%>%
+  mutate(absolute_error = abs(residuals))%>%
+  mutate(residuals.country = residuals*population)%>%
   filter(!(is.na(residual_percent)))
+
+regression_prediction <- mean_absolute_error_5Y(data = regression_prediction)%>%
+  filter(year == 2020)
+
+pooled_table <- regression_prediction%>%
+  mutate(error_percent = abs(residual_percent))%>%
+  arrange(desc(error_percent))%>%
+  select(country, territorial_emissions, consumption_emissions, error_percent, residuals.country, absolute_error_5Y)%>%
+  rename(error_percent_pooled = error_percent,
+         absolute_error_5Y_pooled = absolute_error_5Y,
+         residuals.country_pooled=residuals.country )
 
 regression_evaluation <- regression_prediction%>%
   filter(year == 2020)%>%
@@ -1872,6 +1900,7 @@ sum_consumption
 
 error_percent = balance_emissions/sum_territorial*100
 error_percent
+#-16.9%
 
 #####################################################################################################
 #In this part we first make a pooled regression of the ratio on log_gdp and log_gdp_square and the three balances
@@ -1891,8 +1920,15 @@ coefficients <- regression_pooled$coefficients
 regression_prediction_semi <- regression_data%>%
   select(country, year, territorial_emissions, consumption_emissions, population, emissions_balance_percent, log_gdp, log_gdp_square, trade_balance_gns_percent, 
          trade_balance_goods_percent, balance_fuel_percent_gdp, territorial_emissions.share)%>%
-  filter(year <= 2020)%>%
+  filter(year <= 2010)%>%
   mutate(new_residuals = emissions_balance_percent - coefficients[1] - coefficients[2]*log_gdp - coefficients[3]*log_gdp_square)
+
+regression_prediction_semi[,"number_na"] <- NA
+regression_prediction_semi <- regression_prediction_semi%>%
+  group_by(country)%>%
+  mutate(number_na = sum(is.na(trade_balance_gns_percent) | is.na(balance_fuel_percent_gdp)))%>%
+  ungroup()%>%
+  filter(number_na <= 12)
 
 regression_semi2 <- pmg(new_residuals ~ trade_balance_gns_percent + balance_fuel_percent_gdp -1, 
                         data = regression_prediction_semi, index = c("country", "year"), model = "mg")
@@ -1902,14 +1938,26 @@ pcdtest(regression_semi2)
 coeffs_2 <- as.data.frame(t(regression_semi2$indcoef))
 colnames(coeffs_2) <- c("beta_gns_balance", "beta_fuel_balance")
 coeffs_2 <- rownames_to_column(coeffs_2, "country")
+coeffs_2[,"intercept"] <- regression_semi$coefficients[1]
+coeffs_2[,"beta_log_gdp"] <- regression_semi$coefficients[2]
+coeffs_2[,"beta_log_gdp_square"] <- regression_semi$coefficient[3]
 
-regression_prediction_semi2 <- regression_prediction_semi%>%
+
+#This table is the table of coefficients for the two-stage regression that will be used later
+coefficients_regression_semi <- coeffs_2%>%
+  select(country, intercept, beta_log_gdp, beta_log_gdp_square, beta_gns_balance, beta_fuel_balance)
+row.names(coefficients_regression_semi) = coefficients_regression_semi$country
+
+regression_prediction_semi2 <- regression_data%>%
+  select(country, year, territorial_emissions, consumption_emissions, population, emissions_balance_percent, log_gdp, log_gdp_square, trade_balance_gns_percent, 
+         trade_balance_goods_percent, balance_fuel_percent_gdp, territorial_emissions.share)%>%
   filter(year <= 2020)%>%
   filter(year >= 2016)
 
 regression_prediction_semi2 <- merge(x=regression_prediction_semi2, y= coeffs_2, by= "country", all.y = TRUE)
 
 regression_prediction_semi2 <- regression_prediction_semi2%>%
+  mutate(new_residuals = emissions_balance_percent - coefficients[1] - coefficients[2]*log_gdp - coefficients[3]*log_gdp_square)%>%
   mutate(residuals = (new_residuals - beta_gns_balance*trade_balance_gns_percent - beta_fuel_balance*balance_fuel_percent_gdp)*territorial_emissions/100,
          absolute_error = abs(residuals),
          residuals.country = residuals*population,
@@ -1922,16 +1970,16 @@ regression_prediction_semi2 <- mean_absolute_error_5Y(data = regression_predicti
 
 
 summary(regression_prediction_semi2$absolute_error_5Y)
-#Min.  1st Qu.   Median     Mean  3rd Qu.     Max. 
-#0.005094 0.112858 0.311313 0.784921 0.924432 9.142964 
+#Min.   1st Qu.    Median      Mean   3rd Qu.      Max. 
+#0.009025  0.161816  0.448886  1.318614  1.731753 12.206888 
 
 mea_semi2 = mean_absolute_error(data = regression_prediction_semi2, column = "absolute_error_5Y")
 mea_semi2
-#0.7883787
+#1.60691
 
 sum_residuals = sum(regression_prediction_semi2$residuals.country)
 sum_residuals
-# -1013953296
+# -2837532425
 sum_territorial = sum(regression_prediction_semi2$territorial_emissions.country)
 sum_territorial
 sum_consumption = sum(regression_prediction_semi2$consumption_emissions.country)
@@ -1939,7 +1987,7 @@ sum_consumption
 
 error_percent = sum_residuals/sum_territorial*100
 error_percent
-# -3.13%
+# -8.7%
 
 semi_table <- regression_prediction_semi2%>%
   select(country, absolute_error_5Y, residuals.country, consumption_emissions)%>%
@@ -1964,6 +2012,16 @@ data_table_simple <- regression_data%>%
 data_estimate_ratio <- data_table_simple%>%
   filter(year == 2010)%>%
   select(country, mean_ratio)
+
+#This table establishes a table of coefficients for this regression
+coefficients_regression_simple <- data_estimate_ratio%>%
+  rename(intercept = mean_ratio)
+
+coefficients_regression_simple[,"beta_log_gdp"] <- 0
+coefficients_regression_simple[,"beta_log_gdp_square"] <- 0
+coefficients_regression_simple[,"beta_gns_balance"] <- 0
+coefficients_regression_simple[,"beta_fuel_balance"] <- 0
+row.names(coefficients_regression_simple) = coefficients_regression_simple$country
 
 data_prediction <- regression_data%>%
   select(country, year, territorial_emissions, consumption_emissions, emissions_balance_percent, territorial_emissions.share, population)%>%
@@ -2020,19 +2078,27 @@ data_summary <- merge( x= data_compare, y= semi_table, by = "country", all = TRU
     error_percent_simple <= error_percent_semi ~ residuals.country_simple,
     TRUE ~ residuals.country_semi
   ))%>%
+  mutate(best_regression = case_when(
+    is.na(error_percent_simple) ~ "estimate_semi",
+    is.na(error_percent_semi) ~ "estimate_simple",
+    error_percent_simple <= error_percent_semi ~ "estimate_simple",
+    TRUE ~ "estimate_semi"
+  ))%>%
   arrange(desc(min_error_percent))
 
 sum_residuals = sum(data_summary$best_residuals.country)
 sum_residuals
-#218367358
+#808452241
 
 total_balance = sum_residuals/sum_consumption*100
 total_balance
-#0.67%
+#2.5%
 
 write.csv(data_summary, "results_two_regressions.csv")
 error_table <- read.xlsx("error_table.xlsx")
 
+###########################################################################################
+#This is not used now but can be useful for later
 additional_regression_data <- error_table%>%
   filter(country %in% c("LAO", "PAN", "ZMB", "TGO", "GIN", "CYP", "VNM", "BEN", "RWA", "MOZ", "MLT", "TJK",
                         "BGD", "KAZ", "NPL", "BWA", "BHR", "LVA", "TUR", "GRC", "EST", "DOM", "NAM"))
@@ -2040,3 +2106,438 @@ additional_regression_data <- error_table%>%
 uncovered_countries <- regression_data%>%
   filter(year == 2020)%>%
   filter(!(country %in% data_summary$country))
+
+############################################################################################
+# This part establishes the table of matching for countries
+
+countries_geo = read.csv("WPP_regions_country_list.csv")
+#There are 20 regions numbered 1 to 20
+
+countries_geo <- countries_geo%>%
+  filter(countrycode %in% countries$country)%>%
+  select(country = countrycode,
+         WPP_region_name,
+         region = WPP_region_number)
+
+regression_data_match <- merge( x= regression_data, y= countries_geo, by ="country")
+
+matching_table <- regression_data_match%>%
+  filter(year == 2020)%>%
+  select(country, territorial_emissions, consumption_emissions, gdp, population)
+
+matching_table <- merge( x= countries_geo, y= matching_table, by = "country")
+
+data_summary <- data_summary%>%
+  select(-territorial_emissions, -consumption_emissions)
+
+matching_table <- merge(x=matching_table, y= data_summary, by = "country", all.x = TRUE)
+
+row.names(matching_table)=matching_table$country
+
+#This function pairs countries without regressions with similar countries with regressions
+match_missing_countries <- function(data = matching_table){
+  data2 <- data
+  data2[,"closest_country"] <- NA
+  for (c in data$country){
+    if (is.na(data[c,"best_regression"]) & !(is.na(data[c,"gdp"])|is.na(data[c,"population"]))){
+      restricted_data <- data%>%
+        filter(!(is_na(gdp)|is_na(population)|is_na(best_regression)))%>%
+        filter(region == data[c,"region"])%>%
+        filter(population <= 2*data[c,"population"])%>%
+        filter(population >= 0.5*data[c,"population"])%>%
+        filter(country != c)
+    if (dim(restricted_data)[1] > 1){
+      restricted_data <- restricted_data%>%
+        mutate(gdp_diff = abs(gdp - data[c,"gdp"]))
+      data2[c,"closest_country"] <- restricted_data[which.min(restricted_data$gdp_diff), "country"]
+    }
+    }
+    else if (!(is.na(data[c,"best_regression"]))){ data2[c,"closest_country"] <- c}
+  }
+  return(data2)
+}
+
+matched_table <- match_missing_countries(data = matching_table)
+
+#######################################################################################################################
+#Once the table matching countries is built and almost complete, let us build the table with regression coefficients
+
+sample_table <- matched_table%>%
+  select(country, best_regression, closest_country)%>%
+  mutate(intercept = NA,
+         beta_log_gdp = NA,
+         beta_log_gdp_square = NA,
+         beta_gns_balance = NA,
+         beta_fuel_balance = NA)
+
+assess_coefficients_regression <- function(data = sample_table){
+  for (c in data$country){
+    if(!(is.na(data[c,"best_regression"]))& data[c,"best_regression"]=="estimate_semi"){
+      data[c,"intercept"] = coefficients_regression_semi[c,"intercept"]
+      data[c,"beta_log_gdp"] = coefficients_regression_semi[c,"beta_log_gdp"]
+      data[c,"beta_log_gdp_square"] = coefficients_regression_semi[c,"beta_log_gdp_square"]
+      data[c,"beta_gns_balance"] = coefficients_regression_semi[c,"beta_gns_balance"]
+      data[c,"beta_fuel_balance"] = coefficients_regression_semi[c,"beta_fuel_balance"]
+    }
+    else if( !(is.na(data[c,"best_regression"]))& data[c,"best_regression"]=="estimate_simple"){
+      data[c,"intercept"] = coefficients_regression_simple[c,"intercept"]
+      data[c,"beta_log_gdp"] = coefficients_regression_simple[c,"beta_log_gdp"]
+      data[c,"beta_log_gdp_square"] = coefficients_regression_simple[c,"beta_log_gdp_square"]
+      data[c,"beta_gns_balance"] = coefficients_regression_simple[c,"beta_gns_balance"]
+      data[c,"beta_fuel_balance"] = coefficients_regression_simple[c,"beta_fuel_balance"]
+    }
+    data_to_fill <- data%>%
+      filter(is.na(best_regression))%>%
+      filter(!(is.na(closest_country)))%>%
+      filter(is.na(intercept))
+    i=0
+    while((sum(is.na(data_to_fill$intercept)) >0)&i<10){
+      for(c in data_to_fill$country){
+          c2 = data[c,"closest_country"]
+          data[c,"intercept"] = data[c2,"intercept"]
+          data[c,"beta_log_gdp"] = data[c2,"beta_log_gdp"]
+          data[c,"beta_log_gdp_square"] = data[c2,"beta_log_gdp_square"]
+          data[c,"beta_gns_balance"] = data[c2,"beta_gns_balance"]
+          data[c,"beta_fuel_balance"] = data[c2,"beta_fuel_balance"]
+          i=i+1
+      }
+      data_to_fill <- data%>%
+        filter(is.na(best_regression))%>%
+        filter(!(is.na(closest_country)))%>%
+        filter(is.na(intercept))
+    }
+  }
+  return(data)
+}
+
+full_regression_coefficients <- assess_coefficients_regression(data = sample_table)
+write.csv(full_regression_coefficients, "full_table_coefficients.csv")
+
+uncovered_countries <- full_regression_coefficients%>%
+  filter(is.na(intercept))
+
+matching_table_2 <- regression_data_match%>%
+  filter(year == 2020)%>%
+  select(country, territorial_emissions, consumption_emissions, gdp, population)
+
+uncovered_countries <- merge(x=matching_table_2, y=uncovered_countries, all.y = TRUE, by = "country")
+
+small_uncovered_countries <- uncovered_countries%>%
+  filter(population < 2000000)
+
+
+###########################################################################################################
+# In this part the fully-pooled regression is pushed to the end in order to see if it helps with estimates
+#Conclusion : the pooled regression is rarely better than the simple mean ratio
+
+data_summary_pooled <- merge( x= data_compare, y= pooled_table, by = "country", all = TRUE)%>%
+  mutate(min_error_percent = case_when(
+    is.na(error_percent_simple) ~ error_percent_pooled,
+    is.na(error_percent_pooled) ~ error_percent_simple,
+    error_percent_simple <= error_percent_pooled ~ error_percent_simple,
+    TRUE ~ error_percent_pooled
+  ))%>%
+  mutate(best_residuals.country = case_when(
+    is.na(error_percent_simple) ~ residuals.country_pooled,
+    is.na(error_percent_pooled) ~ residuals.country_simple,
+    error_percent_simple <= error_percent_pooled ~ residuals.country_simple,
+    TRUE ~ residuals.country_pooled
+  ))%>%
+  mutate(best_regression = case_when(
+    is.na(error_percent_simple) ~ "estimate_pooled",
+    is.na(error_percent_pooled) ~ "estimate_simple",
+    error_percent_simple <= error_percent_pooled ~ "estimate_simple",
+    TRUE ~ "estimate_pooled"
+  ))%>%
+  arrange(desc(min_error_percent))
+
+sum_residuals = sum(data_summary_pooled$best_residuals.country)
+sum_residuals
+#869838086
+
+total_balance = sum_residuals/sum_consumption*100
+total_balance
+#2.7%
+
+#######################################################################################
+#Let us test the following formula cons__it = gdp_square_it*a + gdp_it*b + c_it
+regression_data <- as.data.frame(regression_data)
+regression_data <- regression_data%>%
+  mutate(ID = paste(country, year, sep = "-"))
+rownames(regression_data) <- regression_data$ID
+
+
+
+data_treatment <- function(data=regression_data){
+  data[,"delta_gdp"]=NA
+  data[,"sum_gdp"]=NA
+  data[,"delta_ratio"]=NA
+  for(c in countries$country){
+    for(y in (1991:2023)){
+      id = paste(c,y,sep="-")
+      id1 = paste(c,y-1, sep="-")
+      data[id,"delta_gdp"]=data[id,"log_gdp"]-data[id1,"log_gdp"]
+      data[id,"sum_gdp"]=data[id,"log_gdp"]+data[id1,"log_gdp"]
+      data[id,"delta_ratio"]=data[id,"emissions_balance_percent"]-data[id1,"emissions_balance_percent"]
+    }
+  }
+  return(data)
+}
+regression_data[,"delta_gdp"]=NA
+regression_data[,"sum_gdp"]=NA
+regression_data[,"delta_ratio"]=NA
+regression_data[,"delta_gdp_square"]=NA
+
+
+
+for(c in countries$country){
+  for(y in (1991:2023)){
+    id = paste(c,y,sep="-")
+    id1 = paste(c,y-1, sep="-")
+    regression_data[id,"delta_gdp"]=regression_data[id,"log_gdp"]-regression_data[id1,"log_gdp"]
+    regression_data[id,"sum_gdp"]=regression_data[id,"log_gdp"]+regression_data[id1,"log_gdp"]
+    regression_data[id,"delta_ratio"]=regression_data[id,"emissions_balance_percent"]-regression_data[id1,"emissions_balance_percent"]
+    regression_data[id,"delta_gdp_square"]=regression_data[id,"log_gdp_square"]-regression_data[id1,"log_gdp_square"]
+  }
+}
+
+
+p <- ggplot(regression_data, aes(x = growth_rate, y = sum_gdp)) +
+  geom_point() +
+  theme_minimal()
+print(p)
+
+regression_28_data <- regression_data%>%
+  filter(year <= 2010)
+
+regression_28 <- lm(delta_ratio~delta_gdp+delta_gdp_square-1, data=regression_28_data)
+summary(regression_28)
+
+regression_28_data <- regression_28_data%>%
+  mutate(mean_fixed_effect=NA)%>%
+  mutate(fitted_values = 3.146*log_gdp_square -55.595*log_gdp)%>%
+  group_by(country)%>%
+  mutate(mean_fixed_effect = mean(emissions_balance_percent - fitted_values))%>%
+  ungroup()%>%
+  filter(year==2010)
+
+regression_28_data <- as.data.frame(regression_28_data)
+rownames(regression_28_data) = regression_28_data$country
+summary(regression_28_data$mean_fixed_effect)
+
+regression_28_prediction <- regression_data%>%
+  filter(year <= 2020,
+         year >= 2016)%>%
+  mutate(predicted_ratio = 3.146*log_gdp_square -55.595*log_gdp + regression_28_data[country, "mean_fixed_effect"],
+         residuals = (emissions_balance_percent - predicted_ratio)*territorial_emissions/100,
+         absolute_error = abs(residuals))
+summary(regression_28_prediction$residuals)
+
+regression_28_prediction <- mean_absolute_error_5Y(data = regression_28_prediction)%>%
+  filter(year == 2020)
+
+mea = mean_absolute_error(data = regression_28_prediction, column="absolute_error_5Y")
+mea
+
+summary(regression_28_prediction$absolute_error_5Y)
+
+regression_28_table <- regression_28_prediction%>%
+  mutate(residuals.country_28 = residuals*population,
+         error_percent_28 = absolute_error_5Y/consumption_emissions*100
+         )%>%
+  rename(absolute_error_5Y_28 = absolute_error_5Y)%>%
+  select(country, error_percent_28, residuals.country_28, absolute_error_5Y_28)%>%
+  filter(!(is.na(absolute_error_5Y_28)))
+
+#########################################################################################
+#Now let us merge the two regressions : fix ratio and regression_28
+
+data_summary_28 <- merge( x= data_compare, y= regression_28_table, by = "country", all = TRUE)%>%
+  mutate(min_error_percent = case_when(
+    is.na(error_percent_simple) ~ error_percent_28,
+    is.na(error_percent_28) ~ error_percent_simple,
+    error_percent_simple <= error_percent_28 ~ error_percent_simple,
+    TRUE ~ error_percent_28
+  ))%>%
+  mutate(best_residuals.country = case_when(
+    is.na(error_percent_simple) ~ residuals.country_28,
+    is.na(error_percent_28) ~ residuals.country_simple,
+    error_percent_simple <= error_percent_28 ~ residuals.country_simple,
+    TRUE ~ residuals.country_28
+  ))%>%
+  mutate(best_regression = case_when(
+    is.na(error_percent_simple) ~ "estimate_28",
+    is.na(error_percent_28) ~ "estimate_simple",
+    error_percent_simple <= error_percent_28 ~ "estimate_simple",
+    TRUE ~ "estimate_28"
+  ))%>%
+  arrange(desc(min_error_percent))
+
+sum_residuals = sum(data_summary_28$best_residuals.country)
+sum_residuals
+#533291723
+
+total_balance = sum_residuals/sum_consumption*100
+total_balance
+#1.7%
+
+write.csv(data_summary_28, "results_two_regressions_28.csv")
+error_table <- read.xlsx("error_table.xlsx")
+
+##################################################################################################
+#Matching fixed ratio and regression 28 with missing countries
+
+matching_table <- regression_data_match%>%
+  filter(year == 2020)%>%
+  select(country, territorial_emissions, consumption_emissions, gdp, population)
+
+matching_table <- merge( x= countries_geo, y= matching_table, by = "country")
+
+
+data_summary_28 <- data_summary_28%>%
+  select(-territorial_emissions, -consumption_emissions)
+
+matching_table_28 <- merge(x=matching_table, y= data_summary_28, by = "country", all.x = TRUE)
+
+row.names(matching_table_28)=matching_table_28$country
+
+#This function pairs countries without regressions with similar countries with regressions
+match_missing_countries <- function(data = matching_table_28){
+  data2 <- data
+  data2[,"closest_country"] <- NA
+  for (c in data$country){
+    if (is.na(data[c,"best_regression"]) & !(is.na(data[c,"gdp"]))){
+      restricted_data <- data%>%
+        filter(!(is.na(gdp)),
+               !(is.na(best_regression)),
+               region == data[c,"region"],
+               country!=c)
+      if(data[c,"region"]==12){
+        restricted_data <- data%>%
+          filter(!(is.na(gdp)),
+                 !(is.na(best_regression)),
+                 region %in% c(12,14),
+                 country!=c)
+      }
+      if (dim(restricted_data)[1] > 0){
+        restricted_data <- restricted_data%>%
+          mutate(gdp_diff = abs(gdp - data[c,"gdp"]))
+        data2[c,"closest_country"] <- restricted_data[which.min(restricted_data$gdp_diff), "country"]
+      }
+    }
+    else if (!(is.na(data[c,"best_regression"]))){ data2[c,"closest_country"] <- c}
+  }
+  return(data2)
+}
+
+matched_table_28.1 <- match_missing_countries(data = matching_table_28)
+
+sample_table_28 <- matched_table_28.1%>%
+  select(country, best_regression, closest_country)%>%
+  mutate(fixed_effect = NA,
+         beta_log_gdp = NA,
+         beta_log_gdp_square = NA,
+         )
+
+assess_coefficients_regression <- function(data = sample_table_28){
+  data2 <- data
+  for (c in data$country){
+    if(!(is.na(data[c,"best_regression"]))& data[c,"best_regression"]=="estimate_28"){
+      data2[c,"fixed_effect"] = regression_28_data[c,"mean_fixed_effect"]
+      data2[c,"beta_log_gdp"] = regression_28$coefficients[1]
+      data2[c,"beta_log_gdp_square"] = regression_28$coefficients[2]
+    }
+    else if( !(is.na(data[c,"best_regression"]))& data[c,"best_regression"]=="estimate_simple"){
+      data2[c,"fixed_effect"] = coefficients_regression_simple[c,"intercept"]
+      data2[c,"beta_log_gdp"] = coefficients_regression_simple[c,"beta_log_gdp"]
+      data2[c,"beta_log_gdp_square"] = coefficients_regression_simple[c,"beta_log_gdp_square"]
+    }
+    data_to_fill <- data2%>%
+      filter(is.na(best_regression))%>%
+      filter(!(is.na(closest_country)))%>%
+      filter(is.na(fixed_effect))
+      for(c in data_to_fill$country){
+        c2 = data[c,"closest_country"]
+        data2[c,"fixed_effect"] = data2[c2,"fixed_effect"]
+        data2[c,"beta_log_gdp"] = data2[c2,"beta_log_gdp"]
+        data2[c,"beta_log_gdp_square"] = data2[c2,"beta_log_gdp_square"]
+      }
+  }
+  return(data2)
+}
+
+full_regression_coefficients_28 <- assess_coefficients_regression(data = sample_table_28)
+write.csv(full_regression_coefficients, "full_table_coefficients.csv")
+
+uncovered_countries_data <- matching_table_28%>%
+  filter(country %in% uncovered_countries$country)
+
+matching_table_2 <- regression_data_match%>%
+  filter(year == 2020)%>%
+  select(country, territorial_emissions, consumption_emissions, gdp, population)
+
+uncovered_countries <- merge(x=matching_table_2, y=uncovered_countries, all.y = TRUE, by = "country")
+
+#################################################################################################
+# Ok now let us make the final table of coefficients that will be fed to NICE 2020
+
+
+regression_29 <- lm(delta_ratio~delta_gdp+delta_gdp_square-1, data=regression_data)
+summary(regression_29)
+
+regression_29_data <- regression_data%>%
+  mutate(mean_fixed_effect=NA)%>%
+  mutate(mean_ratio=NA)%>%
+  mutate(fitted_values = regression_29$coefficients[2]*log_gdp_square+ regression_29$coefficients[1]*log_gdp)%>%
+  group_by(country)%>%
+  mutate(mean_fixed_effect = mean(emissions_balance_percent - fitted_values, na.rm=TRUE))%>%
+  mutate(mean_ratio = mean(emissions_balance_percent, na.rm=TRUE))%>%
+  ungroup()%>%
+  filter(year==2010)
+
+regression_29_data <- as.data.frame(regression_29_data)
+rownames(regression_29_data) = regression_29_data$country
+summary(regression_29_data$mean_fixed_effect)
+
+full_regression_coefficients_29 <- full_regression_coefficients_28%>%
+  mutate(fixed_effect = NA,
+         beta_log_gdp = NA,
+         beta_log_gdp_square = NA
+         )
+for (c in full_regression_coefficients_29$country){
+  if (!(is.na(full_regression_coefficients_29[c,"best_regression"]))){
+    if(full_regression_coefficients_29[c,"best_regression"]== "estimate_28"){
+      full_regression_coefficients_29[c,"fixed_effect"]=regression_29_data[c,"mean_fixed_effect"]
+      full_regression_coefficients_29[c,"beta_log_gdp"]=regression_29$coefficients[1]
+      full_regression_coefficients_29[c,"beta_log_gdp_square"]=regression_29$coefficients[2]
+    }
+    if(full_regression_coefficients_29[c,"best_regression"]== "estimate_simple"){
+      full_regression_coefficients_29[c,"fixed_effect"]=regression_29_data[c,"mean_ratio"]
+      full_regression_coefficients_29[c,"beta_log_gdp"]=0
+      full_regression_coefficients_29[c,"beta_log_gdp_square"]=0
+    }
+  }
+}
+for (c in full_regression_coefficients_29$country){
+  if (is.na(full_regression_coefficients_29[c,"best_regression"])){
+    if(!(is.na(full_regression_coefficients_29[c,"closest_country"]))){
+      c2=full_regression_coefficients_29[c,"closest_country"]
+      full_regression_coefficients_29[c,"fixed_effect"] = full_regression_coefficients_29[c2,"fixed_effect"]
+      full_regression_coefficients_29[c,"beta_log_gdp"] = full_regression_coefficients_29[c2,"beta_log_gdp"]
+      full_regression_coefficients_29[c,"beta_log_gdp_square"] = full_regression_coefficients_29[c2,"beta_log_gdp_square"]
+    }
+  }
+}
+
+for (c in full_regression_coefficients_29$country){
+  if (is.na(full_regression_coefficients_29[c,"fixed_effect"])){
+    full_regression_coefficients_29[c,"fixed_effect"] = 0
+    full_regression_coefficients_29[c,"beta_log_gdp"] = 0
+    full_regression_coefficients_29[c,"beta_log_gdp_square"] = 0
+  }
+}
+
+consumption_emissions_coefficients <- full_regression_coefficients_29%>%
+  select(fixed_effect, beta_log_gdp, beta_log_gdp_square)
+
+write.csv(consumption_emissions_coefficients, "consumption_emissions_coefficients.csv")
