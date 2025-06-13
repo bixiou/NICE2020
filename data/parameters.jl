@@ -112,7 +112,7 @@ club_countries = [
 ]
 
 # Final binary participation matrix per scenario
-club_countries_binary = transpose(reduce(hcat,[
+club_country = transpose(reduce(hcat,[
     fill(1, length(countries)),                                                         # Scenario 1
     participation_vector(Symbol.(all_except_oil_countries), Symbol.(countries)),        # Scenario 2
     participation_vector(Symbol.(optimistic_scenario_countries), Symbol.(countries)),   # Scenario 3

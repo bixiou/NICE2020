@@ -94,7 +94,7 @@
             # Create a temporary variable used to calculate NICE baseline quantile consumption (just for convenience). It is equivalent to some gross consumption
             # This is the former of l.96 : we try and keep the same meaning once transfers can be added in macro variables
             # temp_qcpc = p.nb_quantile * p.CPC[t,c] * (1.0 + p.LOCAL_DAMFRAC_KW[t,c]) / (1.0 - p.ABATEFRAC[t,c])
-            temp_pcqc = p.nb_quantile * p.YGROSS[t,c] * (1.0 - p.s[t,c])/ p.l[t,c]
+            temp_qcpc = p.nb_quantile * p.YGROSS[t,c] * (1.0 - p.s[t,c])/ p.l[t,c]
 			for q in d.quantile
 
 				# Calculate pre-damage, pre-abatement cost quantile consumption.
@@ -104,7 +104,7 @@
 				# Note, this differs from standard NICE equation because quantile CO2 abatement cost and climate damage shares can now vary over time.
                 #This is the former version of l.104 : we try and keep the same meaning once transfers can be added in macro variables
 				#v.qcpc_post_damage_abatement[t,c,q] = max(v.qcpc_base[t,c,q] - (p.nb_quantile* p.CPC[t,c] * p.LOCAL_DAMFRAC_KW[t,c] * v.damage_dist[t,c,q]) - (temp_qcpc * p.ABATEFRAC[t,c] * v.abatement_cost_dist[t,c,q]), 1e-8)
-                v.qcpc_post_damage_abatement[t,c,q] = max(v.qcpc_base[t,c,q] - (temp_pcqc* (1.0 - p.ABATEFRAC[t,c]) /(1.0 + p.LOCAL_DAMFRAC_KW[t,c]) * p.LOCAL_DAMFRAC_KW[t,c] * v.damage_dist[t,c,q]) - (temp_qcpc * p.ABATEFRAC[t,c] * v.abatement_cost_dist[t,c,q]), 1e-8)
+                v.qcpc_post_damage_abatement[t,c,q] = max(v.qcpc_base[t,c,q] - (temp_qcpc* (1.0 - p.ABATEFRAC[t,c]) /(1.0 + p.LOCAL_DAMFRAC_KW[t,c]) * p.LOCAL_DAMFRAC_KW[t,c] * v.damage_dist[t,c,q]) - (temp_qcpc * p.ABATEFRAC[t,c] * v.abatement_cost_dist[t,c,q]), 1e-8)
 
 				# Subtract tax revenue from each quantile based on quantile CO2 tax burden distributions.
 				# Note, per capita tax revenue and consumption should both be in $1000/person.
