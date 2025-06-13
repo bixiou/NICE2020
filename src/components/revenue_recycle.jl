@@ -13,13 +13,13 @@
  # - specify unit in transfer (net_economy.jl)
  # - be more explicit instead of "0=old calculations, 1=new transfers"
  # * replace net_economy.jl:52 by the following (parentheses changed)?  v.Y[t,c] = (1.0 - p.ABATEFRAC[t,c]) ./ (1.0 + p.LOCAL_DAMFRAC_KW[t,c]) * p.YGROSS[t,c] + p.redistribution_switch*(p.switch_custom_transfers * p.transfer[t,c] / 1e6 + (1.0 - p.switch_custom_transfers) * (p.country_pc_dividend[t,c] * p.l[t,c] - p.tax_revenue[t,c] / 1e3) )* p.switch_recycle* p.switch_scope_recycle 
- # * Aren't cases missing in revenue_recycle.jl:100?
+ # * Aren't cases missing in revenue_recycle.jl:123? No, two switches are redundant.
 
  # Questions:
  # - Why transfer is defined only when switch_custom_transfers==1? Why not defining net_economy.jl:52 as v.Y[t,c] = (1.0 - p.ABATEFRAC[t,c]) ./ (1.0 + p.LOCAL_DAMFRAC_KW[t,c]) * p.YGROSS[t,c] + p.redistribution_switch*p.transfer[t,c]* p.switch_recycle* p.switch_scope_recycle, country_pc_dividend as rights_proposed*carbon_price/population, and transfer as the thing that was in parentheses in :52?
  # * is "1e6 / p.l[t,c] / 1e3" working as inteneded (quantile_recycle.jl)
  # - in quantile_recycle.jl:107, why tax_pc_revenue isn't valid for both cases of switch_custom_transfers? same question for country_pc_dividend :116
- # * I don't understand the end of quantile_recycle.jl:107, :116, shouldn't it be -s*feedback instead of -(1-s)*feedback?
+ # * I don't understand the end of quantile_recycle.jl:107, :116, shouldn't it be -s*feedback instead of -(1-s)*feedback? DONE
  # - Why isn't quantile_recycle.jl:112 simply v.qcpc_post_tax[t,c,q] =  v.qcpc_post_damage_abatement[t,c,q] ?
  # * Why lines 56-65 in revenue_recycle.jl?
  # - What are :Union and :Partnership?
