@@ -76,7 +76,7 @@ function create_nice2020()
 	add_shared_param!(m, :σ, 	Matrix(emissionsrate), dims=[:time, :country])
 	add_shared_param!(m,  :s, Matrix(srate), dims=[:time, :country])
 	add_shared_param!(m, :policy_scenario, 1) # identifies the club of countries participating in the policy
-	add_shared_param!(m, :club_countries_binary, club_countries_binary, dims=[:scenario, :country]) # identifies the club of countries participating in the policy
+	add_shared_param!(m, :club_country, club_country, dims=[:scenario, :country]) # identifies the club of countries participating in the policy
 	add_shared_param!(m, :redistribution_switch, 0) # Switch, to choose whether the redistribution macro effects are included in the model
 
 	add_shared_param!(m, :switch_custom_transfers, 0) # Switch to choose wether we use th old transfers (=1) or the new transfers (=1)
@@ -140,7 +140,7 @@ function create_nice2020()
 	connect_param!(m, :abatement, :η, :η)
 	connect_param!(m, :abatement, :σ, :σ)
 	connect_param!(m, :abatement, :policy_scenario, :policy_scenario)
-	connect_param!(m, :abatement, :club_countries_binary, :club_countries_binary)
+	connect_param!(m, :abatement, :club_country, :club_country)
 
 
 	# --------------------------------
@@ -150,7 +150,7 @@ function create_nice2020()
 	connect_param!(m, :emissions, :mapcrwpp,  :mapcrwpp) 
 	connect_param!(m, :emissions, :σ, :σ)
 	connect_param!(m, :emissions, :policy_scenario, :policy_scenario)
-	connect_param!(m, :emissions, :club_countries_binary, :club_countries_binary)
+	connect_param!(m, :emissions, :club_country, :club_country)
 
 	# --------------------------------
 	# Temperature Pattern Scaling
@@ -181,7 +181,7 @@ function create_nice2020()
 	connect_param!(m, :revenue_recycle, :switch_recycle, :switch_recycle)
 	connect_param!(m, :revenue_recycle, :switch_scope_recycle, :switch_scope_recycle)
 	connect_param!(m, :revenue_recycle, :policy_scenario, :policy_scenario)
-	connect_param!(m, :revenue_recycle, :club_countries_binary, :club_countries_binary)
+	connect_param!(m, :revenue_recycle, :club_country, :club_country)
 	connect_param!(m, :revenue_recycle, :switch_custom_transfers, :switch_custom_transfers)
 
 	# --------------------------------
@@ -244,7 +244,7 @@ function create_nice2020()
 	connect_param!(m, :damages 		   	=> :temp_anomaly, 		:temperature 		=> :T)
 	connect_param!(m, :damages 	 	   	=> :local_temp_anomaly, :pattern_scale 		=> :local_temperature)
     connect_param!(m, :revenue_recycle 	=> :E_gtco2, 			:emissions			=> :E_gtco2)
-	connect_param!(m, :revenue_recycle 	=> :E_gtco2_scenario, 	:emissions			=> :E_gtco2_scenario)
+	connect_param!(m, :revenue_recycle 	=> :E_gtco2_club, 	:emissions			=> :E_gtco2_club)
 	connect_param!(m, :revenue_recycle 	=> :LOCAL_DAMFRAC_KW,	:damages 			=> :LOCAL_DAMFRAC_KW)
 	connect_param!(m, :revenue_recycle 	=> :country_carbon_tax,	:abatement 			=> :country_carbon_tax)
 	connect_param!(m, :neteconomy 	   	=> :ABATEFRAC, 			:abatement 			=> :ABATEFRAC)
@@ -255,6 +255,7 @@ function create_nice2020()
 	connect_param!(m, :neteconomy       => :transfer,           :revenue_recycle	=> :transfer)
 	connect_param!(m, :neteconomy       => :transfer_over_gdp,  :revenue_recycle	=> :transfer_over_gdp)
 	connect_param!(m, :neteconomy       => :transfer_pc,        :revenue_recycle	=> :transfer_pc)
+	connect_param!(m, :quantile_recycle => :YGROSS, 			:grosseconomy 		=> :YGROSS)
 	connect_param!(m, :quantile_recycle => :Y,					:neteconomy 		=> :Y)
 	connect_param!(m, :quantile_recycle => :ABATEFRAC,			:abatement 			=> :ABATEFRAC)
 	connect_param!(m, :quantile_recycle => :LOCAL_DAMFRAC_KW,	:damages 			=> :LOCAL_DAMFRAC_KW)
