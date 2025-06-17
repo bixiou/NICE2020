@@ -104,29 +104,29 @@ end
 # RIGHTS PROPOSED 
 #------------
 
-df_r = joinpath(@__DIR__, "..", "cap_and_share", "data", "input", "ffu_rights_proposed_allocation.csv")
-df_r = CSV.read(df_r, DataFrame)
+rights_path = joinpath(@__DIR__, "..", "cap_and_share", "data", "input", "ffu_rights_proposed_allocation.csv")
+df_rigths = CSV.read(rights_path, DataFrame)
 
 # Columns « rights_proposed_YYYY »
-year_cols  = filter(c -> startswith(string(c), "rights_proposed_"), names(df_r))
+year_cols  = filter(c -> startswith(string(c), "rights_proposed_"), names(df_rigths))
 
 # Switch to long format : (country, region_tiam, participate_union, year_str, rights_proposed)
-df_r_long  = stack(
-    df_r,
+df_rigths_long  = stack(
+    df_rigths,
     year_cols;
     variable_name = :year_str,
     value_name    = :rights_proposed
 )
 
 # Convert to billions if necessary
-df_r_long.rights_proposed .= df_r_long.rights_proposed ./ 1e9
+df_rigths_long.rights_proposed .= df_rigths_long.rights_proposed ./ 1e9
 
 # Extract year  (year_str = "rights_proposed_2030" → time=2030)
-df_r_long.time = parse.(Int, replace.(df_r_long.year_str, "rights_proposed_" => ""))
-select!(df_r_long, Not(:year_str))
+df_rigths_long.time = parse.(Int, replace.(df_rigths_long.year_str, "rights_proposed_" => ""))
+select!(df_rigths_long, Not(:year_str))
 
 # Rename code_country → country if necessary
-rename!(df_r_long, "code" => "country")
+rename!(df_rigths_long, "code" => "country")
 
 # — 2) Retrieve the time grid & list of model countries —
 years_model     = collect(dim_keys(base_model, :time))     # ex. 2020:2300
@@ -142,8 +142,8 @@ rights_mat = zeros(Float64, T, C)
 idx_year    = Dict(y => i for (i,y) in enumerate(years_model))
 idx_country = Dict(string(c) => j for (j,c) in enumerate(countries_model))
 
-# — 4) Fill rights_mat where there is data in df_r_long —
-for row in eachrow(df_r_long)
+# — 4) Fill rights_mat where there is data in df_rigths_long —
+for row in eachrow(df_rigths_long)
     y = row.time
     c = string(row.country)
     if haskey(idx_year, y) && haskey(idx_country, c)
@@ -153,6 +153,13 @@ for row in eachrow(df_r_long)
     end
 end
 
+# Rights proposed csv name (used to save results)
+filename = basename(rights_path)              # "ffu_rights_proposed_allocation.csv"
+basename_without_ext = splitext(filename)[1]  # "ffu_rights_proposed_allocation"
+replace(basename_without_ext,
+                 "_rights_proposed_allocation" => "")  # "ffu"
+
+
 #------------
 # DIRECTORIES
 #------------
@@ -161,7 +168,7 @@ output_directory_bau = joinpath(@__DIR__, "..", "results", "bau_no_policy_at_all
 mkpath(output_directory_bau)
 
 output_directory_bau_cap_and_share = joinpath(@__DIR__, "..", "cap_and_share", "output", "bau_no_policy_at_all")
-mkpath(output_directory_bau)
+mkpath(output_directory_bau_cap_and_share)
 
 output_directory_uniform = joinpath(@__DIR__, "..", "results", "uniform_tax_example")
 mkpath(output_directory_uniform)
@@ -189,7 +196,7 @@ run(bau_model)
 
 # Save the bau (see helper functions for saving function details)
 #MimiNICE2020.save_nice2020_results(bau_model, output_directory_bau, revenue_recycling=false)
-MimiNICE2020.save_nice2020_results_cap_and_share(bau_model, output_directory_bau_cap_and_share, revenue_recycling=false)
+MimiNICE2020.save_nice2020_results(bau_model, output_directory_bau_cap_and_share, revenue_recycling=false)
 
 
 # ----------------------------------------------------------------------------------------------
@@ -206,9 +213,14 @@ println("Creating an instance of the NICE2020 model and updating some parameters
 nice2020_uniform_tax = MimiNICE2020.create_nice2020()
 
 switch_recycle  = 0 # OFF   Recycle revenues to households
-switch_scenario = :Union  # Choice of scenario by name (:All_World, :All_Except_Oil_Countries, :Optimistic, :Generous_EU, :Partnership)
+switch_scenario = :Union  # Choice of scenario by name (:All_World, :All_Except_Oil_Countries, :Optimistic, :Generous_EU, :Africa_Eu)
 update_param!(nice2020_uniform_tax, :switch_custom_transfers, 0)
-redistribution_switch           = 1 # Can compute economic data including redistributive effect 
+switch_transfers_affect_growth           = 1 # Can compute economic data including redistributive effect 
+
+switch_custom_transfers = 1             # 
+update_param!(nice2020_uniform_tax, :switch_custom_transfers, switch_custom_transfers)
+
+
 
 # Set uniform global carbon tax rates and run model.
 update_param!(nice2020_uniform_tax, :abatement, :control_regime, 1) # Switch for emissions control regime  1:"global_carbon_tax", 2:"country_carbon_tax", 3:"country_abatement_rate"
@@ -223,7 +235,7 @@ run(nice2020_uniform_tax)
 
 # Save the run (see helper functions for saving function details)
 #MimiNICE2020.save_nice2020_results(nice2020_uniform_tax, output_directory_uniform, revenue_recycling=false)
-MimiNICE2020.save_nice2020_results_cap_and_share(nice2020_uniform_tax, output_directory_uniform_cap_and_share, revenue_recycling=false)
+MimiNICE2020.save_nice2020_results(nice2020_uniform_tax, output_directory_uniform_cap_and_share, revenue_recycling=false)
 
 
 
@@ -233,15 +245,15 @@ MimiNICE2020.save_nice2020_results_cap_and_share(nice2020_uniform_tax, output_di
 # -------------------------------------------------------------------------------------
 # -------------------------------------------------------------------------------------
 
-println("--2-- Example run with global carbon tax (non-optimized), with revenues recycled within countries")
+println("--2-- Example run with global carbon tax (non-optimized), with revenues recycled within countries") 
 
 println("Updating some parameters of the previously created NICE2020 instance.")
 
 switch_recycle                  = 1 # ON     Recycle revenues to households
-switch_scope_recycle            = 0 # OFF    Carbon tax revenues recycled at country level (0) or globally (1)
+switch_global_recycling        = 0 # OFF    Carbon tax revenues recycled at country level (0) or globally (1)
 switch_global_pc_recycle        = 0 # OFF    Carbon tax revenues recycled on an equal per capita basis
-switch_scenario                 = :Partnership  # Choice of scenario by name (:All_World, :All_Except_Oil_Countries, :Optimistic, :Generous_EU, :Partnership)
-redistribution_switch           = 1 # Can compute economic data including redistributive effect 
+switch_scenario                 = :Union  # Choice of scenario by name (:All_World, :All_Except_Oil_Countries, :Optimistic, :Generous_EU, :Africa_Eu)
+switch_transfers_affect_growth           = 1 # Can compute economic data including redistributive effect 
 
 switch_custom_transfers = 1
 update_param!(nice2020_uniform_tax, :switch_custom_transfers, switch_custom_transfers)
@@ -252,10 +264,10 @@ update_param!(nice2020_uniform_tax, :abatement, :control_regime, 1) # Switch for
 update_param!(nice2020_uniform_tax, :abatement, :global_carbon_tax, global_co2_tax)
 
 update_param!(nice2020_uniform_tax, :switch_recycle, switch_recycle)
-update_param!(nice2020_uniform_tax, :switch_scope_recycle, switch_scope_recycle)
+update_param!(nice2020_uniform_tax, :switch_global_recycling, switch_global_recycling)
 update_param!(nice2020_uniform_tax, :revenue_recycle, :switch_global_pc_recycle, switch_global_pc_recycle)
 update_param!(nice2020_uniform_tax, :policy_scenario, MimiNICE2020.scenario_index[switch_scenario])
-update_param!(nice2020_uniform_tax, :redistribution_switch, redistribution_switch)
+update_param!(nice2020_uniform_tax, :switch_transfers_affect_growth, switch_transfers_affect_growth)
 update_param!(nice2020_uniform_tax, :switch_custom_transfers, switch_custom_transfers)
 
 println("Selected Scenario : ", switch_scenario)
@@ -266,7 +278,7 @@ run(nice2020_uniform_tax)
 
 # Save the recycle run (see helper functions for saving function details)
 #MimiNICE2020.save_nice2020_results(nice2020_uniform_tax, output_directory_uniform, revenue_recycling=true, recycling_type=1)
-MimiNICE2020.save_nice2020_results_cap_and_share(nice2020_uniform_tax, output_directory_uniform_cap_and_share, revenue_recycling=true, recycling_type=1, switch_custom_transfers = switch_custom_transfers)
+MimiNICE2020.save_nice2020_results_cap_and_share(nice2020_uniform_tax, output_directory_uniform_cap_and_share, revenue_recycling=true, recycling_type=1, switch_custom_transfers = switch_custom_transfers, file_prefix = String(prefix))
 
 
 #------------------------------------------------------------------------------------------------
@@ -280,15 +292,15 @@ println("--3-- Example run with global carbon tax (non-optimized), with revenues
 println("Updating some parameters of the previously created NICE2020 instance.")
 
 switch_recycle                  = 1 # ON     Recycle revenues to households
-switch_scope_recycle            = 1 # ON     Carbon tax revenues recycled globally
+switch_global_recycling         = 1 # ON     Carbon tax revenues recycled globally
 switch_global_pc_recycle        = 1 # ON    Carbon tax revenues recycled on an equal per capita basis
-switch_scenario                 = :Union  # Choice of scenario by name (:All_World, :All_Except_Oil_Countries, :Optimistic, :Generous_EU, :Partnership)
-redistribution_switch           = 1 # Can compute economic data including redistributive effect 
+switch_scenario                 = :Union  # Choice of scenario by name (:All_World, :All_Except_Oil_Countries, :Optimistic, :Generous_EU, :Africa_Eu)
+switch_transfers_affect_growth  = 1 # Can compute economic data including redistributive effect 
 switch_custom_transfers         = 1
 
 update_param!(nice2020_uniform_tax, :switch_custom_transfers, switch_custom_transfers)
 
-# Rule for share of global tax revenues recycled at global level (switch_recycle and switch_scope_recycle must be ON)
+# Rule for share of global tax revenues recycled at global level (switch_recycle and switch_global_recycling must be ON)
 global_recycle_share            = 1 # 100%   Share of tax revenues recycled globally 
 
 
@@ -297,11 +309,11 @@ update_param!(nice2020_uniform_tax, :abatement, :control_regime, 1) # Switch for
 update_param!(nice2020_uniform_tax, :abatement, :global_carbon_tax, global_co2_tax)
 
 update_param!(nice2020_uniform_tax, :switch_recycle, switch_recycle)
-update_param!(nice2020_uniform_tax, :switch_scope_recycle, switch_scope_recycle)
+update_param!(nice2020_uniform_tax, :switch_global_recycling, switch_global_recycling)
 update_param!(nice2020_uniform_tax, :revenue_recycle, :switch_global_pc_recycle, switch_global_pc_recycle)
 update_param!(nice2020_uniform_tax, :revenue_recycle, :global_recycle_share,  ones(nb_country) * global_recycle_share ) 
 update_param!(nice2020_uniform_tax, :policy_scenario, MimiNICE2020.scenario_index[switch_scenario])
-update_param!(nice2020_uniform_tax, :redistribution_switch, redistribution_switch)
+update_param!(nice2020_uniform_tax, :switch_transfers_affect_growth, switch_transfers_affect_growth)
 
 println("Selected Scenario : ", switch_scenario)
 
@@ -311,7 +323,7 @@ run(nice2020_uniform_tax)
 
 # Save the recycle run (see helper functions for saving function details)
 #MimiNICE2020.save_nice2020_results(nice2020_uniform_tax, output_directory_uniform, revenue_recycling=true, recycling_type=2)
-MimiNICE2020.save_nice2020_results_cap_and_share(nice2020_uniform_tax, output_directory_uniform_cap_and_share, revenue_recycling=true, recycling_type=2, switch_custom_transfers = switch_custom_transfers)
+MimiNICE2020.save_nice2020_results_cap_and_share(nice2020_uniform_tax, output_directory_uniform_cap_and_share, revenue_recycling=true, recycling_type=2, switch_custom_transfers = switch_custom_transfers, file_prefix = String(prefix))
 
 
 #------------------------------------------------------------------------------------------------
@@ -324,23 +336,23 @@ MimiNICE2020.save_nice2020_results_cap_and_share(nice2020_uniform_tax, output_di
 println("--4-- Example run changing the parameter η, with global carbon tax (non-optimized) and revenues recycled globally (equal per capita)")
 
 switch_recycle                  = 1 # ON     Recycle revenues to households
-switch_scope_recycle            = 1 # ON     Carbon tax revenues recycled globally
+switch_global_recycling            = 1 # ON     Carbon tax revenues recycled globally
 switch_global_pc_recycle        = 1 # ON    Carbon tax revenues recycled on an equal per capita basis
-switch_scenario                 = :Partnership  # Choice of scenario by name (:All_World, :All_Except_Oil_Countries, :Optimistic, :Generous_EU, :Partnership)
-redistribution_switch           = 0 # Can compute economic data including redistributive effect 
+switch_scenario                 = :Union  # Choice of scenario by name (:All_World, :All_Except_Oil_Countries, :Optimistic, :Generous_EU, :Africa_Eu)
+switch_transfers_affect_growth           = 0 # Can compute economic data including redistributive effect 
 
-# Rule for share of global tax revenues recycled at global level (switch_recycle and switch_scope_recycle must be ON)
+# Rule for share of global tax revenues recycled at global level (switch_recycle and switch_global_recycling must be ON)
 global_recycle_share            = 1 # 100%   Share of tax revenues recycled globally 
 
 # Set inform taxes, revenue recycling switches and run the model
 update_param!(nice2020_uniform_tax, :abatement, :control_regime, 1) # Switch for emissions control regime  1:"global_carbon_tax", 2:"country_carbon_tax", 3:"country_abatement_rate"
 update_param!(nice2020_uniform_tax, :abatement, :global_carbon_tax, global_co2_tax)
 update_param!(nice2020_uniform_tax, :switch_recycle, switch_recycle)
-update_param!(nice2020_uniform_tax, :switch_scope_recycle, switch_scope_recycle)
+update_param!(nice2020_uniform_tax, :switch_global_recycling, switch_global_recycling)
 update_param!(nice2020_uniform_tax, :revenue_recycle, :switch_global_pc_recycle, switch_global_pc_recycle)
 update_param!(nice2020_uniform_tax, :revenue_recycle, :global_recycle_share,  ones(nb_country) * global_recycle_share )
 update_param!(nice2020_uniform_tax, :policy_scenario, MimiNICE2020.scenario_index[switch_scenario])
-update_param!(nice2020_uniform_tax, :redistribution_switch, redistribution_switch)
+update_param!(nice2020_uniform_tax, :switch_transfers_affect_growth, switch_transfers_affect_growth)
 
 # CHANGE THE VALUE OF THE η PARAMETER
 # Note that η is a shared parameter, it enters both in the abatement and the welfare  components

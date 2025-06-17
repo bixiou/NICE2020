@@ -38,7 +38,7 @@ function participation_vector(participants::Vector{Symbol}, all_countries::Vecto
 end
 
 # Scenario labels
-scenarios = [:All_World, :All_Except_Oil_Countries, :Optimistic, :Generous_EU, :Partnership, :Union]
+scenarios = [:All_World, :All_Except_Oil_Countries, :Optimistic, :Generous_EU, :Africa_Eu, :Union]
 
 # Correspondence dictionary name → index
 scenario_index = Dict(
@@ -46,7 +46,7 @@ scenario_index = Dict(
     :All_Except_Oil_Countries    => 2,
     :Optimistic    => 3,
     :Generous_EU   => 4,
-    :Partnership   => 5,
+    :Africa_Eu   => 5,
     :Union         => 7
 )
 

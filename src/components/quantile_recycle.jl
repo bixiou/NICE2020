@@ -24,9 +24,9 @@
     damage_elasticity        	= Parameter()                          			# Income elasticity of climate damages (1 = proportional to income)
 	quantile_consumption_shares = Parameter(index=[time, country, quantile]) 	# Income shares of deciles
     recycle_share           	= Parameter(index=[country, quantile]) 		    # Share of carbon tax revenue recycled back to each quantile
-    redistribution_switch       = Parameter()                                   # Switch, to choose whether the redistribution macro effects are added
+    switch_transfers_affect_growth       = Parameter()                                   # Switch, to choose whether the redistribution macro effects are added
     # --- New International Transfer Parameters ---
-    switch_custom_transfers     = Parameter()                          # 0=anciens calculs, 1=nouveaux transferts
+    switch_custom_transfers     = Parameter()                          # use equal_pc_transfer (dividend) (=0) or the custom_transfer (using rights proposed) (=1)
     transfer                    = Parameter(index=[time, country])
     transfer_over_gdp           = Parameter(index=[time, country])    # % of GDP
     transfer_pc                 = Parameter(index=[time, country])    # $ per capita
@@ -37,15 +37,15 @@
 
     CO2_income_elasticity    	= Variable(index=[time, country])             	# Elasticity of CO2 price exposure with respect to income
     abatement_cost_dist		 	= Variable(index=[time, country, quantile]) 	# Quantile distribution shares of mitigation costs
-    carbon_tax_dist		     	= Variable(index=[time, country, quantile]) 	# Quantile distribution shares of CO2 tax burden
+    tax_burden_distr		     	= Variable(index=[time, country, quantile]) 	# Quantile distribution shares of CO2 tax burden
     damage_dist					= Variable(index=[time, country, quantile]) 	# Quantile distribution shares of climate damages
 
-	qcpc_base                  	= Variable(index=[time, country, quantile])  	# Pre-damage, pre-abatement cost, pre-tax quantile consumption per capita (thousand USD2017 per person per year)
-    qcpc_post_damage_abatement 	= Variable(index=[time, country, quantile])  	# Post-damage, post-abatement cost per capita quantile consumption (thousand USD2017 per person per year)
-    qcpc_post_tax              	= Variable(index=[time, country, quantile])  	# Quantile per capita consumption after subtracting out carbon tax (thousand USD2017 per person per year)
-    qcpc_post_recycle          	= Variable(index=[time, country, quantile])  	# Quantile per capita consumption after recycling tax back to quantiles (thousand USD2017 per person per year)
+	conso_pc_base                  	= Variable(index=[time, country, quantile])  	# Pre-damage, pre-abatement cost, pre-tax quantile consumption per capita (thousand USD2017 per person per year)
+    conso_pc_post_damage_abatement 	= Variable(index=[time, country, quantile])  	# Post-damage, post-abatement cost per capita quantile consumption (thousand USD2017 per person per year)
+    conso_pc_post_tax              	= Variable(index=[time, country, quantile])  	# Quantile per capita consumption after subtracting out carbon tax (thousand USD2017 per person per year)
+    conso_pc_post_recycle          	= Variable(index=[time, country, quantile])  	# Quantile per capita consumption after recycling tax back to quantiles (thousand USD2017 per person per year)
     qc_share				 	= Variable(index=[time, country, quantile])  	# Quantile share of per capita consumption (%)
-	sum_qcpc_post_recycle  	 	= Variable(index=[time, country]) 				# Sum of quantiles consumption per capita after abatement, damages and revenue recycling (thousand USD2017 per (capita per quantile) per year)
+	sum_conso_pc_post_recycle  	 	= Variable(index=[time, country]) 				# Sum of quantiles consumption per capita after abatement, damages and revenue recycling (thousand USD2017 per (capita per quantile) per year)
     CPC_post                    = Variable(index=[time, country])               # Country consumption per capita post recycle (thousand USD2017 per person per year)
     CPC_post_rwpp               = Variable(index=[time, regionwpp])             # Region consumption per capita post recycle (thousand USD2017 per person per year)
     CPC_post_global             = Variable(index=[time])                        # Global consumption per capita post recycle (thousand USD2017 per person per year)
@@ -88,48 +88,49 @@
 
             # Calculate quantile distribution shares of CO2 tax burden and mitigation costs (assume both distributions are equal) and climate damages.
 			v.abatement_cost_dist[t,c,:] = country_quantile_distribution(v.CO2_income_elasticity[t,c], p.quantile_consumption_shares[t,c,:], p.nb_quantile)
-			v.carbon_tax_dist[t,c,:]     = country_quantile_distribution(v.CO2_income_elasticity[t,c], p.quantile_consumption_shares[t,c,:], p.nb_quantile)
+			v.tax_burden_distr[t,c,:]     = country_quantile_distribution(v.CO2_income_elasticity[t,c], p.quantile_consumption_shares[t,c,:], p.nb_quantile)
 			v.damage_dist[t,c,:]         = country_quantile_distribution(p.damage_elasticity, p.quantile_consumption_shares[t,c,:], p.nb_quantile)
 
+           
             # Create a temporary variable used to calculate NICE baseline quantile consumption (just for convenience). It is equivalent to some gross consumption
-            # This is the former of l.96 : we try and keep the same meaning once transfers can be added in macro variables
-            # temp_qcpc = p.nb_quantile * p.CPC[t,c] * (1.0 + p.LOCAL_DAMFRAC_KW[t,c]) / (1.0 - p.ABATEFRAC[t,c])
-            temp_qcpc = p.nb_quantile * p.YGROSS[t,c] * (1.0 - p.s[t,c])/ p.l[t,c]
+			# This is the former of l.96 : we try and keep the same meaning once transfers can be added in macro variables
+            # temp_conso_pc = p.nb_quantile * p.CPC[t,c] * (1.0 + p.LOCAL_DAMFRAC_KW[t,c]) / (1.0 - p.ABATEFRAC[t,c])
+            temp_conso_pc = p.nb_quantile * p.YGROSS[t,c] * (1.0 - p.s[t,c])/ p.l[t,c]
 			for q in d.quantile
 
 				# Calculate pre-damage, pre-abatement cost quantile consumption.
-				v.qcpc_base[t,c,q] = temp_qcpc * p.quantile_consumption_shares[t,c,q]
+				v.conso_pc_base[t,c,q] = temp_conso_pc * p.quantile_consumption_shares[t,c,q]
 
 				# Calculate post-damage, post-abatement cost per capita quantile consumption (bounded below to ensure consumptions don't collapse to zero or go negative).
 				# Note, this differs from standard NICE equation because quantile CO2 abatement cost and climate damage shares can now vary over time.
-                #This is the former version of l.104 : we try and keep the same meaning once transfers can be added in macro variables
-				#v.qcpc_post_damage_abatement[t,c,q] = max(v.qcpc_base[t,c,q] - (p.nb_quantile* p.CPC[t,c] * p.LOCAL_DAMFRAC_KW[t,c] * v.damage_dist[t,c,q]) - (temp_qcpc * p.ABATEFRAC[t,c] * v.abatement_cost_dist[t,c,q]), 1e-8)
-                v.qcpc_post_damage_abatement[t,c,q] = max(v.qcpc_base[t,c,q] - (temp_qcpc* (1.0 - p.ABATEFRAC[t,c]) /(1.0 + p.LOCAL_DAMFRAC_KW[t,c]) * p.LOCAL_DAMFRAC_KW[t,c] * v.damage_dist[t,c,q]) - (temp_qcpc * p.ABATEFRAC[t,c] * v.abatement_cost_dist[t,c,q]), 1e-8)
+				#This is the former version of l.104 : we try and keep the same meaning once transfers can be added in macro variablesAdd commentMore actions
+				#v.conso_pc_post_damage_abatement[t,c,q] = max(v.qcpc_base[t,c,q] - (p.nb_quantile* p.CPC[t,c] * p.LOCAL_DAMFRAC_KW[t,c] * v.damage_dist[t,c,q]) - (temp_qcpc * p.ABATEFRAC[t,c] * v.abatement_cost_dist[t,c,q]), 1e-8)
+                v.conso_pc_post_damage_abatement[t,c,q] = max(v.conso_pc_base[t,c,q] - (temp_conso_pc* (1.0 - p.ABATEFRAC[t,c]) /(1.0 + p.LOCAL_DAMFRAC_KW[t,c]) * p.LOCAL_DAMFRAC_KW[t,c] * v.damage_dist[t,c,q]) - (temp_conso_pc * p.ABATEFRAC[t,c] * v.abatement_cost_dist[t,c,q]), 1e-8)
 
 				# Subtract tax revenue from each quantile based on quantile CO2 tax burden distributions.
 				# Note, per capita tax revenue and consumption should both be in $1000/person.
 
-                v.qcpc_post_tax[t,c,q] =  v.qcpc_post_damage_abatement[t,c,q] - (( p.switch_custom_transfers *  (p.E_gtco2[t,c] * p.country_carbon_tax[t,c] * 1e6 / p.l[t,c] / 1e3) + (1.0 - p.switch_custom_transfers) * p.tax_pc_revenue[t,c] )) * p.nb_quantile * v.carbon_tax_dist[t,c,q] * ( 1 - p.s[t,c] * p.redistribution_switch )
-				
+                v.conso_pc_post_tax[t,c,q] =  v.conso_pc_post_damage_abatement[t,c,q] - (p.nb_quantile * p.tax_pc_revenue[t,c] * v.tax_burden_distr[t,c,q])* ( 1 - p.s[t,c] * p.switch_transfers_affect_growth)				
+                                                
                 # Recycle tax revenue by adding shares back to all quantiles
 				if p.switch_recycle==0 # In the NO revenue recycling case (distributionally neutral), refund tax revenues equal to the initial burden
 
-					v.qcpc_post_recycle[t,c,q] = v.qcpc_post_tax[t,c,q]       + (( p.switch_custom_transfers * (p.E_gtco2[t,c] * p.country_carbon_tax[t,c] * 1e6 / p.l[t,c] / 1e3) + (1.0 - p.switch_custom_transfers) * p.tax_pc_revenue[t,c] )) * p.nb_quantile * v.carbon_tax_dist[t,c,q] * ( 1 - p.s[t,c] * p.redistribution_switch )
+					v.conso_pc_post_recycle[t,c,q] = v.conso_pc_post_tax[t,c,q]       + (p.nb_quantile * p.tax_pc_revenue[t,c] * v.tax_burden_distr[t,c,q])* ( 1 - p.s[t,c] * p.switch_transfers_affect_growth)
 
 				elseif p.switch_recycle==1 # In the revenue recycling case, distribute divididends from country and/or global tax revenue (assume recycling shares constant over time)
 
-					v.qcpc_post_recycle[t,c,q] = v.qcpc_post_tax[t,c,q] + (( p.switch_custom_transfers * (p.rights_proposed[t,c] * p.country_carbon_tax[t,c] * 1e6 / p.l[t,c] / 1e3) + (1.0 - p.switch_custom_transfers) * p.country_pc_dividend[t,c])) * p.nb_quantile * p.recycle_share[c,q] * ( 1 - p.s[t,c] * p.redistribution_switch )
+					v.conso_pc_post_recycle[t,c,q] = v.conso_pc_post_tax[t,c,q] + (( p.switch_custom_transfers * (p.rights_proposed[t,c] * p.country_carbon_tax[t,c] * 1e6 / p.l[t,c] / 1e3) + (1.0 - p.switch_custom_transfers) * p.country_pc_dividend[t,c])) * p.nb_quantile * p.recycle_share[c,q] * ( 1 - p.s[t,c] * p.switch_transfers_affect_growth )
 				end
 
 			end # quantile
 
 			#calculate sum of quantile CPC consumption (to calculate consumption shares at later stage)
-			v.sum_qcpc_post_recycle[t,c] = sum(v.qcpc_post_recycle[t,c,:])
+			v.sum_conso_pc_post_recycle[t,c] = sum(v.conso_pc_post_recycle[t,c,:])
 
             # CPC = (sum  quantile_pop* quantile_cpc) / population = (population/nb_quantile * (sum quantile_cpc)) / population = (sum quantile_cpc) / nb_quantile
-            v.CPC_post[t,c] = v.sum_qcpc_post_recycle[t,c] / p.nb_quantile
+            v.CPC_post[t,c] = v.sum_conso_pc_post_recycle[t,c] / p.nb_quantile
 
-            v.qc_share[t,c,:] .= v.qcpc_post_recycle[t,c,:]./ v.sum_qcpc_post_recycle[t,c]*100
+            v.qc_share[t,c,:] .= v.conso_pc_post_recycle[t,c,:]./ v.sum_conso_pc_post_recycle[t,c]*100
 
             #################
             ## Compute Gini 
@@ -147,12 +148,12 @@
             country_indices = findall(x->x==rwpp , p.mapcrwpp) #Country indices for the region
 
             v.CPC_post_rwpp[t,rwpp] = sum(p.l[t,country_indices] .* v.CPC_post[t, country_indices]) / sum(p.l[t,country_indices])
-            v.gini_cons_rwpp[t,rwpp] = gini(convert(Vector{Real},vec(v.qcpc_post_recycle[t,country_indices,:])), convert(Vector{Real},vec(temp_pop_quantile[country_indices,:])))*100
+            v.gini_cons_rwpp[t,rwpp] = gini(convert(Vector{Real},vec(v.conso_pc_post_recycle[t,country_indices,:])), convert(Vector{Real},vec(temp_pop_quantile[country_indices,:])))*100
 
         end # region loop
 
-        v.CPC_post_global[t] = sum(v.sum_qcpc_post_recycle[t,:] .* p.l[t,:] ./ p.nb_quantile) / temp_pop_global
-        v.gini_cons_global[t] = gini(convert(Vector{Real},vec(v.qcpc_post_recycle[t,:,:])), convert(Vector{Real},vec(temp_pop_quantile))) *100
+        v.CPC_post_global[t] = sum(v.sum_conso_pc_post_recycle[t,:] .* p.l[t,:] ./ p.nb_quantile) / temp_pop_global
+        v.gini_cons_global[t] = gini(convert(Vector{Real},vec(v.conso_pc_post_recycle[t,:,:])), convert(Vector{Real},vec(temp_pop_quantile))) *100
 
     end # timestep
 end
