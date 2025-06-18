@@ -55,7 +55,7 @@ years = collect(dim_keys(base_model, :time))
 global_co2_tax = zeros(Float64, nb_steps)
 
 # charge CSV (time, global_tax)
-df_tax = CSV.read(joinpath(@__DIR__, "..", "cap_and_share", "data", "output", "calibrated_global_tax_union.csv"), DataFrame)
+df_tax = CSV.read(joinpath(@__DIR__, "..", "cap_and_share", "data", "output", "below_bau_calibrated_global_tax_union.csv"), DataFrame)
 df_tax.time       = Int.(df_tax.time)   # be sure it is Int
 df_tax.global_tax = Float64.(df_tax.global_tax)
 
@@ -104,7 +104,7 @@ end
 # RIGHTS PROPOSED 
 #------------
 
-rights_path = joinpath(@__DIR__, "..", "cap_and_share", "data", "input", "ffu_rights_proposed_allocation.csv")
+rights_path = joinpath(@__DIR__, "..", "cap_and_share", "data", "input", "ffu_rights_proposed_allocation_below_bau.csv")
 df_rigths = CSV.read(rights_path, DataFrame)
 
 # Columns « rights_proposed_YYYY »
@@ -156,7 +156,7 @@ end
 # Rights proposed csv name (used to save results)
 filename = basename(rights_path)              # "ffu_rights_proposed_allocation.csv"
 basename_without_ext = splitext(filename)[1]  # "ffu_rights_proposed_allocation"
-replace(basename_without_ext,
+prefix = replace(basename_without_ext,
                  "_rights_proposed_allocation" => "")  # "ffu"
 
 

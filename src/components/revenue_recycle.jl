@@ -136,12 +136,17 @@
 
                     # Distribute globally recycled revenues to countries according to scenario
                     ## Globally recycled revenues recycled on a per capita basis =======================
-                    if p.switch_global_pc_recycle==1
-                        # if country is in the club, it receives a share of global revenue
-                        v.country_pc_dividend_global_transfers[t,c] = v.global_revenue[t]*p.club_country[p.policy_scenario,c] / ((p.l[t,:]' *p.club_country[p.policy_scenario,:])*1e3)
-                    else 
-                        v.country_pc_dividend_global_transfers[t,c] = 0
+                    if p.switch_global_pc_recycle == 1
+                        if p.switch_custom_transfers == 0
+                            # Standard per capita transfer
+                            v.country_pc_dividend_global_transfers[t,c] = v.global_revenue[t] * p.club_country[p.policy_scenario,c] / ((p.l[t,:]' * p.club_country[p.policy_scenario,:]) * 1e3)
+                        elseif p.switch_custom_transfers == 1
+                            # Custom transfer based on rights proposed and carbon tax
+                            v.country_pc_dividend_global_transfers[t,c] = (p.rights_proposed[t,c] * p.country_carbon_tax[t,c] * 1e6) * p.club_country[p.policy_scenario,c] / (p.l[t,c] * 1e3)
                         end
+                    else
+                        v.country_pc_dividend_global_transfers[t,c] = 0
+                    end
 
                 end # test for scope of recycling (global/local)
 

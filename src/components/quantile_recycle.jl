@@ -119,7 +119,7 @@
 
 				elseif p.switch_recycle==1 # In the revenue recycling case, distribute divididends from country and/or global tax revenue (assume recycling shares constant over time)
 
-					v.conso_pc_post_recycle[t,c,q] = v.conso_pc_post_tax[t,c,q] + (( p.switch_custom_transfers * (p.rights_proposed[t,c] * p.country_carbon_tax[t,c] * 1e6 / p.l[t,c] / 1e3) + (1.0 - p.switch_custom_transfers) * p.country_pc_dividend[t,c])) * p.nb_quantile * p.recycle_share[c,q] * ( 1 - p.s[t,c] * p.switch_transfers_affect_growth )
+					v.conso_pc_post_recycle[t,c,q] = v.conso_pc_post_tax[t,c,q] + ( p.country_pc_dividend[t,c] * p.nb_quantile * p.recycle_share[c,q]) * ( 1 - p.s[t,c] * p.switch_transfers_affect_growth )
 				end
 
 			end # quantile
