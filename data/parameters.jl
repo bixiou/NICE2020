@@ -38,7 +38,7 @@ function participation_vector(participants::Vector{Symbol}, all_countries::Vecto
 end
 
 # Scenario labels
-scenarios = [:All_World, :All_Except_Oil_Countries, :Optimistic, :Generous_EU, :Africa_Eu, :Union]
+scenarios = [:All_World, :All_Except_Oil_Countries, :Optimistic, :Generous_EU, :Partnership, :Union, :JPN, :KOR, :CHN, :WEU]
 
 # Correspondence dictionary name → index
 scenario_index = Dict(
@@ -46,8 +46,12 @@ scenario_index = Dict(
     :All_Except_Oil_Countries    => 2,
     :Optimistic    => 3,
     :Generous_EU   => 4,
-    :Africa_Eu   => 5,
-    :Union         => 7
+    :Partnership   => 5,
+    :Union         => 7,
+    :JPN           => 8,
+    :KOR           => 9,
+    :CHN           => 10,
+    :WEU           => 11,
 )
 
 rich_oil_countries = ["RUS", "KAZ", "SAU", "QAT", "KWT", "AZE", "OMN", "BHR", "MYS"]
@@ -101,6 +105,13 @@ union_countries = ["AFG", "AGO", "ALB", "ARG", "AUT", "BDI", "BEL", "BEN", "BFA"
 "SWE", "SWZ", "TCD", "TGO", "THA", "TKM", "TLS", "TUN", "TWN" ,"TZA", "UGA", "URY", "VNM", "ZAF", "ZMB", 
 "ZWE"]
 
+# Scenarios 8-11
+WEU = ["AUT", "BEL", "CHE", "DEU", "DNK", "ESP", "FIN", "FRA", "GBR", "GRC", "HUN", "IRL", "ISL", "ITA", "LTU", "LUX", "LVA", "MDA", "MLT", "NLD", "NOR", "PRT", "SWE"]
+
+JPN = ["JPN"]
+KOR = ["KOR"]
+CHN = ["CHN"]
+
 club_countries = [
     Symbol.(countries),                            # Scenario 1
     Symbol.(all_except_oil_countries),             # Scenario 2
@@ -108,7 +119,11 @@ club_countries = [
     Symbol.(generous_eu_countries),                # Scenario 4
     Symbol.(partnership_countries),                # Scenario 5
     Symbol.(personalized_countries),                # Scenario 6
-    Symbol.(union_countries)                       # Scenario 7
+    Symbol.(union_countries),                       # Scenario 7
+    Symbol.(JPN),                       # Scenario 8
+    Symbol.(KOR),                       # Scenario 9
+    Symbol.(CHN),                       # Scenario 10
+    Symbol.(WEU)                       # Scenario 11
 ]
 
 # Final binary participation matrix per scenario
@@ -119,9 +134,12 @@ club_country = transpose(reduce(hcat,[
     participation_vector(Symbol.(generous_eu_countries), Symbol.(countries)),           # Scenario 4
     participation_vector(Symbol.(partnership_countries), Symbol.(countries)),           # Scenario 5
     participation_vector(Symbol.(personalized_countries), Symbol.(countries)),           # Scenario 6
-    participation_vector(Symbol.(union_countries), Symbol.(countries))
+    participation_vector(Symbol.(union_countries), Symbol.(countries)), 
+    participation_vector(Symbol.(JPN), Symbol.(countries)), 
+    participation_vector(Symbol.(KOR), Symbol.(countries)), 
+    participation_vector(Symbol.(CHN), Symbol.(countries)), 
+    participation_vector(Symbol.(WEU), Symbol.(countries))
 ]))
-
 
 #-----------------------------------------
 # Load economic and emissions calibration

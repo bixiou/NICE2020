@@ -260,6 +260,7 @@ function save_nice2020_results_cap_and_share(
     save(joinpath(country_path,  "nice_net_output.csv"),                 getdataframe(m, :neteconomy  => :Y))
     save(joinpath(country_path,  "consumption.csv"),                     getdataframe(m, :neteconomy  => :C))
     save(joinpath(country_path,  "population.csv"),                      getdataframe(m, :neteconomy  => :l))
+    save(joinpath(country_path, "consumption_EDE.csv"),                 getdataframe(m, :welfare => :cons_EDE_country))
     save(joinpath(country_path,  "consumption_per_capita.csv"),          getdataframe(m, :neteconomy  => :CPC))
     save(joinpath(country_path,  "net_output_per_capita.csv"),           getdataframe(m, :neteconomy  => :Y_pc))
     save(joinpath(country_path,  "local_temp_anomaly.csv"),              getdataframe(m, :damages    => :local_temp_anomaly))

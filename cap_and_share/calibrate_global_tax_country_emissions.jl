@@ -1,8 +1,7 @@
 ################################################################################################
 # calibrate_global_tax_dichotomy.jl
 #
-# Calibrate a uniform global carbon tax in NICE2020 (with country level emissions)
-# according to a participation scenario, using :
+# Calibrate a uniform global carbon tax in NICE2020 according to a participation scenario, using :
 # - for 2025 (t0) start at 100$ + dichotomy algorithm,
 # - for t>2025 a range centered on tax_{t-1} with an initial step of 20 + dichotomy algorithm.
 ################################################################################################
@@ -23,7 +22,9 @@ include(joinpath(@__DIR__, "..", "src", "helper_functions.jl"))
 include(joinpath(@__DIR__, "..", "data", "parameters.jl"))
 const scenario_name     = :All_World     # Choice of scenario by name (:All_World, :All_Except_Oil_Countries, :Optimistic, :Generous_EU, :Partnership)
 const policy_scenario   = scenario_index[scenario_name]
-const participation_vec = club_countries_binary[policy_scenario, :]
+const participation_vec = club_country[policy_scenario, :]
+
+
 # -------------------------------------------------------------------
 
 # -------------------------------------------------------------------

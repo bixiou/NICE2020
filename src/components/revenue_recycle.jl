@@ -1,6 +1,7 @@
 @defcomp revenue_recycle begin
 
  # TODOs:
+ # - rename industrial_co2_emissions -> co2_emissions (as NICE2020 covers all CO2 emissions - but not other GHGs)
  # - rename E_gtco2_scenario -> E_gtco2_club 
  # - rename club_countries_binary -> club_country 
  # - make units more consistent (not thousands for one and millions for another), e.g. everything in tCO2, $, etc. Or at least specify the unit where each variable is defined, and in the documentation. For example, why is country_pc_dividend in *thousands* $?

@@ -14,8 +14,13 @@ using Mimi, MimiFAIRv2, DataFrames, CSVFiles
 # --- Tax and budget start parameters ---
 const tax_start_year        = 2030     # tax start year (2025, 2030…)
 const evaluation_end_year   = 2100    # the end of the year for budgeting and well-being
-const emission_budget_limit = 520   # budget max GtCO2 from tax_start_year to evaluation_end_year
+const emission_budget_limit = 4   # budget max GtCO2 from tax_start_year to evaluation_end_year
 rho = 0.015                       # discount rate
+
+# budgets_ndc
+#       AFR       AUS       CAN       CHI       CSA       EEU       FSU       IND       JPN       MEA       MEX       ODA       SKO       USA       WEU     World 
+#  56.95208   2.61344   3.65085 151.63455  17.76320   4.58928  41.91670  65.30454   7.10390  74.08333  11.91108  71.24156   4.30500  31.41713  14.18151 558.66827 
+
 # ---------------------------------------------------------
 
 # ——————————————————————————————————————————————————————————————
@@ -23,21 +28,20 @@ rho = 0.015                       # discount rate
 # ——————————————————————————————————————————————————————————————
 include(joinpath(@__DIR__, "..", "data", "parameters.jl"))
 
-const scenario_name     = :All_World # Choice of scenario by name (:All_World, :All_Except_Oil_Countries, :Optimistic, :Generous_EU, :Partnership, :Union)
-
+const scenario_name     = :KOR     # Choice of scenario by name (:All_World, :All_Except_Oil_Countries, :Optimistic, :Generous_EU, :Partnership, :Union)
 const policy_scenario   = scenario_index[scenario_name]
+const participation_vec = club_country[policy_scenario, :]
 
-const participation_vec = club_countries_binary[policy_scenario, :]
 # ——————————————————————————————————————————————————————————————
 
 # Make directory to optionally save tested pathways outputs
-output_directory_test_2deg_global = joinpath(@__DIR__, "..", "test_2deg_global_exp")
+output_directory_test_2deg_global = joinpath(@__DIR__, "..", "budget_ndc_CHN") # test_2deg_global_exp
 mkpath(output_directory_test_2deg_global)
 
 println("Test global carbon tax runs")
 
-# Define a function that creates a global tax trajectory from starting level and growth rate,
-# runs the model with this carbon tax trajectory and outputs yearly emissions and welfare
+# Creates a global tax trajectory from starting level and growth rate,
+# Runs the model with this carbon tax trajectory and outputs yearly emissions and welfare
 function test_global_exp_c_tax(tax_start_value_test, g_rate_test)
     # we pass tax_start_year instead of 2020
     full_co2_tax = exp_tax_trajectory(tax_start_value = tax_start_value_test, g_rate = g_rate_test, year_tax_start = tax_start_year, year_tax_end = 2200)
@@ -157,10 +161,17 @@ println("Total discounted welfare = $best_welfare")
 save(joinpath("data","uniform_exp_tax_path_params.csv"),
      DataFrame(path=collect(best_params)); header=false)
 
-# Save selected carbon tax pathway to CSV
+# # Save selected carbon tax pathway to CSV
 tax_path = parse.(Float64, split(tax_path[1], '_'))
 save(joinpath("data","uniform_exp_tax_path_params.csv"),
      DataFrame(path=tax_path); header=false)
 
+# Save emissions trajectory
+# save(joinpath("data","emissions_ndc_CHN.csv"), DataFrame(emissions=emissions_opt, year=collect(2020:2300)); header=false)
+
 # Extract corresponding welfare value
 welfare_value_path = tot_welfare_disc[tot_welfare_disc.value .== maximum(tot_welfare_disc.value), :value]
+
+emissions_matrix = test_global_exp_c_tax(232, .0416)
+save(joinpath("data","emissions_ndc_WEU_all.csv"), DataFrame(emissions_matrix, :auto); header=false)
+em, wel = test_global_exp_c_tax(232, .0416)

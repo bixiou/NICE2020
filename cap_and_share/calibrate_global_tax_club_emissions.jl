@@ -23,7 +23,7 @@ include(joinpath(@__DIR__, "..", "src", "helper_functions.jl"))
 include(joinpath(@__DIR__, "..", "data", "parameters.jl"))
 const scenario_name     = :Union
 const policy_scenario   = scenario_index[scenario_name]
-const participation_vec = club_countries_binary[policy_scenario, :]
+const participation_vec = club_country[policy_scenario, :]
 # -------------------------------------------------------------------
 
 # -------------------------------------------------------------------

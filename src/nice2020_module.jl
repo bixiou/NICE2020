@@ -40,8 +40,8 @@ function create_nice2020()
 	rwpp = Symbol.(wpp_regions)
 	set_dimension!(m, :regionwpp, rwpp )
 
-	# Set scenario dimension (1 to 6)
-	set_dimension!(m, :scenario, 1:7)
+	# Set scenario dimension (1 to 11)
+	set_dimension!(m, :scenario, 1:11)
 
 	# Set quantile dimension
 	set_dimension!(m, :quantile, ["First", "Second", "Third", "Fourth", "Fifth", "Sixth", "Seventh", "Eighth", "Ninth", "Tenth"])

@@ -2,9 +2,9 @@
 # This file produces example runs for the NICE2020 model
 #########################################################
 
-#create your own "chemin.txt" to find NICE2020
-chemin = read("chemin.txt", String) |> strip  
-cd(chemin)  
+#create your own "path.txt" to find NICE2020
+path = read("path.txt", String) |> strip  
+cd("C:/Users/fabre/Documents/www/NICE2020/")  
 
 
 # Activate the project and make sure all packages we need
@@ -46,35 +46,6 @@ global_co2_tax = MimiNICE2020.linear_tax_trajectory(tax_start_value = 184, incre
 ################# END CHOICE 1 ##################################
 
 ################ CHOICE 2 ######################################
-# Tax year by year
-
-# retrieve the list of years in base_model
-years = collect(dim_keys(base_model, :time))
-
-# prepare an empty vector for the nb_steps length tax
-global_co2_tax = zeros(Float64, nb_steps)
-
-# charge CSV (time, global_tax)
-df_tax = CSV.read(joinpath(@__DIR__, "..", "cap_and_share", "data", "output", "below_bau_calibrated_global_tax_union.csv"), DataFrame)
-df_tax.time       = Int.(df_tax.time)   # be sure it is Int
-df_tax.global_tax = Float64.(df_tax.global_tax)
-
-# create a dict year→tax
-tax_dict = Dict(row.time => row.global_tax for row in eachrow(df_tax))
-
-# fullfil global_co2_tax[i] = tax_dict[years[i]] or zero if not defined
-for (i, y) in enumerate(years)
-    if haskey(tax_dict, y)
-        global_co2_tax[i] = tax_dict[y]
-    else
-        # here : zero, or `error("no tax for $y")`
-        global_co2_tax[i] = 0.0
-    end
-end
-################## END CHOICE 2 ########################
-
-
-################# CHOICE 3 #######################
 # Exponential carbon tax
 
 const τ0     = 375.0           # taxe de départ en 2030
@@ -96,6 +67,35 @@ for (i, y) in enumerate(years)
         global_co2_tax[i] = 0.0  # or left at zero before 2030 / after 2100
     end
 end
+################## END CHOICE 2 ########################
+
+
+################# CHOICE 3 #######################
+# Precalibrated tax (default choice)
+
+# retrieve the list of years in base_model
+years = collect(dim_keys(base_model, :time))
+
+# prepare an empty vector for the nb_steps length tax
+global_co2_tax = zeros(Float64, nb_steps)
+
+# charge CSV (time, global_tax)
+df_tax = CSV.read(joinpath(@__DIR__, "..", "cap_and_share", "data", "output", "calibrated_global_tax_union.csv"), DataFrame) # below_bau_calibrated_global_tax_union
+df_tax.time       = Int.(df_tax.time)   # be sure it is Int
+df_tax.global_tax = Float64.(df_tax.global_tax)
+
+# create a dict year→tax
+tax_dict = Dict(row.time => row.global_tax for row in eachrow(df_tax))
+
+# fullfil global_co2_tax[i] = tax_dict[years[i]] or zero if not defined
+for (i, y) in enumerate(years)
+    if haskey(tax_dict, y)
+        global_co2_tax[i] = tax_dict[y]
+    else
+        # here : zero, or `error("no tax for $y")`
+        global_co2_tax[i] = 0.0
+    end
+end
 
 ################## END CHOICE 3 #######################
 
@@ -104,7 +104,7 @@ end
 # RIGHTS PROPOSED 
 #------------
 
-rights_path = joinpath(@__DIR__, "..", "cap_and_share", "data", "input", "ffu_rights_proposed_allocation_below_bau.csv")
+rights_path = joinpath(@__DIR__, "..", "cap_and_share", "data", "input", "ffu_rights_proposed_allocation.csv") #  non_losing_rights
 df_rigths = CSV.read(rights_path, DataFrame)
 
 # Columns « rights_proposed_YYYY »
@@ -288,6 +288,8 @@ MimiNICE2020.save_nice2020_results_cap_and_share(nice2020_uniform_tax, output_di
 #------------------------------------------------------------------------------------------------
 
 println("--3-- Example run with global carbon tax (non-optimized), with revenues recycled globally (equal per capita)")
+# Get baseline instance of the model.
+# nice2020_uniform_tax = MimiNICE2020.create_nice2020()
 
 println("Updating some parameters of the previously created NICE2020 instance.")
 
