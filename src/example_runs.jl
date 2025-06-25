@@ -104,7 +104,7 @@ end
 # RIGHTS PROPOSED 
 #------------
 
-rights_path = joinpath(@__DIR__, "..", "cap_and_share", "data", "input", "ffu_rights_proposed_allocation.csv") #  non_losing_rights
+rights_path = joinpath(@__DIR__, "..", "cap_and_share", "data", "input", "ffu_rights_proposed_allocation.csv") #  non_losing_rights ffu_rights_proposed_allocation
 df_rigths = CSV.read(rights_path, DataFrame)
 
 # Columns « rights_proposed_YYYY »
@@ -135,21 +135,21 @@ countries_model = dim_keys(base_model, :country)           # ex. 179 codes
 T = length(years_model)
 C = length(countries_model)
 
-# — 3) Prepare the rights_mat matrix (T×C), initialized to 0.0 —
-rights_mat = zeros(Float64, T, C)
+# — 3) Prepare the rights_proposed_mat matrix (T×C), initialized to 0.0 —
+rights_proposed_mat = zeros(Float64, T, C)
 
 # 
 idx_year    = Dict(y => i for (i,y) in enumerate(years_model))
 idx_country = Dict(string(c) => j for (j,c) in enumerate(countries_model))
 
-# — 4) Fill rights_mat where there is data in df_rigths_long —
+# — 4) Fill rights_proposed_mat where there is data in df_rigths_long —
 for row in eachrow(df_rigths_long)
     y = row.time
     c = string(row.country)
     if haskey(idx_year, y) && haskey(idx_country, c)
         i = idx_year[y]
         j = idx_country[c]
-        rights_mat[i, j] = row.rights_proposed
+        rights_proposed_mat[i, j] = row.rights_proposed
     end
 end
 
@@ -227,7 +227,7 @@ update_param!(nice2020_uniform_tax, :abatement, :control_regime, 1) # Switch for
 update_param!(nice2020_uniform_tax, :abatement, :global_carbon_tax, global_co2_tax)
 update_param!(nice2020_uniform_tax, :switch_recycle, switch_recycle)
 update_param!(nice2020_uniform_tax, :policy_scenario, MimiNICE2020.scenario_index[switch_scenario])
-update_param!(nice2020_uniform_tax, :revenue_recycle, :rights_proposed, rights_mat)
+update_param!(nice2020_uniform_tax, :revenue_recycle, :rights_proposed, rights_proposed_mat)
 
 println("Running the updated model and saving the output in the directory: ", output_directory_uniform,)
 
@@ -293,12 +293,14 @@ println("--3-- Example run with global carbon tax (non-optimized), with revenues
 
 println("Updating some parameters of the previously created NICE2020 instance.")
 
+nice2020_uniform_tax = MimiNICE2020.create_nice2020()
 switch_recycle                  = 1 # ON     Recycle revenues to households
 switch_global_recycling         = 1 # ON     Carbon tax revenues recycled globally
 switch_global_pc_recycle        = 1 # ON    Carbon tax revenues recycled on an equal per capita basis
 switch_scenario                 = :Union  # Choice of scenario by name (:All_World, :All_Except_Oil_Countries, :Optimistic, :Generous_EU, :Africa_Eu)
 switch_transfers_affect_growth  = 1 # Can compute economic data including redistributive effect 
 switch_custom_transfers         = 1
+switch_footprint             = 1 # Switch for footprint calculation (1: ON, 0: OFF)
 
 update_param!(nice2020_uniform_tax, :switch_custom_transfers, switch_custom_transfers)
 
@@ -309,6 +311,8 @@ global_recycle_share            = 1 # 100%   Share of tax revenues recycled glob
 # Set uniform taxes, revenue recycling switches and run the model
 update_param!(nice2020_uniform_tax, :abatement, :control_regime, 1) # Switch for emissions control regime  1:"global_carbon_tax", 2:"country_carbon_tax", 3:"country_abatement_rate"
 update_param!(nice2020_uniform_tax, :abatement, :global_carbon_tax, global_co2_tax)
+update_param!(nice2020_uniform_tax, :switch_footprint, switch_footprint)
+update_param!(nice2020_uniform_tax, :revenue_recycle, :rights_proposed, rights_proposed_mat)
 
 update_param!(nice2020_uniform_tax, :switch_recycle, switch_recycle)
 update_param!(nice2020_uniform_tax, :switch_global_recycling, switch_global_recycling)
@@ -380,3 +384,104 @@ println("In the welfare component η=", nice2020_uniform_tax[:welfare, :η], ", 
 
 
 println("All done!")
+
+#------------------------------------------------------------------------------------------------
+#------------------------------------------------------------------------------------------------
+#5- Country-specific emission pathway, revenue recycled within country
+#------------------------------------------------------------------------------------------------
+#------------------------------------------------------------------------------------------------
+
+
+println("--5-- Country-specific emission pathway, revenue recycled within country") 
+
+println("Updating some parameters of the previously created NICE2020 instance.")
+
+rights_path = joinpath(@__DIR__, "..", "cap_and_share", "data", "input", "non_losing_rights.csv") #  non_losing_rights ffu_rights_proposed_allocation
+df_rigths = CSV.read(rights_path, DataFrame)
+
+# Columns « rights_proposed_YYYY »
+year_cols  = filter(c -> startswith(string(c), "rights_proposed_"), names(df_rigths))
+
+# Switch to long format : (country, region_tiam, participate_union, year_str, rights_proposed)
+df_rigths_long  = stack(
+    df_rigths,
+    year_cols;
+    variable_name = :year_str,
+    value_name    = :rights_proposed
+)
+
+# Convert to billions if necessary
+df_rigths_long.rights_proposed .= df_rigths_long.rights_proposed ./ 1e9
+
+# Extract year  (year_str = "rights_proposed_2030" → time=2030)
+df_rigths_long.time = parse.(Int, replace.(df_rigths_long.year_str, "rights_proposed_" => ""))
+select!(df_rigths_long, Not(:year_str))
+
+# Rename code_country → country if necessary
+rename!(df_rigths_long, "code" => "country")
+
+# — 2) Retrieve the time grid & list of model countries —
+years_model     = collect(dim_keys(base_model, :time))     # ex. 2020:2300
+countries_model = dim_keys(base_model, :country)           # ex. 179 codes
+
+T = length(years_model)
+C = length(countries_model)
+
+# — 3) Prepare the rights_mat matrix (T×C), initialized to 0.0 —
+rights_mat = -1*ones(Float64, T, C)
+
+# 
+idx_year    = Dict(y => i for (i,y) in enumerate(years_model))
+idx_country = Dict(string(c) => j for (j,c) in enumerate(countries_model))
+
+# — 4) Fill rights_mat where there is data in df_rigths_long —
+for row in eachrow(df_rigths_long)
+    y = row.time
+    c = string(row.country)
+    if haskey(idx_year, y) && haskey(idx_country, c)
+        i = idx_year[y]
+        j = idx_country[c]
+        rights_mat[i, j] = row.rights_proposed
+    end
+end
+
+# Rights proposed csv name (used to save results)
+filename = basename(rights_path)              # "ffu_rights_proposed_allocation.csv"
+basename_without_ext = splitext(filename)[1]  # "ffu_rights_proposed_allocation"
+prefix = replace(basename_without_ext,
+                 "_rights_proposed_allocation" => "")  # "ffu"
+
+
+nice2020_non_losing = MimiNICE2020.create_nice2020()
+
+switch_recycle                  = 1 # ON     Recycle revenues to households
+switch_global_recycling        = 0 # OFF    Carbon tax revenues recycled at country level (0) or globally (1)
+switch_global_pc_recycle        = 0 # OFF    Carbon tax revenues recycled on an equal per capita basis
+switch_scenario                 = :Union  # Choice of scenario by name (:All_World, :All_Except_Oil_Countries, :Optimistic, :Generous_EU, :Africa_Eu)
+switch_transfers_affect_growth    = 1 # Can compute economic data including redistributive effect 
+switch_footprint             = 1 # Switch for footprint calculation (1: ON, 0: OFF)
+
+switch_custom_transfers = 0
+
+update_param!(nice2020_non_losing, :abatement, :control_regime, 5) # Switch to specify emissions pathways
+update_param!(nice2020_non_losing, :abatement, :rights_mat, rights_mat)
+update_param!(nice2020_non_losing, :switch_footprint, switch_footprint)
+
+update_param!(nice2020_non_losing, :switch_recycle, switch_recycle)
+update_param!(nice2020_non_losing, :switch_global_recycling, switch_global_recycling)
+update_param!(nice2020_non_losing, :revenue_recycle, :switch_global_pc_recycle, switch_global_pc_recycle)
+update_param!(nice2020_non_losing, :policy_scenario, MimiNICE2020.scenario_index[switch_scenario])
+update_param!(nice2020_non_losing, :switch_transfers_affect_growth, switch_transfers_affect_growth)
+update_param!(nice2020_non_losing, :switch_custom_transfers, switch_custom_transfers)
+
+println("Selected Scenario : ", switch_scenario)
+
+println("Running the updated model and saving the output in the directory: ", output_directory_uniform_cap_and_share,)
+
+run(nice2020_non_losing)
+
+# Save the recycle run (see helper functions for saving function details)
+MimiNICE2020.save_nice2020_results_cap_and_share(nice2020_non_losing, output_directory_uniform_cap_and_share, revenue_recycling=true, recycling_type=1, switch_custom_transfers = switch_custom_transfers, file_prefix = String(prefix))
+# TODO! Change folder naming so that it includes prefix
+# TODO! Solve the issue that temperature is too low in non_losing (=> participating + 0 hors 2030-80); also why Sudan losing?
+# TODO! Emissions jump at 30Gt in 2101

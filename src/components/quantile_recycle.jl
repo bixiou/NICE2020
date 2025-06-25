@@ -30,7 +30,6 @@
     transfer                    = Parameter(index=[time, country])
     transfer_over_gdp           = Parameter(index=[time, country])    # % of GDP
     transfer_pc                 = Parameter(index=[time, country])    # $ per capita
-    rights_proposed           = Parameter(index=[time, country])    # droits alloués (GtCO2 par pays/an)
     E_gtco2                 	= Parameter(index=[time, country])
     country_carbon_tax       	= Parameter(index=[time, country])         		# CO2 tax rate (USD2017 per tCO2)
 

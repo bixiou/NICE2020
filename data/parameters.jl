@@ -1,4 +1,4 @@
-using Query, JSON, DataFrames, CSVFiles
+using Query, JSON, DataFrames, CSVFiles, CSV
 
 nice_inputs = JSON.parsefile("data/nice_inputs.json") # This file contains the economic and emissions calibration and the list of used country codes
 # the json file reads in a several nested dictionaries, where in each case the "last" dictionary contains the keys, "units", "dimensions", "notes", and "x". The "x" key always contains the data to be read into a DataFrame.
@@ -210,6 +210,10 @@ emissionsrate_unstack = unstack(emissionsrate_raw, :year, :countrycode, :intensi
 
 # Sort the columns (country names) into alphabetical order.
 emissionsrate = select(emissionsrate_unstack, countries)
+
+# Creates a version with consumption-based instead of territorial emissions, using a fixed ratio based on 2022 data from the Global Carbon Project
+footprint_over_territorial = CSV.read("data/footprint_over_territorial_2022.csv", DataFrame)
+emissionsrate_footprint = Matrix(emissionsrate) .* transpose(footprint_over_territorial[:,2])
 
 #----------------------------------------
 # Load inequality calibration

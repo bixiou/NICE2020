@@ -74,6 +74,8 @@ function create_nice2020()
 	add_shared_param!(m, :nb_quantile, 	nb_quantile)
 	add_shared_param!(m, :η, 	1.5)
 	add_shared_param!(m, :σ, 	Matrix(emissionsrate), dims=[:time, :country])
+	add_shared_param!(m, :emissionsrate_footprint, 	emissionsrate_footprint, dims=[:time, :country])
+	add_shared_param!(m, :switch_footprint, 0)  # Switch to choose whether we use the emissions footprint (0) or the emissions rate (1)
 	add_shared_param!(m,  :s, Matrix(srate), dims=[:time, :country])
 	add_shared_param!(m, :policy_scenario, 1) # identifies the club of countries participating in the policy
 	add_shared_param!(m, :club_country, club_country, dims=[:scenario, :country]) # identifies the club of countries participating in the policy
@@ -134,11 +136,14 @@ function create_nice2020()
 	update_param!(m, :abatement, :θ2, 2.6)
 	update_param!(m, :abatement, :pbacktime, full_pbacktime)
 	update_param!(m, :abatement, :direct_country_tax, zeros(length(dim_keys(m, :time)), length(dim_keys(m, :country))))
+	update_param!(m, :abatement, :rights_mat, -1*ones(length(dim_keys(m, :time)), length(dim_keys(m, :country))))
 
 	connect_param!(m, :abatement, :s, :s)
 	connect_param!(m, :abatement, :l, :l)
 	connect_param!(m, :abatement, :η, :η)
 	connect_param!(m, :abatement, :σ, :σ)
+	connect_param!(m, :abatement, :emissionsrate_footprint, :emissionsrate_footprint)
+	connect_param!(m, :abatement, :switch_footprint, :switch_footprint)
 	connect_param!(m, :abatement, :policy_scenario, :policy_scenario)
 	connect_param!(m, :abatement, :club_country, :club_country)
 
@@ -149,6 +154,8 @@ function create_nice2020()
 
 	connect_param!(m, :emissions, :mapcrwpp,  :mapcrwpp) 
 	connect_param!(m, :emissions, :σ, :σ)
+	connect_param!(m, :emissions, :emissionsrate_footprint, :emissionsrate_footprint)
+	connect_param!(m, :emissions, :switch_footprint, :switch_footprint)
 	connect_param!(m, :emissions, :policy_scenario, :policy_scenario)
 	connect_param!(m, :emissions, :club_country, :club_country)
 
@@ -209,7 +216,7 @@ function create_nice2020()
 	update_param!(m, :quantile_recycle, :quantile_consumption_shares,  consumption_distribution_2020_2300)
 	#update_param!(m, :quantile_recycle, :quantile_consumption_shares, 	consumption_distribution) Static version
 	update_param!(m, :quantile_recycle, :recycle_share, 			ones(nb_country, nb_quantile).*1/nb_quantile)
-	update_param!(m, :quantile_recycle, :rights_proposed, zeros(length(dim_keys(m,:time)), length(dim_keys(m,:country))))
+	#update_param!(m, :quantile_recycle, :rights_proposed, zeros(length(dim_keys(m,:time)), length(dim_keys(m,:country))))
 
 	connect_param!(m, :quantile_recycle, :switch_recycle, :switch_recycle)
 	connect_param!(m, :quantile_recycle, :l, 			:l)

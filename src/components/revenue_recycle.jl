@@ -64,7 +64,7 @@
          
        
         for c in d.country
-                excess_rights = (p.rights_proposed[t,c] - p.E_gtco2[t,c]) * 1e9
+                excess_rights = (p.rights_proposed[t,c] - p.E_gtco2[t,c]) * 1e9 * (maximum(p.rights_proposed[t,:]) > 0)
                 v.transfer[t,c]          = p.country_carbon_tax[t,c] * excess_rights
                 v.transfer_over_gdp[t,c] = (p.country_carbon_tax[t,c] * excess_rights ) / (p.YGROSS[t,c] * 1e6)
                 v.transfer_pc[t,c]       = (p.country_carbon_tax[t,c] * excess_rights ) / p.l[t,c]
