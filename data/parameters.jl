@@ -102,8 +102,10 @@ union_countries = ["AFG", "AGO", "ALB", "ARG", "AUT", "BDI", "BEL", "BEN", "BFA"
 "LKA", "LSO", "LTU", "LUX", "LVA", "MAR", "MDA", "MDG", "MDV", "MEX", "MLI", "MLT", "MMR", "MNG", "MOZ",
 "MRT", "MUS", "MWI", "MYS", "NAM", "NER", "NGA", "NIC", "NLD", "NOR", "NPL", "PAK", "PAN", "PER", "PHL",
 "PNG", "POL", "PRT", "PRY", "ROU", "RWA", "SDN", "SEN", "SGP", "SLE", "SLV", "SRB", "SUR", "SVK", "SVN",
-"SWE", "SWZ", "TCD", "TGO", "THA", "TKM", "TLS", "TUN", "TWN" ,"TZA", "UGA", "URY", "VNM", "ZAF", "ZMB", 
-"ZWE"]
+"SWE", "SWZ", "TCD", "TGO", "THA", "TKM", "TLS", "TUN" ,"TZA", "UGA", "URY", "VNM", "ZAF", "ZMB", 
+"ZWE", 
+"ARM", "GEO", "IRQ", "JOR", "SYR", "TKM", "TUR", "UKR", "UZB", "YEM" # , "TWN"
+]
 
 # Scenarios 8-11
 WEU = ["AUT", "BEL", "CHE", "DEU", "DNK", "ESP", "FIN", "FRA", "GBR", "GRC", "HUN", "IRL", "ISL", "ITA", "LTU", "LUX", "LVA", "MDA", "MLT", "NLD", "NOR", "PRT", "SWE"]

@@ -71,94 +71,7 @@ end
 
 
 ################# CHOICE 3 #######################
-# Precalibrated tax (default choice)
-
-# retrieve the list of years in base_model
-years = collect(dim_keys(base_model, :time))
-
-# prepare an empty vector for the nb_steps length tax
-global_co2_tax = zeros(Float64, nb_steps)
-
-# charge CSV (time, global_tax)
-df_tax = CSV.read(joinpath(@__DIR__, "..", "cap_and_share", "data", "output", "calibrated_global_tax_union.csv"), DataFrame) # below_bau_calibrated_global_tax_union
-df_tax.time       = Int.(df_tax.time)   # be sure it is Int
-df_tax.global_tax = Float64.(df_tax.global_tax)
-
-# create a dict year→tax
-tax_dict = Dict(row.time => row.global_tax for row in eachrow(df_tax))
-
-# fullfil global_co2_tax[i] = tax_dict[years[i]] or zero if not defined
-for (i, y) in enumerate(years)
-    if haskey(tax_dict, y)
-        global_co2_tax[i] = tax_dict[y]
-    else
-        # here : zero, or `error("no tax for $y")`
-        global_co2_tax[i] = 0.0
-    end
-end
-
-################## END CHOICE 3 #######################
-
-
-#------------
-# RIGHTS PROPOSED 
-#------------
-
-rights_path = joinpath(@__DIR__, "..", "cap_and_share", "data", "input", "ffu_rights_proposed_allocation.csv") #  non_losing_rights ffu_rights_proposed_allocation
-df_rigths = CSV.read(rights_path, DataFrame)
-
-# Columns « rights_proposed_YYYY »
-year_cols  = filter(c -> startswith(string(c), "rights_proposed_"), names(df_rigths))
-
-# Switch to long format : (country, region_tiam, participate_union, year_str, rights_proposed)
-df_rigths_long  = stack(
-    df_rigths,
-    year_cols;
-    variable_name = :year_str,
-    value_name    = :rights_proposed
-)
-
-# Convert to billions if necessary
-df_rigths_long.rights_proposed .= df_rigths_long.rights_proposed ./ 1e9
-
-# Extract year  (year_str = "rights_proposed_2030" → time=2030)
-df_rigths_long.time = parse.(Int, replace.(df_rigths_long.year_str, "rights_proposed_" => ""))
-select!(df_rigths_long, Not(:year_str))
-
-# Rename code_country → country if necessary
-rename!(df_rigths_long, "code" => "country")
-
-# — 2) Retrieve the time grid & list of model countries —
-years_model     = collect(dim_keys(base_model, :time))     # ex. 2020:2300
-countries_model = dim_keys(base_model, :country)           # ex. 179 codes
-
-T = length(years_model)
-C = length(countries_model)
-
-# — 3) Prepare the rights_proposed_mat matrix (T×C), initialized to 0.0 —
-rights_proposed_mat = zeros(Float64, T, C)
-
-# 
-idx_year    = Dict(y => i for (i,y) in enumerate(years_model))
-idx_country = Dict(string(c) => j for (j,c) in enumerate(countries_model))
-
-# — 4) Fill rights_proposed_mat where there is data in df_rigths_long —
-for row in eachrow(df_rigths_long)
-    y = row.time
-    c = string(row.country)
-    if haskey(idx_year, y) && haskey(idx_country, c)
-        i = idx_year[y]
-        j = idx_country[c]
-        rights_proposed_mat[i, j] = row.rights_proposed
-    end
-end
-
-# Rights proposed csv name (used to save results)
-filename = basename(rights_path)              # "ffu_rights_proposed_allocation.csv"
-basename_without_ext = splitext(filename)[1]  # "ffu_rights_proposed_allocation"
-prefix = replace(basename_without_ext,
-                 "_rights_proposed_allocation" => "")  # "ffu"
-
+# cf. below at option 3
 
 #------------
 # DIRECTORIES
@@ -287,6 +200,90 @@ MimiNICE2020.save_nice2020_results_cap_and_share(nice2020_uniform_tax, output_di
 #------------------------------------------------------------------------------------------------
 #------------------------------------------------------------------------------------------------
 
+
+# retrieve the list of years in base_model
+years = collect(dim_keys(base_model, :time))
+
+# prepare an empty vector for the nb_steps length tax
+global_co2_tax = zeros(Float64, nb_steps)
+
+# charge CSV (time, global_tax)
+df_tax = CSV.read(joinpath(@__DIR__, "..", "cap_and_share", "data", "output", "calibrated_global_tax_union.csv"), DataFrame) # below_bau_calibrated_global_tax_union
+df_tax.time       = Int.(df_tax.time)   # be sure it is Int
+df_tax.global_tax = Float64.(df_tax.global_tax)
+
+# create a dict year→tax
+tax_dict = Dict(row.time => row.global_tax for row in eachrow(df_tax))
+
+# fullfil global_co2_tax[i] = tax_dict[years[i]] or zero if not defined
+for (i, y) in enumerate(years)
+    if haskey(tax_dict, y)
+        global_co2_tax[i] = tax_dict[y]
+    else
+        # here : zero, or `error("no tax for $y")`
+        global_co2_tax[i] = 0.0
+    end
+end
+
+#------------
+# RIGHTS PROPOSED 
+#------------
+
+rights_path = joinpath(@__DIR__, "..", "cap_and_share", "data", "input", "ffu_rights_proposed_allocation.csv") #  non_losing_rights ffu_rights_proposed_allocation
+df_rigths = CSV.read(rights_path, DataFrame)
+
+# Columns « rights_proposed_YYYY »
+year_cols  = filter(c -> startswith(string(c), "rights_proposed_"), names(df_rigths))
+
+# Switch to long format : (country, region_tiam, participate_union, year_str, rights_proposed)
+df_rigths_long  = stack(
+    df_rigths,
+    year_cols;
+    variable_name = :year_str,
+    value_name    = :rights_proposed
+)
+
+# Convert to billions if necessary
+df_rigths_long.rights_proposed .= df_rigths_long.rights_proposed ./ 1e9
+
+# Extract year  (year_str = "rights_proposed_2030" → time=2030)
+df_rigths_long.time = parse.(Int, replace.(df_rigths_long.year_str, "rights_proposed_" => ""))
+select!(df_rigths_long, Not(:year_str))
+
+# Rename code_country → country if necessary
+rename!(df_rigths_long, "code" => "country")
+
+# — 2) Retrieve the time grid & list of model countries —
+years_model     = collect(dim_keys(base_model, :time))     # ex. 2020:2300
+countries_model = dim_keys(base_model, :country)           # ex. 179 codes
+
+T = length(years_model)
+C = length(countries_model)
+
+# — 3) Prepare the rights_proposed_mat matrix (T×C), initialized to 0.0 —
+rights_proposed_mat = zeros(Float64, T, C)
+
+# 
+idx_year    = Dict(y => i for (i,y) in enumerate(years_model))
+idx_country = Dict(string(c) => j for (j,c) in enumerate(countries_model))
+
+# — 4) Fill rights_proposed_mat where there is data in df_rigths_long —
+for row in eachrow(df_rigths_long)
+    y = row.time
+    c = string(row.country)
+    if haskey(idx_year, y) && haskey(idx_country, c)
+        i = idx_year[y]
+        j = idx_country[c]
+        rights_proposed_mat[i, j] = row.rights_proposed
+    end
+end
+
+# Rights proposed csv name (used to save results)
+filename = basename(rights_path)              # "ffu_rights_proposed_allocation.csv"
+basename_without_ext = splitext(filename)[1]  # "ffu_rights_proposed_allocation"
+prefix = replace(basename_without_ext,
+                 "_rights_proposed_allocation" => "")  # "ffu"
+
 println("--3-- Example run with global carbon tax (non-optimized), with revenues recycled globally (equal per capita)")
 # Get baseline instance of the model.
 # nice2020_uniform_tax = MimiNICE2020.create_nice2020()
@@ -330,7 +327,7 @@ run(nice2020_uniform_tax)
 # Save the recycle run (see helper functions for saving function details)
 #MimiNICE2020.save_nice2020_results(nice2020_uniform_tax, output_directory_uniform, revenue_recycling=true, recycling_type=2)
 MimiNICE2020.save_nice2020_results_cap_and_share(nice2020_uniform_tax, output_directory_uniform_cap_and_share, revenue_recycling=true, recycling_type=2, switch_custom_transfers = switch_custom_transfers, file_prefix = String(prefix))
-
+run(`powershell -c "[console]::beep(1000, 300)"`)
 
 #------------------------------------------------------------------------------------------------
 #------------------------------------------------------------------------------------------------
