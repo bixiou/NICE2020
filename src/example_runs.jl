@@ -229,7 +229,7 @@ end
 # RIGHTS PROPOSED 
 #------------
 
-rights_path = joinpath(@__DIR__, "..", "cap_and_share", "data", "input", "ffu_rights_proposed_allocation.csv") #  non_losing_rights ffu_rights_proposed_allocation
+rights_path = joinpath(@__DIR__, "..", "cap_and_share", "data", "input", "ffu_rights_proposed_allocation_below_bau.csv") #  non_losing_rights ffu_rights_proposed_allocation
 df_rigths = CSV.read(rights_path, DataFrame)
 
 # Columns « rights_proposed_YYYY »
