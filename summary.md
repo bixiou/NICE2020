@@ -1,3 +1,8 @@
+# TODO Marius
+- Estimer out of sample à 20 ans
+- Pays manquants
+- PPA
+
 # Raffiner la modélisation d'un Cap & Share
 
 ## Principaux objectifs du projet
