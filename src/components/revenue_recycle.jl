@@ -152,13 +152,14 @@
             v.country_pc_dividend[t,c] = v.country_pc_dividend_domestic_transfers[t,c] + v.country_pc_dividend_global_transfers[t,c]
    
             if p.switch_global_pc_recycle == 1 && p.switch_custom_transfers == 0
-                if p.country_carbon_tax[t,c]
-                    excess_rights = 0
+                if p.country_carbon_tax[t,c] == 0.
+                    excess_rights = 0.
                 else
-                    excess_rights = (v.country_pc_dividend[t,c]/p.country_carbon_tax[t,c] - p.E_gtco2[t,c]) * 1e9
+                    excess_rights = 1e6 * p.l[t,c] * v.country_pc_dividend[t,c]/p.country_carbon_tax[t,c] - p.E_gtco2[t,c] * 1e9
                 end
             else
-                excess_rights = (p.rights_proposed[t,c] - p.E_gtco2[t,c]) * 1e9 * (maximum(p.rights_proposed[t,:]) > 0)
+                rights_actual = p.E_gtco2_club[t] * p.rights_proposed[t,c]/sum(p.rights_proposed[t,c] * p.club_country[p.policy_scenario,c] for c in d.country)
+                excess_rights = (rights_actual - p.E_gtco2[t,c]) * 1e9 * (maximum(p.rights_proposed[t,:]) > 0)
             end
             v.transfer[t,c]          = p.country_carbon_tax[t,c] * excess_rights
             v.transfer_over_gdp[t,c] = v.transfer[t,c] / (p.YGROSS[t,c] * 1e6)

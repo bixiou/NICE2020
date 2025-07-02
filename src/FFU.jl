@@ -37,6 +37,7 @@ MimiNICE2020.save_nice2020_output(bau_model, joinpath(@__DIR__, "..", "cap_and_s
 # 2. FFU (Fossil-Free Union), with rights_proposed defined in R 
 ###########################
 
+include("nice2020_module.jl") 
 # RIGHTS PROPOSED 
 rights_path = joinpath(@__DIR__, "..", "cap_and_share", "data", "input", "ffu_rights_proposed_allocation_below_bau.csv") #  non_losing_rights ffu_rights_proposed_allocation
 df_rigths = CSV.read(rights_path, DataFrame)
@@ -71,7 +72,7 @@ prefix = replace(basename_without_ext, "_rights_proposed_allocation" => "")  # "
 # CARBON TAX PATHWAY from the Union's 1.9°C scenario
 years = collect(dim_keys(base_model, :time))
 global_co2_tax = zeros(Float64, nb_steps)
-df_tax = CSV.read(joinpath(@__DIR__, "..", "cap_and_share", "data", "output", "calibrated_global_tax_union.csv"), DataFrame) # below_bau_calibrated_global_tax_union
+df_tax = CSV.read(joinpath(@__DIR__, "..", "cap_and_share", "data", "output", "calibrated_global_tax_ffu.csv"), DataFrame) # below_bau_calibrated_global_tax_union calibrated_global_tax_union
 df_tax.time       = Int.(df_tax.time)   # be sure it is Int
 df_tax.global_tax = Float64.(df_tax.global_tax)
 tax_dict = Dict(row.time => row.global_tax for row in eachrow(df_tax))
@@ -112,6 +113,7 @@ update_param!(nice2020_ffu, :switch_transfers_affect_growth, switch_transfers_af
 run(nice2020_ffu)
 
 MimiNICE2020.save_nice2020_output(nice2020_ffu, joinpath(@__DIR__, "..", "cap_and_share", "output", "ffu"))
+run(`powershell -c "[console]::beep(1000, 300)"`)
 
 ###########################
 # 3. Global (all countries) carbon pricing with price equal to Union's one.
@@ -120,7 +122,7 @@ MimiNICE2020.save_nice2020_output(nice2020_ffu, joinpath(@__DIR__, "..", "cap_an
 # CARBON TAX PATHWAY from the Union's 1.9°C scenario
 years = collect(dim_keys(base_model, :time))
 global_co2_tax = zeros(Float64, nb_steps)
-df_tax = CSV.read(joinpath(@__DIR__, "..", "cap_and_share", "data", "output", "calibrated_global_tax_union.csv"), DataFrame) # below_bau_calibrated_global_tax_union
+df_tax = CSV.read(joinpath(@__DIR__, "..", "cap_and_share", "data", "output", "calibrated_global_tax_ffu.csv"), DataFrame) # below_bau_calibrated_global_tax_union calibrated_global_tax_union
 df_tax.time       = Int.(df_tax.time)   # be sure it is Int
 df_tax.global_tax = Float64.(df_tax.global_tax)
 tax_dict = Dict(row.time => row.global_tax for row in eachrow(df_tax))
@@ -165,6 +167,7 @@ run(nice2020_global_price_ffu)
 # Save the run (see helper functions for saving function details)
 #MimiNICE2020.save_nice2020_output(nice2020_global_price_ffu, output_directory_uniform, revenue_recycling=false)
 MimiNICE2020.save_nice2020_output(nice2020_global_price_ffu, joinpath(@__DIR__, "..", "cap_and_share", "output", "global_price_ffu"))
+run(`powershell -c "[console]::beep(1000, 300)"`)
 
 ###########################
 # 4. Within-country carbon pricing, with non-losing rights
