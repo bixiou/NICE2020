@@ -1,6 +1,7 @@
 @defcomp revenue_recycle begin
 
  # TODOs:
+ # - automatically urun calibrate_global_tax_club_emissions when E_gtco2 doesn't coincide with sum of rights_proposed
  # - rename industrial_co2_emissions -> co2_emissions (as NICE2020 covers all CO2 emissions - but not other GHGs)
  # - rename E_gtco2_scenario -> E_gtco2_club 
  # - rename club_countries_binary -> club_country 
@@ -61,17 +62,7 @@
     transfer_pc               = Variable(index=[time, country])    # $ per 1000 inhabitants
 
     function run_timestep(p, v, d, t)
-         
-       
-        for c in d.country
-                excess_rights = (p.rights_proposed[t,c] - p.E_gtco2[t,c]) * 1e9 * (maximum(p.rights_proposed[t,:]) > 0)
-                v.transfer[t,c]          = p.country_carbon_tax[t,c] * excess_rights
-                v.transfer_over_gdp[t,c] = (p.country_carbon_tax[t,c] * excess_rights ) / (p.YGROSS[t,c] * 1e6)
-                v.transfer_pc[t,c]       = (p.country_carbon_tax[t,c] * excess_rights ) / p.l[t,c]
-        end
-
-           
-
+            
         #######################################
         ## Compute country carbon tax revenues 
         #######################################
@@ -159,7 +150,20 @@
 
             # Sum per capita dividends from domestic and global redistribution
             v.country_pc_dividend[t,c] = v.country_pc_dividend_domestic_transfers[t,c] + v.country_pc_dividend_global_transfers[t,c]
-
+   
+            if p.switch_global_pc_recycle == 1 && p.switch_custom_transfers == 0
+                if p.country_carbon_tax[t,c]
+                    excess_rights = 0
+                else
+                    excess_rights = (v.country_pc_dividend[t,c]/p.country_carbon_tax[t,c] - p.E_gtco2[t,c]) * 1e9
+                end
+            else
+                excess_rights = (p.rights_proposed[t,c] - p.E_gtco2[t,c]) * 1e9 * (maximum(p.rights_proposed[t,:]) > 0)
+            end
+            v.transfer[t,c]          = p.country_carbon_tax[t,c] * excess_rights
+            v.transfer_over_gdp[t,c] = v.transfer[t,c] / (p.YGROSS[t,c] * 1e6)
+            v.transfer_pc[t,c]       = v.transfer[t,c] / p.l[t,c]
+            
         end # country loop
     end # timestep
 end

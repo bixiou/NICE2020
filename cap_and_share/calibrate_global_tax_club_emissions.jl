@@ -28,7 +28,7 @@ const participation_vec = club_country[policy_scenario, :]
 
 # -------------------------------------------------------------------
 # Target file (global aggregated): columns `time` (Int) and `E_gtco2` (Float64)
-const target_csv = joinpath(@__DIR__, "data", "input", "E_Union_2020_2300.csv")
+const target_csv = joinpath(@__DIR__, "data", "input", "E_ffu_2020_2300.csv") # E_Union_2020_2300
 # -------------------------------------------------------------------
 
 # Prepare a NICE2020 model instance in global_carbon_tax mode
@@ -49,7 +49,7 @@ end
 
 # Exponentiation + dichotomy for t₀ = 2025
 function find_tax_for_year!(m::Mimi.Model, t::Int, target_t::Float64,
-                            tax_vec::Vector{Float64}; tol_em::Float64=0.01)
+                            tax_vec::Vector{Float64}, backstop_price::Float64; tol_em::Float64=0.01)
     local_tax = copy(tax_vec)
     local_tax[t] = 100.0
     em0 = emission_global(m, local_tax, t)
@@ -61,7 +61,7 @@ function find_tax_for_year!(m::Mimi.Model, t::Int, target_t::Float64,
             upper *= 2
             println("    [bracket ↑] lower=", lower, ", upper=", upper)
             local_tax[t] = upper
-            if emission_global(m, local_tax, t) < target_t
+            if emission_global(m, local_tax, t) < target_t || local_tax[t] > backstop_price
                 break
             end
         end
@@ -71,7 +71,7 @@ function find_tax_for_year!(m::Mimi.Model, t::Int, target_t::Float64,
             lower /= 2
             println("    [bracket ↓] lower=", lower, ", upper=", upper)
             local_tax[t] = lower
-            if emission_global(m, local_tax, t) > target_t
+            if emission_global(m, local_tax, t) > target_t + tol_em^2
                 break
             end
         end
@@ -97,7 +97,7 @@ end
 
 # Bracket ±init_step around tax_{t−1} + dichotomy for t>2025
 function find_tax_for_year_step!(m::Mimi.Model, t::Int, target_t::Float64,
-                                 tax_vec::Vector{Float64}; tol_em::Float64=0.01,
+                                 tax_vec::Vector{Float64}, backstop_price::Float64; tol_em::Float64=0.01,
                                  init_step::Float64=20.0)
     guess = tax_vec[t-1]
     step  = init_step
@@ -109,7 +109,7 @@ function find_tax_for_year_step!(m::Mimi.Model, t::Int, target_t::Float64,
     while true
         local_tax[t] = lower
         em_l = emission_global(m, local_tax, t)
-        if em_l > target_t
+        if em_l > target_t - tol_em
             break
         end
         println("    [exp-step ↓] lower=", lower, ", E=", round(em_l; digits=4))
@@ -120,7 +120,7 @@ function find_tax_for_year_step!(m::Mimi.Model, t::Int, target_t::Float64,
     while true
         local_tax[t] = upper
         em_u = emission_global(m, local_tax, t)
-        if em_u < target_t
+        if em_u < target_t + tol_em || local_tax[t] > backstop_price
             break
         end
         println("    [exp-step ↑] upper=", upper, ", E=", round(em_u; digits=4))
@@ -196,9 +196,9 @@ for t in start_idx:end_idx
     end
 
     if t == start_idx
-        find_tax_for_year!(m_ref, t, target_global[t], tax_vec)
+        find_tax_for_year!(m_ref, t, target_global[t], tax_vec, pbacktime[t])
     else
-        find_tax_for_year_step!(m_ref, t, target_global[t], tax_vec)
+        find_tax_for_year_step!(m_ref, t, target_global[t], tax_vec, pbacktime[t])
     end
     println("  -> optimal tax = ", round(tax_vec[t]; digits=4), " USD/tCO2")
 end
@@ -208,4 +208,5 @@ out = DataFrame(
     time       = years[start_idx:end_idx],
     global_tax = tax_vec[start_idx:end_idx]
 )
-CSV.write("cap_and_share/data/output/calibrated_global_tax_union.csv", out)
+CSV.write("cap_and_share/data/output/calibrated_global_tax_ffu.csv", out)
+

@@ -329,6 +329,7 @@ run(nice2020_uniform_tax)
 MimiNICE2020.save_nice2020_results_cap_and_share(nice2020_uniform_tax, output_directory_uniform_cap_and_share, revenue_recycling=true, recycling_type=2, switch_custom_transfers = switch_custom_transfers, file_prefix = String(prefix))
 run(`powershell -c "[console]::beep(1000, 300)"`)
 
+
 #------------------------------------------------------------------------------------------------
 #------------------------------------------------------------------------------------------------
 #4- Uniform global carbon tax (non-optimized), with revenues recycled globally (equal per capita)
@@ -447,7 +448,6 @@ filename = basename(rights_path)              # "ffu_rights_proposed_allocation.
 basename_without_ext = splitext(filename)[1]  # "ffu_rights_proposed_allocation"
 prefix = replace(basename_without_ext,
                  "_rights_proposed_allocation" => "")  # "ffu"
-
 
 nice2020_non_losing = MimiNICE2020.create_nice2020()
 
