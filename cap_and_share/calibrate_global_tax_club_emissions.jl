@@ -21,14 +21,14 @@ include(joinpath(@__DIR__, "..", "src", "helper_functions.jl"))
 # -------------------------------------------------------------------
 # Participation scenario
 include(joinpath(@__DIR__, "..", "data", "parameters.jl"))
-const scenario_name     = :Union
+const scenario_name     = :All_World
 const policy_scenario   = scenario_index[scenario_name]
 const participation_vec = club_country[policy_scenario, :]
 # -------------------------------------------------------------------
 
 # -------------------------------------------------------------------
 # Target file (global aggregated): columns `time` (Int) and `E_gtco2` (Float64)
-const target_csv = joinpath(@__DIR__, "data", "input", "E_ffu_2020_2300.csv") # E_Union_2020_2300
+const target_csv = joinpath(@__DIR__, "data", "input", "E_global_cs_2020_2300.csv") # E_ffu_2020_2300 E_Union_2020_2300 E_global_cs_2020_2300
 # -------------------------------------------------------------------
 
 # Prepare a NICE2020 model instance in global_carbon_tax mode
@@ -208,5 +208,5 @@ out = DataFrame(
     time       = years[start_idx:end_idx],
     global_tax = tax_vec[start_idx:end_idx]
 )
-CSV.write("cap_and_share/data/output/calibrated_global_tax_ffu.csv", out)
+CSV.write("cap_and_share/data/output/calibrated_global_cs.csv", out) # calibrated_global_tax_ffu
 
