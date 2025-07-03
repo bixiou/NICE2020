@@ -7,6 +7,7 @@
 # Limits calibration to 2025–2100, handles zero‐emissions years via backstop price.
 ################################################################################################
 
+cd("C:/Users/fabre/Documents/www/NICE2020/")  
 using Pkg
 # Activate and instantiate the project
 Pkg.activate(joinpath(@__DIR__, ".."))
@@ -109,7 +110,7 @@ function find_tax_for_year_step!(m::Mimi.Model, t::Int, target_t::Float64,
     while true
         local_tax[t] = lower
         em_l = emission_global(m, local_tax, t)
-        if em_l > target_t - tol_em
+        if em_l > max(0, target_t) - tol_em
             break
         end
         println("    [exp-step ↓] lower=", lower, ", E=", round(em_l; digits=4))
@@ -134,7 +135,7 @@ function find_tax_for_year_step!(m::Mimi.Model, t::Int, target_t::Float64,
         em_mid = emission_global(m, local_tax, t)
         println("    [dicho-step] τ=", round(mid; digits=2),
                 " → E=", round(em_mid; digits=4))
-        if abs(em_mid - target_t) < tol_em
+        if abs(em_mid - max(0, target_t)) < tol_em
             tax_vec[t] = mid
             return tax_vec
         elseif em_mid > target_t
