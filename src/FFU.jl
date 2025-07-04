@@ -24,7 +24,7 @@ nb_quantile = length(dim_keys(base_model, :quantile))
 recycle_share = ones(nb_country,nb_quantile) .* 1/nb_quantile
 
 ###########################
-# 1. BAU SCENARIO (no abatement)
+# 1. BAU scenario (no abatement)
 ###########################
 
 bau_model = MimiNICE2020.create_nice2020()
@@ -116,7 +116,7 @@ MimiNICE2020.save_nice2020_output(nice2020_ffu, joinpath(@__DIR__, "..", "cap_an
 run(`powershell -c "[console]::beep(1000, 300)"`)
 
 ###########################
-# 3. Global (all countries) carbon pricing with price equal to Union's one.
+# 3. global_price_ffu: Global (all countries) carbon pricing with price equal to Union's one.
 ###########################
 
 # CARBON TAX PATHWAY from the Union's 1.9°C scenario
@@ -170,7 +170,7 @@ MimiNICE2020.save_nice2020_output(nice2020_global_price_ffu, joinpath(@__DIR__, 
 run(`powershell -c "[console]::beep(1000, 300)"`)
 
 ###########################
-# 4. Within-country carbon pricing, with non-losing rights
+# 4. non_losing: Within-country carbon pricing, with non-losing rights
 ###########################
 
 # NON-LOSING RIGHTS
@@ -227,7 +227,7 @@ MimiNICE2020.save_nice2020_output(nice2020_non_losing, joinpath(@__DIR__, "..", 
 run(`powershell -c "[console]::beep(1000, 300)"`)
 
 ###########################
-# 3. Global (all countries) egalitarian carbon pricing with 1.8°C carbon budget (corresponding to FFU's budget).
+# 5. global_cap_share: Global (all countries) egalitarian carbon pricing with 1.8°C carbon budget (corresponding to FFU's budget).
 ###########################
 
 # CARBON TAX PATHWAY 
