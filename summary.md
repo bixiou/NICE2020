@@ -174,6 +174,10 @@ Actuellement, chaque run produit 60 Mo de données, c'est beaucoup trop.
 
 TODO: faire tourner code de Marie et vérifier qu'on a la même chose que ce qu'ils avaient au départ.
 
+## 10. Clean code
+
+## 11. Update non-losing/NDC by country
+
 
 ## Questions 
 - Does NICE model the feedback effect of transfers on GDP? => No.
