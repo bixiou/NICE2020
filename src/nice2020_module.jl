@@ -40,8 +40,8 @@ function create_nice2020()
 	rwpp = Symbol.(wpp_regions)
 	set_dimension!(m, :regionwpp, rwpp )
 
-	# Set scenario dimension (1 to 6)
-	set_dimension!(m, :scenario, 1:7)
+	# Set scenario dimension (1 to 11)
+	set_dimension!(m, :scenario, 1:11)
 
 	# Set quantile dimension
 	set_dimension!(m, :quantile, ["First", "Second", "Third", "Fourth", "Fifth", "Sixth", "Seventh", "Eighth", "Ninth", "Tenth"])
@@ -68,18 +68,20 @@ function create_nice2020()
 	# ---------------------------------------------------
 
 	add_shared_param!(m, :switch_recycle, 0) # No revenue recycling by default
-	add_shared_param!(m, :switch_scope_recycle, 0) 
+	add_shared_param!(m, :switch_global_recycling, 0) 
 	add_shared_param!(m, :l, 			Matrix(pop), dims=[:time, :country])
 	add_shared_param!(m, :mapcrwpp,  	map_country_region_wpp, dims = [:country]) # mapping from countries to wpp region
 	add_shared_param!(m, :nb_quantile, 	nb_quantile)
 	add_shared_param!(m, :η, 	1.5)
 	add_shared_param!(m, :σ, 	Matrix(emissionsrate), dims=[:time, :country])
+	add_shared_param!(m, :emissionsrate_footprint, 	emissionsrate_footprint, dims=[:time, :country])
+	add_shared_param!(m, :switch_footprint, 0)  # Switch to choose whether we use the emissions footprint (0) or the emissions rate (1)
 	add_shared_param!(m,  :s, Matrix(srate), dims=[:time, :country])
 	add_shared_param!(m, :policy_scenario, 1) # identifies the club of countries participating in the policy
 	add_shared_param!(m, :club_country, club_country, dims=[:scenario, :country]) # identifies the club of countries participating in the policy
-	add_shared_param!(m, :redistribution_switch, 0) # Switch, to choose whether the redistribution macro effects are included in the model
+	add_shared_param!(m, :switch_transfers_affect_growth, 0) # Switch, to choose whether the redistribution macro effects are included in the model
 
-	add_shared_param!(m, :switch_custom_transfers, 0) # Switch to choose wether we use th old transfers (=1) or the new transfers (=1)
+	add_shared_param!(m, :switch_custom_transfers, 0) # Switch to choose wether we use equal_pc_transfer (dividend) (=0) or the custom_transfer (using rights proposed) (=1)
 	# --------------------------------
 	# FAIR Initial (2020) Conditions
 	# --------------------------------
@@ -134,11 +136,14 @@ function create_nice2020()
 	update_param!(m, :abatement, :θ2, 2.6)
 	update_param!(m, :abatement, :pbacktime, full_pbacktime)
 	update_param!(m, :abatement, :direct_country_tax, zeros(length(dim_keys(m, :time)), length(dim_keys(m, :country))))
+	update_param!(m, :abatement, :rights_mat, -1*ones(length(dim_keys(m, :time)), length(dim_keys(m, :country))))
 
 	connect_param!(m, :abatement, :s, :s)
 	connect_param!(m, :abatement, :l, :l)
 	connect_param!(m, :abatement, :η, :η)
 	connect_param!(m, :abatement, :σ, :σ)
+	connect_param!(m, :abatement, :emissionsrate_footprint, :emissionsrate_footprint)
+	connect_param!(m, :abatement, :switch_footprint, :switch_footprint)
 	connect_param!(m, :abatement, :policy_scenario, :policy_scenario)
 	connect_param!(m, :abatement, :club_country, :club_country)
 
@@ -149,6 +154,8 @@ function create_nice2020()
 
 	connect_param!(m, :emissions, :mapcrwpp,  :mapcrwpp) 
 	connect_param!(m, :emissions, :σ, :σ)
+	connect_param!(m, :emissions, :emissionsrate_footprint, :emissionsrate_footprint)
+	connect_param!(m, :emissions, :switch_footprint, :switch_footprint)
 	connect_param!(m, :emissions, :policy_scenario, :policy_scenario)
 	connect_param!(m, :emissions, :club_country, :club_country)
 
@@ -174,12 +181,11 @@ function create_nice2020()
 	update_param!(m, :revenue_recycle, :switch_global_pc_recycle, 	0)
 	update_param!(m, :revenue_recycle, :global_recycle_share, 	zeros(nb_country))
 	update_param!(m, :revenue_recycle, :lost_revenue_share, 0.0)
-	#update_param!(m, :revenue_recycle, :switch_custom_transfers, 0)
 	update_param!(m,:revenue_recycle, :rights_proposed, zeros(length(dim_keys(m,:time)), length(dim_keys(m,:country))))
 
 	connect_param!(m, :revenue_recycle, :l, :l)
 	connect_param!(m, :revenue_recycle, :switch_recycle, :switch_recycle)
-	connect_param!(m, :revenue_recycle, :switch_scope_recycle, :switch_scope_recycle)
+	connect_param!(m, :revenue_recycle, :switch_global_recycling, :switch_global_recycling)
 	connect_param!(m, :revenue_recycle, :policy_scenario, :policy_scenario)
 	connect_param!(m, :revenue_recycle, :club_country, :club_country)
 	connect_param!(m, :revenue_recycle, :switch_custom_transfers, :switch_custom_transfers)
@@ -188,14 +194,14 @@ function create_nice2020()
 	# Net Economy
 	# --------------------------------
 
-	update_param!(m, :neteconomy, :switch_scope_recycle, 	0)
+	update_param!(m, :neteconomy, :switch_global_recycling, 	0)
 
 	connect_param!(m, :neteconomy, :s, :s)
 	connect_param!(m, :neteconomy, :l, :l)
 	connect_param!(m, :neteconomy, :mapcrwpp,  :mapcrwpp) 
 	connect_param!(m, :neteconomy, :switch_recycle, :switch_recycle)
-	connect_param!(m, :neteconomy, :switch_scope_recycle, :switch_scope_recycle)
-	connect_param!(m, :neteconomy, :redistribution_switch, :redistribution_switch) 
+	connect_param!(m, :neteconomy, :switch_global_recycling, :switch_global_recycling)
+	connect_param!(m, :neteconomy, :switch_transfers_affect_growth, :switch_transfers_affect_growth) 
     connect_param!(m, :neteconomy, :switch_custom_transfers, :switch_custom_transfers)
 
 	# --------------------------------
@@ -210,14 +216,14 @@ function create_nice2020()
 	update_param!(m, :quantile_recycle, :quantile_consumption_shares,  consumption_distribution_2020_2300)
 	#update_param!(m, :quantile_recycle, :quantile_consumption_shares, 	consumption_distribution) Static version
 	update_param!(m, :quantile_recycle, :recycle_share, 			ones(nb_country, nb_quantile).*1/nb_quantile)
-	update_param!(m, :quantile_recycle, :rights_proposed, zeros(length(dim_keys(m,:time)), length(dim_keys(m,:country))))
+	#update_param!(m, :quantile_recycle, :rights_proposed, zeros(length(dim_keys(m,:time)), length(dim_keys(m,:country))))
 
 	connect_param!(m, :quantile_recycle, :switch_recycle, :switch_recycle)
 	connect_param!(m, :quantile_recycle, :l, 			:l)
 	connect_param!(m, :quantile_recycle, :s, :s)
 	connect_param!(m, :quantile_recycle, :mapcrwpp,  :mapcrwpp) 
 	connect_param!(m, :quantile_recycle, :nb_quantile, 	:nb_quantile)
-	connect_param!(m, :quantile_recycle, :redistribution_switch, :redistribution_switch)
+	connect_param!(m, :quantile_recycle, :switch_transfers_affect_growth, :switch_transfers_affect_growth)
 	connect_param!(m, :quantile_recycle, :switch_custom_transfers, :switch_custom_transfers)
 
 	# --------------------------------
@@ -269,7 +275,7 @@ function create_nice2020()
 	connect_param!(m, :quantile_recycle => :transfer_pc,        :revenue_recycle	=> :transfer_pc)
 	connect_param!(m, :quantile_recycle => :E_gtco2, 			:emissions			=> :E_gtco2)
 	connect_param!(m, :quantile_recycle => :country_carbon_tax,	:abatement 			=> :country_carbon_tax)
-	connect_param!(m, :welfare 			=> :qcpc_post_recycle, 	:quantile_recycle	=> :qcpc_post_recycle)
+	connect_param!(m, :welfare 			=> :conso_pc_post_recycle, 	:quantile_recycle	=> :conso_pc_post_recycle)
 
 	# Return model.
 	return m

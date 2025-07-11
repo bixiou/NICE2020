@@ -7,6 +7,8 @@
     scenario         = Index()
 
     σ       = Parameter(index=[time, country])  # Emissions output ratio (GtCO2 per million USD2017)
+    emissionsrate_footprint       = Parameter(index=[time, country])  # Emissions output ratio (GtCO2 per million USD2017)
+    switch_footprint = Parameter()                       # Switch for emissions footprint (1) or not (0)
     YGROSS  = Parameter(index=[time, country])  # Gross output (1e6 USD2017 per year)
     s       = Parameter(index=[time, country])  # Savings rate
     l       = Parameter(index=[time, country])  #Labor - population (thousands)
@@ -20,8 +22,9 @@
     control_regime          = Parameter()                       # Switch for emissions control regime  1:"global_carbon_tax", 2:"country_carbon_tax", 3:"country_abatement_rate"
     μ_input                 = Parameter(index=[time, country])  # Input mitigation rate, used with option 3 "country_abatement_rate"
     policy_scenario         = Parameter()                       # Policy scenario for the country, used to determine which countries are in the club
-    club_country      = Parameter(index=[scenario, country])  # Countries in the club for each scenario (1) or not (0)
-    direct_country_tax = Parameter(index=[time, country])
+    club_country            = Parameter(index=[scenario, country])  # Countries in the club for each scenario (1) or not (0)
+    direct_country_tax      = Parameter(index=[time, country])
+    rights_mat         = Parameter(index=[time, country])    # allocated rights (GtCO2)
 
     θ1                 = Variable(index=[time, country])    # Multiplicative parameter of abatement cost function. Equal to ABATEFRAC at 100% mitigation
     country_carbon_tax = Variable(index=[time, country]) 	# CO2 tax rate (2017 USD per tCO2)
@@ -32,6 +35,10 @@
     GLOBAL_ABATEFRAC_full_abatement      = Variable(index=[time]) # Global cost of emissions reductions (share of global annual gross ouput) for 100% mitigation
 
     function run_timestep(p, v, d, t)
+        if (p.switch_footprint==1)
+            p.σ[t,:] = p.emissionsrate_footprint[t,:]
+        end
+
         # Define an equation for E
         for c in d.country
             # sigma is in GtCO2 per million 2017USD = 1e9 tCO2 / 1e6 2017 USD = 1e3 tCO2 per 2017USD
@@ -43,7 +50,7 @@
                 v.country_carbon_tax[t,c] = min(p.pbacktime[t], p.global_carbon_tax[t])*p.club_country[p.policy_scenario,c]
                 # Find abatement rate from inversion of the expression (tax = marginal abatement cost), bound between 0 and 1
                 #v.μ[t,c] = min( max((v.country_carbon_tax[t,c] / p.pbacktime[t,region_index] ) ^ (1 / (p.θ2 - 1.0)), 0.0), 1.0)
-                v.μ[t,c] = min( max((v.country_carbon_tax[t,c] / (v.θ1[t,c] * p.θ2/(p.σ[t,c]*1e3)) ) ^ (1 / (p.θ2 - 1.0)), 0.0), 1.0)
+                v.μ[t,c] = min( max((v.country_carbon_tax[t,c] / p.pbacktime[t] ) ^ (1 / (p.θ2 - 1.0)), 0.0), 1.0)
 
                     
             elseif (p.control_regime==2) #country_carbon_tax
@@ -59,24 +66,25 @@
 
                 # Find abatement rate from inversion of the expression (tax = marginal abatement cost), bound between 0 and 1
                 #v.μ[t,c] = min( max((v.country_carbon_tax[t,c] / p.pbacktime[t,region_index] ) ^ (1 / (p.θ2 - 1.0)), 0.0), 1.0)
-                v.μ[t,c] = min( max((v.country_carbon_tax[t,c] / (v.θ1[t,c] * p.θ2/(p.σ[t,c]*1e3)) ) ^ (1 / (p.θ2 - 1.0)), 0.0), 1.0)
+                v.μ[t,c] = min( max((v.country_carbon_tax[t,c] / p.pbacktime[t] ) ^ (1 / (p.θ2 - 1.0)), 0.0), 1.0)
 
 
             elseif (p.control_regime==3) #country_abatement_rate
-
                 v.μ[t,c] = p.μ_input[t,c]
-                v.country_carbon_tax[t,c] =  (v.θ1[t,c] * p.θ2/(p.σ[t,c]*1e3)) * v.μ[t,c]^(p.θ2 - 1.0)
-
+                v.country_carbon_tax[t,c] =  p.pbacktime[t] * v.μ[t,c]^(p.θ2 - 1.0)
             
-            elseif (p.control_regime==4) # taxe manuelle pays×année
-                # on prend directement la taxe que l'utilisateur a passée
+            elseif (p.control_regime==4) # manually added tax for each country x year
                 v.country_carbon_tax[t,c] = p.direct_country_tax[t,c] 
-                # et on en déduit le taux d’abattement pour la cohérence interne
                 v.μ[t,c] = min(max(
-                  (v.country_carbon_tax[t,c] / (v.θ1[t,c] * p.θ2/(p.σ[t,c]*1e3)))^(1/(p.θ2-1)),
+                  (v.country_carbon_tax[t,c] / p.pbacktime[t])^(1/(p.θ2-1)),
                   0.0), 1.0)    
-            end
 
+            elseif (p.control_regime==5) # manually added emissions for each country x year
+                v.μ[t,c] = min(max(
+                  1 - p.rights_mat[t,c] / (p.σ[t,c] * p.YGROSS[t,c]),
+                  0.0), 1.0) * p.club_country[p.policy_scenario,c] * (maximum(p.rights_mat[t,:]) > -1)
+                v.country_carbon_tax[t,c] =  p.pbacktime[t] * v.μ[t,c]^(p.θ2 - 1.0)
+            end
         end
 
 		for c in d.country

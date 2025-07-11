@@ -7,6 +7,8 @@
     regionwpp       = Index()       # Index for WPP regions
 
     σ          = Parameter(index=[time, country])   # Emissions output ratio (GtCO2 per million USD2017)
+    emissionsrate_footprint       = Parameter(index=[time, country])  # Emissions output ratio (GtCO2 per million USD2017)
+    switch_footprint = Parameter()                       # Switch for emissions footprint (1) or not (0)
     YGROSS     = Parameter(index=[time, country])   # Gross output (million USD2017 per year)
     μ          = Parameter(index=[time, country])   # Emissions control rate
     mapcrwpp  = Parameter(index=[country])          # Map from country index to WPP region index
@@ -21,9 +23,12 @@
     E_gtco2_club = Variable(index=[time])              # Scenario emissions
 
     function run_timestep(p, v, d, t)
+        if (p.switch_footprint==1)
+            p.σ[t,:] = p.emissionsrate_footprint[t,:]
+        end
+
         # Define an equation for E
         for c in d.country
-
             v.E_gtco2[t,c] = p.YGROSS[t,c] * p.σ[t,c] * (1-p.μ[t,c])
         end
 

@@ -17,10 +17,10 @@
     mapcrwpp        = Parameter(index=[country])        # Map from country index to WPP region index
     country_pc_dividend  = Parameter(index=[time, country])  # Total per capita carbon tax dividends, including any international transfers (thousand 2017USD per year)
     tax_revenue      = Parameter(index=[time, country]) # Country carbon tax revenue (thousand 2017USD per year)
-    redistribution_switch= Parameter() #Switch, to choose whether the redistribution macro effects are added
+    switch_transfers_affect_growth = Parameter() #Switch, to choose whether the redistribution macro effects are added
     switch_recycle     = Parameter() #Switch, recycling of tax revenues
-    switch_scope_recycle = Parameter() #Switch, carbon tax revenues recycled at country (0) or  global (1) level
-    switch_custom_transfers   = Parameter()                          # 0=old calculations, 1=new transfers
+    switch_global_recycling = Parameter() #Switch, carbon tax revenues recycled at country (0) or  global (1) level
+    switch_custom_transfers   = Parameter()                          # use equal_pc_transfer (dividend) (=0) or the custom_transfer (using rights proposed) (=1)
     transfer                  = Parameter(index=[time, country])
     transfer_over_gdp         = Parameter(index=[time, country])    # % of GDP
     transfer_pc               = Parameter(index=[time, country])    # $ per capita
@@ -47,10 +47,10 @@
         for c in d.country
 
             # Output net of abatement costs and damages
-            #v.Y[t,c] = (1.0 - p.ABATEFRAC[t,c]) ./ (1.0 + p.LOCAL_DAMFRAC_KW[t,c]) * p.YGROSS[t,c] + p.redistribution_switch*(p.country_pc_dividend[t,c]*p.l[t,c] - p.tax_revenue[t,c]/1e3)*p.switch_recycle*p.switch_scope_recycle
-
-            v.Y[t,c] = (1.0 - p.ABATEFRAC[t,c]) ./ (1.0 + p.LOCAL_DAMFRAC_KW[t,c]) * p.YGROSS[t,c] + p.redistribution_switch*(p.switch_custom_transfers * p.transfer[t,c] / 1e6 + (1.0 - p.switch_custom_transfers) * ( (p.country_pc_dividend[t,c] * p.l[t,c] - p.tax_revenue[t,c] / 1e3)* p.switch_recycle* p.switch_scope_recycle ))
+            #v.Y[t,c] = (1.0 - p.ABATEFRAC[t,c]) ./ (1.0 + p.LOCAL_DAMFRAC_KW[t,c]) * p.YGROSS[t,c] + p.switch_transfers_affect_growth*(p.country_pc_dividend[t,c]*p.l[t,c] - p.tax_revenue[t,c]/1e3)*p.switch_recycle*p.switch_global_recycling
             
+            v.Y[t,c] = (1.0 - p.ABATEFRAC[t,c]) ./ (1.0 + p.LOCAL_DAMFRAC_KW[t,c]) * p.YGROSS[t,c] + p.switch_transfers_affect_growth*(p.switch_custom_transfers * p.transfer[t,c] / 1e6 + (1.0 - p.switch_custom_transfers) * (p.country_pc_dividend[t,c] * p.l[t,c] - p.tax_revenue[t,c] / 1e3) )* p.switch_recycle* p.switch_global_recycling 
+
             # Investment
             v.I[t,c] = p.s[t,c] * v.Y[t,c]
 

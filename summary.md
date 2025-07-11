@@ -1,3 +1,8 @@
+# TODO Marius
+- Estimer out of sample à 20 ans
+- Pays manquants
+- PPA
+
 # Raffiner la modélisation d'un Cap & Share
 
 ## Principaux objectifs du projet
@@ -168,6 +173,10 @@ Francis Dennig avait une modélisation des inégalités non-paramétriques.
 Actuellement, chaque run produit 60 Mo de données, c'est beaucoup trop.
 
 TODO: faire tourner code de Marie et vérifier qu'on a la même chose que ce qu'ils avaient au départ.
+
+## 10. Clean code
+
+## 11. Update non-losing/NDC by country
 
 
 ## Questions 

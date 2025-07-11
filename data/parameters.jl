@@ -1,4 +1,4 @@
-using Query, JSON, DataFrames, CSVFiles
+using Query, JSON, DataFrames, CSVFiles, CSV
 
 nice_inputs = JSON.parsefile("data/nice_inputs.json") # This file contains the economic and emissions calibration and the list of used country codes
 # the json file reads in a several nested dictionaries, where in each case the "last" dictionary contains the keys, "units", "dimensions", "notes", and "x". The "x" key always contains the data to be read into a DataFrame.
@@ -38,7 +38,7 @@ function participation_vector(participants::Vector{Symbol}, all_countries::Vecto
 end
 
 # Scenario labels
-scenarios = [:All_World, :All_Except_Oil_Countries, :Optimistic, :Generous_EU, :Partnership, :Union]
+scenarios = [:All_World, :All_Except_Oil_Countries, :Optimistic, :Generous_EU, :Partnership, :Union, :JPN, :KOR, :CHN, :WEU]
 
 # Correspondence dictionary name → index
 scenario_index = Dict(
@@ -47,7 +47,11 @@ scenario_index = Dict(
     :Optimistic    => 3,
     :Generous_EU   => 4,
     :Partnership   => 5,
-    :Union         => 7
+    :Union         => 7,
+    :JPN           => 8,
+    :KOR           => 9,
+    :CHN           => 10,
+    :WEU           => 11,
 )
 
 rich_oil_countries = ["RUS", "KAZ", "SAU", "QAT", "KWT", "AZE", "OMN", "BHR", "MYS"]
@@ -98,8 +102,17 @@ union_countries = ["AFG", "AGO", "ALB", "ARG", "AUT", "BDI", "BEL", "BEN", "BFA"
 "LKA", "LSO", "LTU", "LUX", "LVA", "MAR", "MDA", "MDG", "MDV", "MEX", "MLI", "MLT", "MMR", "MNG", "MOZ",
 "MRT", "MUS", "MWI", "MYS", "NAM", "NER", "NGA", "NIC", "NLD", "NOR", "NPL", "PAK", "PAN", "PER", "PHL",
 "PNG", "POL", "PRT", "PRY", "ROU", "RWA", "SDN", "SEN", "SGP", "SLE", "SLV", "SRB", "SUR", "SVK", "SVN",
-"SWE", "SWZ", "TCD", "TGO", "THA", "TKM", "TLS", "TUN", "TWN" ,"TZA", "UGA", "URY", "VNM", "ZAF", "ZMB", 
-"ZWE"]
+"SWE", "SWZ", "TCD", "TGO", "THA", "TKM", "TLS", "TUN" ,"TZA", "UGA", "URY", "VNM", "ZAF", "ZMB", 
+"ZWE", 
+"ARM", "GEO", "IRQ", "JOR", "SYR", "TKM", "TUR", "UKR", "UZB", "YEM" # , "TWN"
+]
+
+# Scenarios 8-11
+WEU = ["AUT", "BEL", "CHE", "DEU", "DNK", "ESP", "FIN", "FRA", "GBR", "GRC", "HUN", "IRL", "ISL", "ITA", "LTU", "LUX", "LVA", "MDA", "MLT", "NLD", "NOR", "PRT", "SWE"]
+
+JPN = ["JPN"]
+KOR = ["KOR"]
+CHN = ["CHN"]
 
 club_countries = [
     Symbol.(countries),                            # Scenario 1
@@ -108,7 +121,11 @@ club_countries = [
     Symbol.(generous_eu_countries),                # Scenario 4
     Symbol.(partnership_countries),                # Scenario 5
     Symbol.(personalized_countries),                # Scenario 6
-    Symbol.(union_countries)                       # Scenario 7
+    Symbol.(union_countries),                       # Scenario 7
+    Symbol.(JPN),                       # Scenario 8
+    Symbol.(KOR),                       # Scenario 9
+    Symbol.(CHN),                       # Scenario 10
+    Symbol.(WEU)                       # Scenario 11
 ]
 
 # Final binary participation matrix per scenario
@@ -119,9 +136,12 @@ club_country = transpose(reduce(hcat,[
     participation_vector(Symbol.(generous_eu_countries), Symbol.(countries)),           # Scenario 4
     participation_vector(Symbol.(partnership_countries), Symbol.(countries)),           # Scenario 5
     participation_vector(Symbol.(personalized_countries), Symbol.(countries)),           # Scenario 6
-    participation_vector(Symbol.(union_countries), Symbol.(countries))
+    participation_vector(Symbol.(union_countries), Symbol.(countries)), 
+    participation_vector(Symbol.(JPN), Symbol.(countries)), 
+    participation_vector(Symbol.(KOR), Symbol.(countries)), 
+    participation_vector(Symbol.(CHN), Symbol.(countries)), 
+    participation_vector(Symbol.(WEU), Symbol.(countries))
 ]))
-
 
 #-----------------------------------------
 # Load economic and emissions calibration
@@ -192,6 +212,10 @@ emissionsrate_unstack = unstack(emissionsrate_raw, :year, :countrycode, :intensi
 
 # Sort the columns (country names) into alphabetical order.
 emissionsrate = select(emissionsrate_unstack, countries)
+
+# Creates a version with consumption-based instead of territorial emissions, using a fixed ratio based on 2022 data from the Global Carbon Project
+footprint_over_territorial = CSV.read("data/footprint_over_territorial_2022.csv", DataFrame)
+emissionsrate_footprint = Matrix(emissionsrate) .* transpose(footprint_over_territorial[:,2])
 
 #----------------------------------------
 # Load inequality calibration

@@ -4,7 +4,7 @@
     regionwpp       = Index()
 	quantile        = Index()
 
-    qcpc_post_recycle       = Parameter(index=[time, country, quantile])    # Quantile per capita consumption after recycling tax back to quantiles (thousand USD2017 per person per year)
+    conso_pc_post_recycle       = Parameter(index=[time, country, quantile])    # Quantile per capita consumption after recycling tax back to quantiles (thousand USD2017 per person per year)
     η                       = Parameter()                                   # Inequality aversion
     nb_quantile             = Parameter()                                   # Number of quantiles
     l                       = Parameter(index=[time, country])              # Population (thousands)
@@ -19,9 +19,9 @@
 
     function run_timestep(p, v, d, t)
         for c in d.country
-            v.cons_EDE_country[t,c] = EDE(p.qcpc_post_recycle[t,c,:], p.η, p.nb_quantile)
+            v.cons_EDE_country[t,c] = EDE(p.conso_pc_post_recycle[t,c,:], p.η, p.nb_quantile)
             v.welfare_country[t,c] = (
-                (p.l[t,c] / p.nb_quantile) * sum(utility.(p.qcpc_post_recycle[t,c,:], p.η))
+                (p.l[t,c] / p.nb_quantile) * sum(utility.(p.conso_pc_post_recycle[t,c,:], p.η))
             )
         end # country loop
 

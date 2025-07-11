@@ -1,11 +1,3 @@
-library(dplyr)
-library(writexl)
-library(rlang)
-library(ggplot2)
-library(dplyr)
-library(readr)
-library(sf)
-
 package <- function(p, version = NULL, remove = FALSE, github = '') {
   if (remove) {
     detach(paste0("package:", p), unload = T)
@@ -28,7 +20,13 @@ package <- function(p, version = NULL, remove = FALSE, github = '') {
   library(p, character.only = TRUE)
 } # loads packages with automatical install if needed
 
-
+package("dplyr")
+package("writexl")
+package("rlang")
+package("ggplot2")
+package("dplyr")
+package("readr")
+package("sf")
 package("rnaturalearth")
 package("rnaturalearthdata")
 
@@ -36,8 +34,9 @@ package("rnaturalearthdata")
 #Please enter the path to your data below and run the code#
 ###########################################################
 
-# Path of the folder with baseline scenario 
+root <- "../../NICE2020/cap_and_share/"
 
+# Path of the folder with baseline scenario 
 path_baseline_scenario = "cap_and_share/output/bau_no_policy_at_all/no_revenue_recycling/old_transfer"
 
 # Path of the folder with policy scenario of interest
@@ -60,9 +59,8 @@ discount_rate = 0.03
 
 
 #Can apply a specific transformation to data
-heatmap_table_simple <- function( vars, labels = vars, data, along = "country_name", conditions = NULL, alphabetical = TRUE, export_xls = FALSE, filename = "heatmap_table.xlsx",
-                                  folder = ".", remove_na = TRUE, transpose = FALSE) {
-  # 1. Préparation des données
+heatmap_table_simple <- function(vars, labels = vars, data, along = "country_name", conditions = NULL, alphabetical = TRUE, export_xls = FALSE, 
+                                 filename = "heatmap_table.xlsx", folder = ".", remove_na = TRUE, transpose = FALSE) {
   df <- data
   
   # 2. Filtrage conditionnel (ex: "> 0")
@@ -107,11 +105,8 @@ heatmap_table_simple <- function( vars, labels = vars, data, along = "country_na
 }
 
 #Produces the map
-plot_world_map <- function(var, df, along = "country", breaks, labels, colors,
-                           legend = "",
-                           save = FALSE, format = c("png", "pdf"),
-                           folder = "./", filename = NULL,
-                           trim = FALSE, zeroindata = FALSE) {
+plot_map <- function(var, df, along = "country", breaks, labels, colors, legend = "", save = FALSE, format = c("png", "pdf"),
+                           folder = "./", filename = NULL, trim = FALSE, zeroindata = FALSE) {
   
   # Vérifie si le dossier de destination existe
   if (!dir.exists(folder)) dir.create(folder, recursive = TRUE)
@@ -171,13 +166,18 @@ plot_world_map <- function(var, df, along = "country", breaks, labels, colors,
     fake_row_5000_10000[[var]] <- 7000     # une valeur qui tombe dans le bin '> 300'
     fake_row_5000_10000$var_cat <- factor("5000 to 10000", levels = labels)  # forcer la bonne catégorie
     map_data <- rbind(map_data, fake_row_5000_10000)  # ajoute cette ligne
-
-  
+    
+    # (plot <- ggplot(df) + geom_map(aes(map_id = country_map, fill = fct_rev(group)), map = world_map, show.legend=TRUE) + coord_proj("+proj=robin", xlim = c(-135, 178.5), ylim = c(-56, 84)) +
+    #     geom_polygon(data = world_map, aes(x = long, y = lat, group = group), colour = 'grey', size = size_border, fill = NA) + expand_limits(x = world_map$long, y = world_map$lat) + theme_void(base_family = base_family) + theme(legend.position = c(legend_x, .29)) +
+    #     scale_fill_manual(name = legend, drop = FALSE, values = colors, labels = function(breaks) {breaks[is.na(breaks)] <- na_label; breaks})) #, na.value = "grey50" +proj=eck4 (equal area) +proj=wintri (compromise) +proj=robin (compromise, default) Without ggalt::coord_proj(), the default use is a sort of mercator
+    
   # Carte
   p <- ggplot(map_data) +
-    geom_sf(aes(fill = var_cat), color = "gray90", size = 0.1) +
-    coord_sf(crs ="+proj=robin") +
-    scale_fill_manual(values = colors, drop = FALSE, na.value = "grey80") +
+    geom_map(aes(map_id = country, fill = fct_rev(var_cat)), map = world_map, show.legend=TRUE) + coord_proj("+proj=robin", xlim = c(-135, 178.5), ylim = c(-56, 84)) +
+    geom_polygon(data = world_map, aes(x = long, y = lat, group = var_cat), colour = 'grey', fill = NA) + expand_limits(x = world_map$long, y = world_map$lat) + 
+    # geom_sf(aes(fill = var_cat), color = "gray90", size = 0.1) +
+    # coord_sf(crs ="+proj=robin") +
+    scale_fill_manual(values = colors, name = legend, labels = c(labels, if (any(is.na(map_data$var_cat))) "Non Parties" else NULL), drop = FALSE, na.value = "grey") +
     theme_minimal(base_size = 10) +
     labs(fill = legend)+
     guides(fill = guide_legend(keyheight = 0.7, keywidth = 0.7)) +
@@ -252,7 +252,7 @@ create_EDE_diff_map <- function(path_baseline_scenario, path_policy_interest, ye
   EDE_diff_year <- subset(EDE_diff, time == year_represent)
   
   
-  plot_world_map(
+  plot_map(
     var = "cons_diff",
     df = EDE_diff_year,
     along = "country",
@@ -329,7 +329,7 @@ create_transfer_diff_map <- function(path_baseline_scenario, path_policy_interes
     "#FFFFFF"   #Not participating
   )
   
-  plot_world_map(
+  plot_map(
     var = "transfer_pc",
     df = transfers_pc_year,
     along="country",
@@ -369,7 +369,7 @@ create_transfer_diff_map <- function(path_baseline_scenario, path_policy_interes
     "#FFFFFF"   #Not participating
   )
   
-  plot_world_map(
+  plot_map(
     var = "total_transfers",
     df = transfers_pc_2020_2100_discounted,
     along="country",
@@ -386,9 +386,7 @@ create_transfer_diff_map <- function(path_baseline_scenario, path_policy_interes
 }
 
 #Creates map for transfer_over_gdp
-create_transfer_over_gdp_map <- function(path_policy_interest,
-                                         year_represent,
-                                         save_folder = "cap_and_share/output/revenue_recycling/global_per_capita/new_transfer") {
+create_transfer_over_gdp_map <- function(path_policy_interest, year_represent, save_folder = path_policy_interest) {
   
   # 1. Lecture du CSV ------------------------------------------------
   #    → attend les colonnes : time | country | transfer_over_gdp
@@ -435,7 +433,7 @@ create_transfer_over_gdp_map <- function(path_policy_interest,
   )
   
   # 4. Appel à la fonction générique ---------------------------------
-  plot_world_map(
+  plot_map(
     var    = "transfer_over_gdp",
     df     = gdp_year,
     along  = "country",
@@ -463,9 +461,10 @@ create_transfer_over_gdp_map <- function(path_policy_interest,
 
 
 #Call this function to create the maps about transfers
+path <- paste0(root, "output/revenue_recycling/global_per_capita/ffu_custom_transfers/")
 create_transfer_diff_map(path_baseline_scenario, path_policy_interest_old_transfer, year_represent, save_folder = "cap_and_share/output/revenue_recycling/global_per_capita/old_transfer")
 
 #Call this function to create the map about changes in EDE consumption
 create_EDE_diff_map(path_baseline_scenario, path_policy_interest_new_transfer, year_represent, save_folder = "cap_and_share/output/revenue_recycling/global_per_capita/new_transfer")
 
-create_transfer_over_gdp_map(path_policy_interest_new_transfer, year_represent, save_folder = "cap_and_share/output/revenue_recycling/global_per_capita/new_transfer")
+create_transfer_over_gdp_map(path, 2040)
