@@ -4,7 +4,7 @@
 
 #create your own "path.txt" to find NICE2020
 path = read("path.txt", String) |> strip  
-cd("C:/Users/fabre/Documents/www/NICE2020/")  
+cd(path)  
 
 
 # Activate the project and make sure all packages we need

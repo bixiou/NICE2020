@@ -1,7 +1,7 @@
 # TODO Marius
 - Estimer out of sample à 20 ans
 - Pays manquants
-- PPA
+- PPA 
 
 # Raffiner la modélisation d'un Cap & Share
 
@@ -175,6 +175,14 @@ Francis Dennig avait une modélisation des inégalités non-paramétriques.
 Actuellement, chaque run produit 60 Mo de données, c'est beaucoup trop.
 
 TODO: faire tourner code de Marie et vérifier qu'on a la même chose que ce qu'ils avaient au départ.
+
+## 10. Clean code
+
+## 11. Update non-losing/NDC by country
+
+## 12. Compute optimal carbon price without recycling (to maximize NPV of EDE)
+
+## 13? Update damage function from Kalkuhl & Wenz to Kotz et al?
 
 
 ## Questions 
