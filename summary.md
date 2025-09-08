@@ -1,7 +1,7 @@
 # TODO Marius
 - Estimer out of sample à 20 ans
 - Pays manquants
-- PPA
+- PPA 
 
 # Raffiner la modélisation d'un Cap & Share
 
