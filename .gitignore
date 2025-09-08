@@ -6,7 +6,7 @@
 *.RData
 *.Rhistory
 *.Rproj
-
+*path.txt
 # macOS
 .DS_Store
 **/.DS_Store
