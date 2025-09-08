@@ -14,6 +14,7 @@ library(rlang)
 library(plm)
 library(stats)
 library(tidyverse)
+library(stargazer)
 
 ##############################
 ##Loading  and cleaning data##
@@ -308,16 +309,22 @@ reg_table <- df14 %>%
   mutate(fuel_imports_percent_gdp = fuel_imports_percent*merchandise_imports/gdp_current_usd)%>%
   mutate(fuel_exports_percent_gdp = fuel_exports_percent*merchandise_exports/gdp_current_usd)%>%
   mutate(imports_goods_percent = merchandise_imports/gdp_current_usd*100)%>%
-  mutate(exports_goods_percent = merchandise_exports/gdp_current_usd*100)
+  mutate(exports_goods_percent = merchandise_exports/gdp_current_usd*100)%>%
+  mutate(trade_balance_gns.pc = trade_balance_gns/population)%>%
+  mutate(trade_balance_goods.pc = trade_balance_goods/population)
 
 regression_data <- merge(x=reg_table, y= world_averages_5, by="year", all.x=TRUE)
 
-write.csv(x=regression_data, file = "regression_data.csv")
+#This line exports the main data table. Uncomment to export a new version.
+#write.csv(x=regression_data, file = "regression_data.csv")
 
+##########################################################################################
+#This part tests which countries miss data to run regressions 
 reg_table <- reg_table%>%
   group_by(year)%>%
   mutate( territorial_emissions.country = territorial_emissions * population )%>%
   mutate(territorial_emissions.share =  territorial_emissions.country/sum(territorial_emissions.country, na.rm = TRUE))%>%
+  mutate(population.share = population/sum(population, na.rm = TRUE))%>%
   ungroup()
 
 annoying_countries <- reg_table%>%
@@ -337,7 +344,8 @@ annoying_countries_2 <- reg_table%>%
 countries <- countries%>%
   mutate(has.good.data = !(country %in% annoying_countries_2$country))
 
-#BRN, OMN, SAU have NA as a coefficient for fossil_fuel_share in the main regression
+#BRN, OMN, SAU have constant 100% fossil fuel share, which is annoying when running regressions with fixed effects because
+#it gives NA as a coefficient for fossil_fuel share
 annoying_countries_2 <- rbind(annoying_countries_2, "BRN", "OMN", "SAU", "TKM")
 annoying_countries <- rbind(annoying_countries, "BRN", "OMN", "SAU", "TKM")
 
@@ -368,6 +376,7 @@ test_data <- test_table_5 %>%
 #A test to see where there are unaccounted emissions#
 #####################################################
 
+#This table reports all the countries that are in Global Carbon Project but not in NICE and counts their territorial emissions
 data_emissions_2 <- data_emissions%>%
   filter(!(country %in% countries$LABEL.FR),
          year == 2020,
@@ -375,7 +384,8 @@ data_emissions_2 <- data_emissions%>%
   select(country, territorial_emissions)%>%
   mutate(country_code = "AAA")
 
-write.csv(data_emissions_2, "data_emissions_2.csv")
+#write.csv(data_emissions_2, "data_emissions_2.csv")
+#This table is completed by hand in order to match the country names that are not in NICE with their data from the GCP
 data_emissions_3 = read.csv("data_emissions_3.csv")%>%
   filter(country_code != "AAA")%>%
   rename(name_country = "country",
@@ -414,19 +424,19 @@ summary(regression_6)
 regression_7 <- pmg(log_territorial ~ log_gdp_fossil + log_gdp_industrial + log_gdp, data = test_table_4, index=c("country", "year"), model="cmg")
 summary(regression_7)
 
-#CCEMG Regressions from the paper
+#CCEMG Regressions from the Liddle(2018) paper
   
 initial_regression <- pmg(log_territorial ~ log_gdp + fossil_fuel_share + industry_share + imports_gns_percent + exports_gns_percent , 
                             data = test_table, index = c("country", "year"), model = "cmg")
 summary(initial_regression)
-initial_regression$indcoef
 
 initial_regression_cons <- pmg(log_consumption ~ log_gdp + fossil_fuel_share + industry_share + imports_gns_percent + exports_gns_percent, 
                                data = test_table_2, index = c("country", "year"), model = "cmg")
 summary(initial_regression_cons)
 
-test_regression <- pmg(log_territorial ~ log_gdp_fossil, data=test_table_3,index = c("country", "year"), model = "cmg" )
-summary(test_regression)
+#This line exports the two regressions. It is Table 2 in the paper
+stargazer(list(initial_regression, initial_regression_cons), type = "html", title = "Trade and carbon emissions. Panel data spans 1997-2020",
+             out = "regression_liddle.html")
 
 #############################################################
 ##Computing absolute errors from predictions of regressions##
@@ -459,13 +469,13 @@ predicted_data <- test_table_5 %>%
   mutate(consumption_emissions.bar = mean(consumption_emissions, na.rm = TRUE))%>%
   mutate(gdp.bar = mean(gdp, na.rm = TRUE))%>%
   mutate(trade_balance_gns.bar = mean(trade_balance_gns, na.rm = TRUE))%>%
-  mutate(trade_balance_goods.bar = mean(trade_balance_goods, na.rm = TRUE))
-
-
+  mutate(trade_balance_goods.bar = mean(trade_balance_goods, na.rm = TRUE))%>%
+  mutate(trade_balance_gns.pc.bar = mean(trade_balance_gns.pc, na.rm = TRUE))%>%
+  mutate(trade_balance_goods.pc.bar = mean(trade_balance_goods.pc, na.rm = TRUE))
 
 #small function to modify the computation of average errors
 mean_absolute_error <- function(data = regression_data){
-  mea = sum(data$absolute_error * data$territorial_emissions.share, na.rm = TRUE)/sum(data$territorial_emissions.share, na.rm = TRUE)
+  mea = sum(data$absolute_error * data$population.share, na.rm = TRUE)/sum(data$territorial_emissions.share, na.rm = TRUE)
   return(mea)
 }
 
@@ -494,9 +504,9 @@ summary(prediction_table$absolute_error)
 
 mean_absolute_error_8 = mean_absolute_error(prediction_table)
 mean_absolute_error_8
-# 1.564
+# 0.8072604
 
-# Regression : the one from the paper
+# Regression : the one from the Liddle(2018) article
 
 initial_regression <- pmg(log_territorial ~ log_gdp + fossil_fuel_share + industry_share + imports_gns_percent + exports_gns_percent, 
                           data = pred_table, index = c("country", "year"), model = "cmg")
@@ -524,7 +534,7 @@ summary(prediction_table$absolute_error)
 #0.002627  0.271584  0.806330  1.481767  1.881409 16.975076 
 
 mean_absolute_error_initial
-#1.884
+#1.079568
 
 #Regression consumption emissions
 initial_regression_cons <- pmg(log_consumption ~ log_gdp + fossil_fuel_share + industry_share + imports_gns_percent + exports_gns_percent, 
@@ -553,7 +563,7 @@ summary(prediction_table_cons$absolute_error)
 
 mean_absolute_error_initial_cons <- mean_absolute_error(prediction_table_cons)
 mean_absolute_error_initial_cons
-# 2.966
+# 4.828569
 
 
 #Now I test a regressions with only one significant parameter 
@@ -561,6 +571,7 @@ mean_absolute_error_initial_cons
 test_regression <- pmg(log_territorial ~ log_gdp_fossil, data=pred_table,index = c("country", "year"), model = "cmg" )
 summary(test_regression)
 pcdtest(test_regression)
+#The Durbin-Watson statistics is not recommended for small time periods, another one is implemented in the next code
 pbnftest(test_regression)
 
 coeffs_test_regression <- as.data.frame(t(as.data.frame(test_regression$indcoef)))
@@ -576,6 +587,10 @@ prediction_table <- merge(x=coeffs_test_regression, y = predicted_data, by="coun
 
 mean_absolute_error_initial_test = mean(prediction_table$absolute_error)
 mean_absolute_error_initial_test
+#0.168
+
+stargazer(test_regression, title = "Table 5: CCEMG regression using the logged form of fossil GDP", type = "html",
+          out = "table_5.html")
 
 #Regression 9 : regression with GDP only
 #Surprisingly, it seems to work well for low-emitting countries because 
@@ -603,7 +618,7 @@ summary(prediction_table$absolute_error)
 
 mean_absolute_error_initial_9 = mean_absolute_error(prediction_table)
 mean_absolute_error_initial_9
-# 1.21
+# 0.6495409
 
 # Regression 11 : Modeling transfer emissions from other variables
 #It works pretty well with high emitters
@@ -632,10 +647,7 @@ summary(prediction_table$absolute_error)
 
 mean_absolute_error_initial_11 = mean_absolute_error(prediction_table)
 mean_absolute_error_initial_11 
-#0.524
-
-mean_transfer_emissions = sqrt(var(prediction_table$transfer_emissions))
-mean_transfer_emissions # 2.569771
+#0.3458417
 
 #Regression 12: regressing transfer emissions on other variables
 
@@ -646,7 +658,7 @@ zz_problems <- pred_table %>%
 pred_table_3 <- pred_table %>%
   filter (!(country %in% zz_problems$country))
 
-regression_12 <- pmg(transfer_emissions ~ gdp + trade_balance_gns + industry_share, data = pred_table_3, 
+regression_12 <- pmg(transfer_emissions ~ gdp + trade_balance_gns.pc + industry_share, data = pred_table_3, 
                      index = c("country", "year"), model = "cmg")
 summary(regression_12)
 pcdtest(regression_12)
@@ -658,21 +670,18 @@ coeffs_regression_12 <- rownames_to_column(coeffs_regression_12, "country")%>%
 
 prediction_table <- merge(x=coeffs_regression_12, y = predicted_data, by="country")%>%
   mutate (fitted_values = intercept + gdp*beta_gdp + gdp.bar*beta_gdp.bar +transfer_emissions.bar * beta_y.bar
-          + trade_balance_gns*beta_trade_balance_gns + trade_balance_gns.bar * beta_trade_balance_gns.bar +
+          + trade_balance_gns.pc*beta_trade_balance_gns.pc + trade_balance_gns.pc.bar * beta_trade_balance_gns.pc.bar +
             industry_share * beta_industry_share + industry_share.bar*beta_industry_share.bar
   )%>%
   mutate (absolute_error = abs(transfer_emissions - fitted_values))
 
 summary(prediction_table$absolute_error)
 #Min.  1st Qu.   Median     Mean  3rd Qu.     Max. 
-#0.01345  0.21510  0.54859  1.79259  1.54588 18.71971
+#0.01078  0.24226  0.77299  1.98396  2.29188 22.72304 
 
 mean_absolute_error_12 = mean_absolute_error(prediction_table)
-mean_absolute_error_12 #1.793
-
-
-mean_transfer_emissions = sqrt(var(prediction_table$transfer_emissions))
-mean_transfer_emissions #2.67
+mean_absolute_error_12 
+#0.7554211
 
 #Regression 13 : regression of territorial emissions (non-logged) that works well for small emitters
 
@@ -700,12 +709,10 @@ summary(prediction_table$absolute_error)
 
 mean_absolute_error_initial_13 = mean_absolute_error(prediction_table)
 mean_absolute_error_initial_13
-#1.790
+#1.050125
 
-mean_transfer_emissions = sqrt(var(prediction_table$transfer_emissions))
-mean_transfer_emissions #2.57
-
-# consumption-based-emissions using territorial emissions
+# Regression 14: consumption-based-emissions using territorial emissions
+#It has good results but must be careful because there is twice the same average (log_terrirorial.bar and log_consumption.bar)
 
 regression_14 <- pmg(log_consumption ~ log_territorial + log_gdp + imports_gns_percent 
                       + exports_gns_percent, data = pred_table, index = c("country", "year"), model = "cmg")
@@ -733,7 +740,7 @@ summary(prediction_table$absolute_error)
 
 mean_absolute_error_initial_14 = mean_absolute_error(prediction_table)
 mean_absolute_error_initial_14
-# 0.551
+# 0.38193
 
 #Regression 15 : log consumption on log territorial (averages still make no sense)
 
@@ -759,11 +766,11 @@ summary(prediction_table$absolute_error)
 
 mean_absolute_error_initial_15 = mean_absolute_error(prediction_table)
 mean_absolute_error_initial_15
-#0.793
+#0.4506326
 
 #Regression 16 : linear regression on non-logged variables
 
-regression_16 <- pmg(consumption_emissions ~ territorial_emissions + gdp + trade_balance_gns + trade_balance_goods,
+regression_16 <- pmg(consumption_emissions ~ territorial_emissions + gdp + trade_balance_gns.pc + trade_balance_goods.pc,
                      data = pred_table_3, index = c("country", "year"), model = "cmg")
 summary(regression_16)
 pcdtest(regression_16)
@@ -776,19 +783,19 @@ coeffs_regression_16 <- rownames_to_column(coeffs_regression_16, "country")%>%
 prediction_table <- merge(x=coeffs_regression_16, y = predicted_data, by="country")%>%
   mutate (fitted_values = intercept +consumption_emissions.bar * beta_y.bar
           +territorial_emissions * beta_territorial_emissions + territorial_emissions.bar * beta_territorial_emissions.bar
-          + trade_balance_gns*beta_trade_balance_gns + trade_balance_gns.bar * beta_trade_balance_gns.bar
-          + trade_balance_goods*beta_trade_balance_goods + trade_balance_goods.bar * beta_trade_balance_goods.bar
+          + trade_balance_gns.pc*beta_trade_balance_gns.pc + trade_balance_gns.pc.bar * beta_trade_balance_gns.pc.bar
+          + trade_balance_goods.pc*beta_trade_balance_goods.pc + trade_balance_goods.pc.bar * beta_trade_balance_goods.pc.bar
           +gdp*beta_gdp + gdp.bar*beta_gdp.bar
   )%>%
   mutate (absolute_error = abs(consumption_emissions - fitted_values))
 
 summary(prediction_table$absolute_error)
-#     Min.   1st Qu.    Median      Mean   3rd Qu.      Max. 
-#0.001413  0.227799  0.757633  2.008412  2.022374 23.388225 
+#Min.  1st Qu.   Median     Mean  3rd Qu.     Max. 
+#0.01061  0.30136  1.26517  2.62513  2.94511 23.58296  
 
 mean_absolute_error_initial_16 = mean_absolute_error(prediction_table)
 mean_absolute_error_initial_16
-# 0.744
+# 0.8037244
 
 #Regression 17
 
@@ -813,6 +820,40 @@ summary(prediction_table$absolute_error)
 
 mean_absolute_error_initial_17 = mean_absolute_error(prediction_table)
 mean_absolute_error_initial_17
-# 0.761
+# 0.3987553
 
+#Regression 18 
+pred_table_18 <- pred_table%>%
+  filter(!(country %in% c("ARG", "RWA", "IRN", "TJK","AUT", "BFA", "CIV", "IRL", "MOZ")))
+
+
+regression_18 <- pmg(transfer_emissions ~ log_gdp + trade_balance_gns.pc, data = pred_table_18, 
+                     index = c("country", "year"), model = "cmg")
+summary(regression_18)
+pcdtest(regression_18)
+
+coeffs_regression_18 <- as.data.frame(t(as.data.frame(regression_18$indcoef)))
+colnames(coeffs_regression_18) <- paste0("beta_", colnames(coeffs_regression_18))
+coeffs_regression_18 <- rownames_to_column(coeffs_regression_18, "country")%>%
+  rename(intercept = "beta_(Intercept)")
+
+prediction_table <- merge(x=coeffs_regression_18, y = predicted_data, by="country")%>%
+  mutate (fitted_values = intercept +log_gdp*beta_log_gdp + transfer_emissions.bar*beta_y.bar
+          + trade_balance_gns.pc * beta_trade_balance_gns.pc 
+          + trade_balance_gns.pc.bar * beta_trade_balance_gns.pc.bar + beta_log_gdp.bar * log_gdp.bar
+  )%>%
+  mutate (absolute_error = abs(transfer_emissions - fitted_values))
+
+summary(prediction_table$absolute_error)
+#Min.   1st Qu.    Median      Mean   3rd Qu.      Max. 
+#0.006582  0.130393  0.420973  1.055576  1.261877 10.766535
+
+test_data <- prediction_table%>%
+  select(country, year, absolute_error)
+
+mean_absolute_error_initial_18 = mean_absolute_error(prediction_table)
+mean_absolute_error_initial_18 
+#0.3149938
+
+stargazer(regression_18,report = "csp", type = "html", out = "regression_18.html")
 
