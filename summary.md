@@ -178,6 +178,10 @@ TODO: faire tourner code de Marie et vérifier qu'on a la même chose que ce qu'
 
 ## 11. Update non-losing/NDC by country
 
+## 12. Compute optimal carbon price without recycling (to maximize NPV of EDE)
+
+## 13? Update damage function from Kalkuhl & Wenz to Kotz et al?
+
 
 ## Questions 
 - Does NICE model the feedback effect of transfers on GDP? => No.
