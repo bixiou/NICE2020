@@ -1,7 +1,7 @@
 ## Tâches à effectuer
 
 0. Installer et faire tourner NICE; prendre en main Julia.
-1. Tester prix différenciés de Equal Right.
+1. Tester prix différenciés du FMI et d'Equal Right: comparer le welfare avec un equal pc cap-and-trade.
 2. Compare world welfare in a climate club of 
 a. global CO2 price recycled to producers
 b. club CO2 price recycled equal pc with the same global budget (i.e. lower budget in club to allow BAU emissions outside)
