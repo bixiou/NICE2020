@@ -15,9 +15,11 @@
 5. Faire tourner NICE avec des trajectoires exogènes de PIB et d'émissions. Puis, au contraire, intégrer la rétroaction des transferts sur le PIB. => Marius
 6. Prédire le ratio de l'empreinte carbone par rapport aux émissions territoriales d'un pays en utilisant son PIB par habitant et sa balance commerciale, à partir de données récentes. => Marius
 7. Modéliser les coûts et bénéfices en nominal (à partir des chiffres en PPA). AF-Ghersi
+_____
 8. Raffiner la présentation de la distribution des revenus, en utilisant les données par percentile du WID. 
 9. Modéliser en R l'apport de NICE, à savoir la désagrégation en décile-pays et les dégâts par pays.
 10. Modéliser une transition entre absence de taxe et taxe optimale pour les premières années.
+11. Réduire la taille des données de sortie.
 
 ## Idées de recherche
 1. Étudier l'équivalence entre prix carbone différenciés et droits d'émissions différenciés. 
@@ -66,7 +68,7 @@ Avancement : cinq scénarios implémentés avec des noms explicites, et un sixi�
 Avancement : projet R créé dans cap_and_share, possibilité de représenter les variations par pays de consommation EDE sur une année, le montant des transferts sur une année, et la NPV des transferts sur 2020-2100 par pays. Il reste peut-être à calibrer le taux d'actualisation.
 
 
-## 3. Optimiser sous contrainte de budget carbone (Erwan)
+## 3. Optimiser sous contrainte de budget carbone (FAIT, Erwan)
 1. Utiliser le code envoyé par Marie (cap_and_share/find_global_exp_carbon_tax.jl) pour trouver la trajectoire exponentielle optimale sous contrainte de budget carbone intertemporel, disons 1000 GtCO2 pour 2025-2100.
 2. Adapter ce code au cas de participation partielle : on dote les pays participants d'un budget carbone, et on optimise leur bien-être (sans tenir compte du bien-être des pays non participants).
 3. Coder un module qui permet de trouver le prix période par période d'un budget carbone défini période par période (qui marche également avec participation partielle).
@@ -74,7 +76,7 @@ Avancement : projet R créé dans cap_and_share, possibilité de représenter le
 /!\ Comme on maximise le bien-être, la contrainte de budget carbone n'est pas forcément binding.
 
 
-## 4. Allocation personnalisée des recettes (Erwan)
+## 4. Allocation personnalisée des recettes (FAIT, Erwan)
 1. À partir de (i) budgets carbone intertemporels (en termes de droits d'émissions) par régions et (ii) d'une règle de partage des droits, permettre de désagréger les recettes pays par pays. La règle de partage des droits par défaut est "equal_pc": on divise le budget carbone de la région proportionnellement à la population moyenne de chaque pays sur la période. Note que "budget carbone" est une terminologie abusive, car ce qu'on partage ici ce sont les recettes (avec un prix uniforme dans l'union climatique), mais on les partage proportionnellement aux droits d'émissions.
 
 Tester avec les budgets suivants en GtCO2 pour 2030-2080: 
@@ -112,7 +114,7 @@ Pour la période pre-2030, prendre le BAU pour les émissions (vous obtenez comb
 3. Quand vous aurez fait ça, on pourra programmer d'autres règles de partage des droits.
 
 
-## 5. Trajectoires exogènes et endogènes (Marius)
+## 5. Trajectoires exogènes et endogènes (FAIT, Marius)
 ### Consignes
 1. Trajectoires exogènes: À partir d'une table donnant le PIB par pays pour chaque année de simulation, et d'une table équivalente pour les émissions, neutraliser la partie macro de NICE et faire tourner la partie analyse distributive; prenant en entrée ces deux tables et en sortie les sorties habituelles de NICE. 
 -> Pb: que neutralise-t-on concrètement ? Qu'a-t-on en entrée parmi PIB brut, PIB net, abattement, taxe, dommages ? 
@@ -129,7 +131,7 @@ AF -> Je reformule: Dans NICE initial, la taxe carbone s'appliquait à la consom
 AF => Pour pouvoir évaluer l'effet macro toutes choses égales par ailleurs, il faudrait distinguer les deux switchs (s'ils ne sont pas équivalents, ce que je crois). Switch 1: taxe portant sur Y plutôt que C; Switch 2: avec ou sans rétroaction. Pour l'option taxe sur Y sans rétroaction, il faudrait calculer I (à partir d'un Y net intermédiaire) avant de calculer Y net en incorporant les transferts.
 
 
-## 6. Prédire l'empreinte carbone (Marius)
+## 6. Prédire l'empreinte carbone (FAIT, Marius)
 ### Consignes
 1. Chercher dans la littérature (Google Scholar) des papiers qui prédisent carbon footprint ou consumption-based emissions ou carbon content of trade à partir d'autres données (GDP, trade balance). Faire la liste des papiers qui s'en rapprochent le plus (avec abstract ou un résumé de votre cru). Si ça n'existe pas, passer aux étapes suivantes :
 2. Vérifier (par ex demander à Marie Young-Brun) si NICE concerne seulement le CO2 fossile ou s'il y aussi LULUCF ou d'autres GHG.
