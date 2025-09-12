@@ -5,12 +5,12 @@
 2. Year at which undiscounted aggregate EDE turns positive
 3. Réduire la taille des données de sortie.
 4. Modéliser une transition entre absence de taxe et taxe optimale pour les premières années.
-5. Raffiner la présentation de la distribution des revenus, en utilisant les données par percentile du WID. 
-6. Estimate welfare of Peskzo, Golub & van der Mensbrugghe (2019)
-7. Modéliser en R l'apport de NICE, à savoir la désagrégation en décile-pays et les dégâts par pays.
-8. Étudier l'équivalence entre prix carbone différenciés et droits d'émissions différenciés. / Theoretical/simulation analysis of net gain for a given country in function of price x rights.
-9. Concevoir procédure de décision entre différentes propositions d'écarts à l'allocation de base; rédiger une proposition de traité.
-10. Décomposer gains en dommages évités, transferts bruts, croissance supplémentaire, etc.
+5. Compute equivalent prices / rights / transfers
+6. Décomposer les gains de bien-être
+7. Raffiner la présentation de la distribution des revenus, en utilisant les données par percentile du WID. 
+8. Estimate welfare of Peskzo, Golub & van der Mensbrugghe (2019)
+9. Modéliser en R l'apport de NICE, à savoir la désagrégation en décile-pays et les dégâts par pays.
+10. Concevoir procédure de décision entre différentes propositions d'écarts à l'allocation de base; rédiger une proposition de traité.
 11. IMACLIM?
 
 
@@ -90,7 +90,51 @@
 ### Résultat
 
 
-## 5. Raffiner la présentation de la distribution des revenus, en utilisant les données par percentile du WID. 
+## 5. Compute equivalent prices / rights / transfers
+
+### Étapes
+- Compute two types of equivalent prices, rights and transfers:
+    - In the autarchy case with differentiated prices:
+        - Compute the uniform price trajectory p* that achieves the same emission trajectory as in autarchy, and compute emissions by country according to this price trajectory (and equal per capita rights (even though that's an approximation, ideally we should use the rights defined below)).
+        - For each country-year, define/export "welfare-equivalent rights per capita" as r = (abatement+damage cost in cap-and-trade - abatement+damage cost in autarchy + emissions in cap-and-trade)/(p* * population)
+        - Also define/export "emission-equivalent rights per capita" as r = emissions in autarchy / population
+        - Define the "welfare-equivalent transfer p.c." as t = abatement cost p.c. in cap-and-trade (with welfare-equivalent rights) - abatement cost p.c. in autarchy
+        - Define the "emission-equivalent transfer p.c." as t = (emission-equivalent rights per capita - emissions in cap-and-trade) p*
+    - In the cap-and-trade case (for these, be careful that negative values are possible):
+        - Compute the "welfare-almost-equivalent price" as p = a^(-1)(abatement_cost* + (emission* - rights*)p*) where * denotes cap-and-trade values and a^(-1)(x) = p_backstop * (population * x / (YGROSS * theta_1))^((theta_2 - 1)/theta_2) - It is only "almost" equivalent because it doesn't account for the higher climate damages in autarchy (doing so would require optimizing over all country-year prices, it's too computationally intensive)
+        - Compute the "emission-equivalent price" as p = emission^(-1)(right p.c.) where emission^(-1) is given by find_tax_for_country_year! [a faster but less precise alternative is to use p = p_backstop * (1 - right / (YGROSS * sigma))^(theta_2 - 1)]
+    
+
+### Problèmes rencontrés / observations
+
+### Où en est-on ?
+
+### Résultat
+
+
+## 6. Décomposer les gains de bien-être
+
+### Étapes
+- Écrire une fonction qui prend deux scénarios, par défaut le cap-and-trade with rights_proposed et le BAU.
+- Pour le monde et pour chaque pays, pour une année donnée (par défaut 2050), calculer les éléments suivants :
+    - dommages évités: différence de dommage évité par personne (-LOCAL_DAMFRAC_KW/population) entre les deux scénarios (1 - 2)
+    - transferts directs: différence de transfer_pc
+    - croissance: différence de YGROSS*(1-s)
+    - coût d'abattement: différence de ABATECOST/population (va donner qq chose de signe contraire à dommages évités)
+    - réduction des inégalités: ((conso_EDE_1 - C_1) - (conso_EDE_2 - C_2))*C_2/C_1
+    - amélioration totale: différence de conso_EDE
+    - résidu: amélioration totale - somme(5 autres)
+- Calculer la Net Present Value de chaque variable x_t qui précède de t0 à t_max au tax de R% (t0, t_max, R sont des paramètres de la fonction avec pour défaut 2025, 2100, 3%): sum_t0^tmax(x_t/(1+R)^(t-t0))
+- Exporter un graphique donnant la décomposition au cours du temps pour le monde entier et pour les pays majeurs, avec des stacked barres pour tout sauf amélioration totale, qui est elle en trait plein.
+
+### Problèmes rencontrés / observations
+
+### Où en est-on ?
+
+### Résultat
+
+
+## 7. Raffiner la présentation de la distribution des revenus, en utilisant les données par percentile du WID. 
 
 ### Étapes
 - Télécharger les données du WID et lire dans leur doc / papiers de recherche la méthode qu'ils utilisent pour avoir la distribution des revenus. Si c'est pas paramétrique (comme NICE fait, i.e. partir d'un Gini pour en déduire une loi lognormale), continuer les étapes suivantes.
@@ -103,7 +147,7 @@
 ### Résultat
 
 
-## 6. Estimate welfare of Peskzo, Golub & van der Mensbrugghe (2019)
+## 8. Estimate welfare of Peskzo, Golub & van der Mensbrugghe (2019)
 
 ### Étapes
 - Trouver les sources d'émission par pays: pour charbon, pétrole, gaz, trouver les principaux pays producteurs, agréger ça en termes de "production de CO2", et définir des droits d'émission proportionnellement à la production de CO2 du pays
@@ -120,7 +164,7 @@
 ### Résultat
 
 
-## 7. Modéliser en R l'apport de NICE, à savoir la désagrégation en décile-pays et les dégâts par pays.
+## 9. Modéliser en R l'apport de NICE, à savoir la désagrégation en décile-pays et les dégâts par pays.
 
 ### Étapes
 - Réécrire le code du modèle en R.
@@ -132,7 +176,7 @@
 ### Résultat
 
 
-## 8. Étudier l'équivalence entre prix carbone différenciés et droits d'émissions différenciés. / Theoretical/simulation analysis of net gain for a given country in function of price x rights.
+## 10. Concevoir procédure de décision entre différentes propositions d'écarts à l'allocation de base; rédiger une proposition de traité.
 
 ### Étapes
 - Adrien: TODO
@@ -142,19 +186,3 @@
 ### Où en est-on ?
 
 ### Résultat
-
-
-## 9. Concevoir procédure de décision entre différentes propositions d'écarts à l'allocation de base; rédiger une proposition de traité.
-
-### Étapes
-- Adrien: TODO
-
-### Problèmes rencontrés / observations
-
-### Où en est-on ?
-
-### Résultat
-
-
-## 10. Décomposer gains en dommages évités, transferts bruts, croissance supplémentaire, etc.
-- Adrien: TODO
