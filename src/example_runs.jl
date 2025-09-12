@@ -3,8 +3,8 @@
 #########################################################
 
 #create your own "path.txt" to find NICE2020
-path = read("path.txt", String) |> strip  
-cd(path)  
+#path = read("path.txt", String) |> strip
+#cd(path)
 
 
 # Activate the project and make sure all packages we need

@@ -1,9 +1,8 @@
 ## Tâches à effectuer
 
 0. Installer et faire tourner NICE; prendre en main Julia.
-1. Tester prix différenciés du FMI et d'Equal Right: comparer le welfare avec un equal pc cap-and-trade.
-2. Year at which undiscounted aggregate EDE turns positive.
-3. Compare world welfare in a climate club of 
+1. Tester prix différenciés du FMI ($25/t LIC & LMIC, $50 UMIC, $75 HIC pour 2025-30, increasing at x% beyond that, where x is chosen to get us to 2+/-.1°C), et d'Equal Right: comparer le welfare avec un equal pc cap-and-trade.
+2. Compare world welfare in a climate club of 
 a. global CO2 price recycled to producers
 b. club CO2 price recycled equal pc with the same global budget (i.e. lower budget in club to allow BAU emissions outside)
 c. if a < b, share of revenue that producers should give to LDCs to make a = b.
