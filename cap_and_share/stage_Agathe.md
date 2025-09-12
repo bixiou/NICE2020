@@ -3,10 +3,10 @@
 0. Installer et faire tourner NICE; prendre en main Julia.
 1. Tester prix différenciés du FMI ($25/t LIC & LMIC, $50 UMIC, $75 HIC pour 2025-30, increasing at x% beyond that, where x is chosen to get us to 2+/-.1°C), et d'Equal Right: comparer le welfare avec un equal pc cap-and-trade.
 2. Year at which undiscounted aggregate EDE turns positive
-3. Estimate welfare of Peskzo, Golub & van der Mensbrugghe (2019)
-4. Réduire la taille des données de sortie.
-5. Modéliser une transition entre absence de taxe et taxe optimale pour les premières années.
-6. Raffiner la présentation de la distribution des revenus, en utilisant les données par percentile du WID. 
+3. Réduire la taille des données de sortie.
+4. Modéliser une transition entre absence de taxe et taxe optimale pour les premières années.
+5. Raffiner la présentation de la distribution des revenus, en utilisant les données par percentile du WID. 
+6. Estimate welfare of Peskzo, Golub & van der Mensbrugghe (2019)
 7. Modéliser en R l'apport de NICE, à savoir la désagrégation en décile-pays et les dégâts par pays.
 8. Étudier l'équivalence entre prix carbone différenciés et droits d'émissions différenciés. / Theoretical/simulation analysis of net gain for a given country in function of price x rights.
 9. Concevoir procédure de décision entre différentes propositions d'écarts à l'allocation de base; rédiger une proposition de traité.
@@ -63,7 +63,47 @@
 ### Résultat
 
 
-## 3. Estimate welfare of Peskzo, Golub & van der Mensbrugghe (2019)
+## 3. Réduire la taille des données de sortie.
+
+### Étapes
+- Faire un tableur avec la liste des variables, un indicateur disant si elles sont exportées, et si oui quelles années sont exportées.
+- Identifier dans une nouvelle colonne des variables inutiles à exporter, ainsi que des années inutiles au sein de variables utiles.
+- Une fois la proposition de réduction des exports validée, l'implémenter.
+- Potentiellement améliorer le code d'exportation (pour que les chemins de fichiers aient plus de sens).
+
+### Problèmes rencontrés / observations
+
+### Où en est-on ?
+
+### Résultat
+
+
+## 4. Modéliser une transition entre absence de taxe et taxe optimale pour les premières années.
+
+### Étapes
+- Modifier le code qui calcule la taxe optimale pour un budget donné, afin d'avoir une trajectoire croissante linéaire les 5 premières années. Pour l'instant, ce code calcule le niveau initial de la taxe t0 et son taux de croissance optimaux pour atteindre un budget donné. Changer le code pour qu'il calcule le niveau de t5 et le taux de croissance optimaux, avec t1, ..., t4 interpolés linéairement entre t0 = 0 et t5.
+
+### Problèmes rencontrés / observations
+
+### Où en est-on ?
+
+### Résultat
+
+
+## 5. Raffiner la présentation de la distribution des revenus, en utilisant les données par percentile du WID. 
+
+### Étapes
+- Télécharger les données du WID et lire dans leur doc / papiers de recherche la méthode qu'ils utilisent pour avoir la distribution des revenus. Si c'est pas paramétrique (comme NICE fait, i.e. partir d'un Gini pour en déduire une loi lognormale), continuer les étapes suivantes.
+- Faire l'hypothèse que l'inégalité va rester constante au cours du siècle (avant redistribution des recettes du prix carbone), et imputer la distribution des revenus du WID.
+
+### Problèmes rencontrés / observations
+
+### Où en est-on ?
+
+### Résultat
+
+
+## 6. Estimate welfare of Peskzo, Golub & van der Mensbrugghe (2019)
 
 ### Étapes
 - Trouver les sources d'émission par pays: pour charbon, pétrole, gaz, trouver les principaux pays producteurs, agréger ça en termes de "production de CO2", et définir des droits d'émission proportionnellement à la production de CO2 du pays
@@ -80,49 +120,10 @@
 ### Résultat
 
 
-## 4. Réduire la taille des données de sortie.
-
-### Étapes
-- Faire un tableur avec la liste des variables, un indicateur disant si elles sont exportées, et si oui quelles années sont exportées.
-- Identifier dans une nouvelle colonne des variables inutiles à exporter, ainsi que des années inutiles au sein de variables utiles.
-- Une fois la proposition de réduction des exports validée, l'implémenter.
-- Potentiellement améliorer le code d'exportation (pour que les chemins de fichiers aient plus de sens).
-
-### Problèmes rencontrés / observations
-
-### Où en est-on ?
-
-### Résultat
-
-
-## 5. Modéliser une transition entre absence de taxe et taxe optimale pour les premières années.
-
-### Étapes
-- Modifier le code qui calcule la taxe optimale pour un budget donné, afin d'avoir une trajectoire croissante linéaire les 5 premières années. Pour l'instant, ce code calcule le niveau initial de la taxe t0 et son taux de croissance optimaux pour atteindre un budget donné. Changer le code pour qu'il calcule le niveau de t5 et le taux de croissance optimaux, avec t1, ..., t4 interpolés linéairement entre t0 = 0 et t5.
-
-### Problèmes rencontrés / observations
-
-### Où en est-on ?
-
-### Résultat
-
-
-## 6. Raffiner la présentation de la distribution des revenus, en utilisant les données par percentile du WID. 
-
-### Étapes
-- Télécharger les données du WID et lire dans leur doc / papiers de recherche la méthode qu'ils utilisent pour avoir la distribution des revenus. Si c'est pas paramétrique (comme NICE fait, i.e. partir d'un Gini pour en déduire une loi lognormale), continuer les étapes suivantes.
-- Faire l'hypothèse que l'inégalité va rester constante au cours du siècle (avant redistribution des recettes du prix carbone), et imputer la distribution des revenus du WID.
-
-### Problèmes rencontrés / observations
-
-### Où en est-on ?
-
-### Résultat
-
-
 ## 7. Modéliser en R l'apport de NICE, à savoir la désagrégation en décile-pays et les dégâts par pays.
 
 ### Étapes
+- Réécrire le code du modèle en R.
 
 ### Problèmes rencontrés / observations
 
@@ -134,6 +135,7 @@
 ## 8. Étudier l'équivalence entre prix carbone différenciés et droits d'émissions différenciés. / Theoretical/simulation analysis of net gain for a given country in function of price x rights.
 
 ### Étapes
+- Adrien: TODO
 
 ### Problèmes rencontrés / observations
 
@@ -145,6 +147,7 @@
 ## 9. Concevoir procédure de décision entre différentes propositions d'écarts à l'allocation de base; rédiger une proposition de traité.
 
 ### Étapes
+- Adrien: TODO
 
 ### Problèmes rencontrés / observations
 
@@ -154,3 +157,4 @@
 
 
 ## 10. Décomposer gains en dommages évités, transferts bruts, croissance supplémentaire, etc.
+- Adrien: TODO
