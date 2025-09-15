@@ -60,7 +60,7 @@
                 # tax_it = (1-savings_it)/(1-savings_ref,t) * u'(c_ref,t) / u'(c_it) * tax_ref,t
                 # Carbon tax is bounded above by the global backstop 
                     v.country_carbon_tax[t,c] = min(p.pbacktime[t], p.reference_carbon_tax[t] *
-                                            ((1 - p.s[t,p.reference_country_index])/ (1 - p.s[t,c]) ) *
+                                            ((1 - p.s[t,p.reference_country_index])/ (1 - p.s[t,c]) )^(1.0 - p.η) *
                                             (p.YGROSS[t,c]/p.YGROSS[t,p.reference_country_index] *
                                             p.l[t,p.reference_country_index]/p.l[t,c] )^p.η )*p.club_country[p.policy_scenario,c]
 
