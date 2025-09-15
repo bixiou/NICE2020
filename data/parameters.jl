@@ -202,9 +202,12 @@ depreciation_unstack = unstack(depreciation_raw, :year, :countrycode, :depreciat
 # Sort the columns (country names) into alphabetical order.
 depreciation = select(depreciation_unstack, countries)
 
-## Emissions intensity
 
-emissionsrate_raw = DataFrame(nice_inputs["emissions"]["bauProjectionV1"]["x"])
+## Emissions intensity 
+# in Gt CO2 per year per US dollar
+# Growth rates determined by regressing year on growth rates predicted from the projected emission using an OLS model at regional level
+
+emissionsrate_raw = DataFrame(load("data/emission_intensity.csv",header_exists=true))
 filter!(:countrycode => in(countries), emissionsrate_raw)
 
 # Unstack the dataframe to have year x country dimensions.

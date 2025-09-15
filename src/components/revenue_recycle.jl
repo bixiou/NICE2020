@@ -146,7 +146,7 @@
                 v.country_pc_dividend_domestic_transfers[t,c] = 0
                 v.country_pc_dividend_global_transfers[t,c] = 0
 
-            end # test if revenue reycling on or off
+            end # revenue recycling switch
 
             # Sum per capita dividends from domestic and global redistribution
             v.country_pc_dividend[t,c] = v.country_pc_dividend_domestic_transfers[t,c] + v.country_pc_dividend_global_transfers[t,c]

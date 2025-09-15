@@ -5,8 +5,8 @@
 
 @defcomp neteconomy begin
 
-    country     = Index()   # Index for the modeled countries.
-    regionwpp  = Index() # Index for WPP regions
+    country     = Index()   # Index for the modeled countries
+    regionwpp  = Index()    # Index for WPP regions
 
     # Parameters
     YGROSS           = Parameter(index=[time, country]) # Gross output (1e6 USD2017 per year)
@@ -37,7 +37,7 @@
     # WPP region variables
     C_rwpp     = Variable(index=[time, regionwpp]) # Regional consumption (1e6 USD2017 per year)
     l_rwpp     = Variable(index=[time, regionwpp]) # Regional population (thousands)
-    CPC_rwpp   = Variable(index=[time, regionwpp]) # Regional CPC (thousand 2017USD per person per year)
+    CPC_rwpp   = Variable(index=[time, regionwpp]) # Regional consumption per capita (thousand 2017USD per person per year)
     Y_pc_rwpp  = Variable(index=[time, regionwpp]) # Regional per capita output net of abatement and damages (USD2017 per person per year).
 
     function run_timestep(p, v, d, t)

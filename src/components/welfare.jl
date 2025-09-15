@@ -10,9 +10,9 @@
     l                       = Parameter(index=[time, country])              # Population (thousands)
     mapcrwpp                = Parameter(index=[country])                    # Map from country index to wpp region index
 
-    cons_EDE_country        = Variable(index=[time, country])               # Equally distributed welfare equivalent consumption (thousand USD2017 per person per year)
-    cons_EDE_rwpp           = Variable(index=[time, regionwpp])             # Regional qually distributed welfare equivalent consumption (thousand USD2017 per person per year)
-    cons_EDE_global         = Variable(index=[time])                        # Glibal equally distributed welfare equivalent consumption (thousand USD2017 per person per year)
+    cons_EDE_country        = Variable(index=[time, country])               # Country equally distributed welfare equivalent consumption (thousand USD2017 per person per year)
+    cons_EDE_rwpp           = Variable(index=[time, regionwpp])             # Regional equally distributed welfare equivalent consumption (thousand USD2017 per person per year)
+    cons_EDE_global         = Variable(index=[time])                        # Global equally distributed welfare equivalent consumption (thousand USD2017 per person per year)
     welfare_country         = Variable(index=[time, country])               # Country welfare
     welfare_rwpp            = Variable(index=[time, regionwpp])             # WPP region welfare
     welfare_global          = Variable(index=[time])                        # Global welfare

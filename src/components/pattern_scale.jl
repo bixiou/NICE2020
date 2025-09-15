@@ -4,7 +4,7 @@
 
 @defcomp pattern_scale begin
 
-    country           = Index() # Set a Mimi index for the modeled regions.
+    country           = Index() # Index for the modeled countries
 
     β_temp             = Parameter(index=[country]) # Pattern scale coefficients that translate global => country-level temperature
     global_temperature = Parameter(index=[time]) # Global average temperature anomaly (°C)

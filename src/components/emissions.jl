@@ -3,7 +3,7 @@
 # -----------------------------------------------------------
 
 @defcomp emissions begin
-    country         = Index()       # The regions index must be specified for each component
+    country         = Index()       # Index for countries
     regionwpp       = Index()       # Index for WPP regions
 
     σ          = Parameter(index=[time, country])   # Emissions output ratio (GtCO2 per million USD2017)
