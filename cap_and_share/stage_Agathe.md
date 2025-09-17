@@ -2,6 +2,7 @@
 
 0. Installer et faire tourner NICE; prendre en main Julia.
 1. Tester prix différenciés du FMI ($25/t LIC & LMIC, $50 UMIC, $75 HIC pour 2025-30, increasing at x% beyond that, where x is chosen to get us to 2+/-.1°C), et d'Equal Right: comparer le welfare avec un equal pc cap-and-trade.
+1bis. Model Cramton & Stoft (midway between grandfathering and equal pc)
 2. Year at which undiscounted aggregate EDE turns positive
 3. Réduire la taille des données de sortie.
 4. Modéliser une transition entre absence de taxe et taxe optimale pour les premières années.
