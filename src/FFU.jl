@@ -9,7 +9,7 @@
 # Activate the project and make sure packages are installed.
 using Pkg
 Pkg.activate(joinpath(@__DIR__, ".."))
-#Pkg.resolve() # To resolve inconsistencies between Manifest.toml and Project.toml
+Pkg.resolve() # To resolve inconsistencies between Manifest.toml and Project.toml
 Pkg.instantiate()
 using Mimi, MimiFAIRv2, DataFrames, CSVFiles, CSV
 
@@ -280,3 +280,138 @@ run(nice2020_global_cap_share)
 #MimiNICE2020.save_nice2020_output(nice2020_global_cap_share, output_directory_uniform, revenue_recycling=false)
 MimiNICE2020.save_nice2020_output(nice2020_global_cap_share, joinpath(@__DIR__, "..", "cap_and_share", "output", "global_cap_share"))
 #run(`powershell -c "[console]::beep(1000, 300)"`)
+
+###########################
+# 6. differenciated_prices: FMI proposal - $25/t LIC & LMIC, $50 UMIC, $75 HIC pour 2025-30, increasing at x% beyond that, where x is chosen to get us to 2+/-.1°C
+###########################
+
+#Creation of groups according to the level of development (World Bank classification)
+
+# Low income countries (LIC) and Lower middle income countries (LMIC)
+
+LIC_LMIC =  ["AFG", "AGO", "BGD", "BEN", "BTN", "BOL", "BFA", "BDI", "KHM", "CMR", "CAF", "TCD", "COM", "COD", "COG", "CIV", "DJI", "EGY", "ERI", "SWZ", "GMB", "GHA", "GIN", "GNB", "HTI", "HND", "IND", "JOR", "KEN", "KIR", "PRK", "KGZ", "LAO", "LBN", "LSO", "LBR", "MDG", "MWI", "MLI", "MRT", "FSM", "MAR", "MOZ", "MMR", "NAM", "NPL", "NIC", "NER", "NGA", "PAK", "PNG", "PHL", "RWA", "STP", "SEN", "SLE", "SLB", "SOM", "SSD", "LKA", "SDN", "SYR", "TJK", "TZA", "TLS", "TGO", "TUN", "UGA", "UZB", "VUT", "VNM", "PSE", "YEM", "ZMB", "ZWE"]
+tax_lic_lmic = 25.0 # $/tCO2 for 2025-2030 (checked that same unit as global_co2_tax)
+
+# Upper middle income countries (UMIC)
+
+UMIC = ["ALB", "DZA", "ARG", "ARM", "AZE", "BLR", "BLZ", "BIH", "BWA", "BRA", "CPV", "CHN", "COL", "CUB", "DMA", "DOM", "ECU", "SLV", "GNQ", "FJI", "GAB", "GEO", "GRD", "GTM", "IDN", "IRN", "IRQ", "JAM", "KAZ", "XKX", "LBY", "MYS", "MDV", "MHL", "MUS", "MEX", "MDA", "MNG", "MNE", "MKD", "PRY", "PER", "WSM", "SRB", "ZAF", "LCA", "VCT", "SUR", "THA", "TON", "TUR", "TKM", "TUV", "UKR"]
+tax_umic = 50.0 # $/tCO2 for 2025-2030
+
+# High income countries (HIC)
+
+HIC = ["ASM", "AND", "ATG", "ABW", "AUS", "AUT", "BHS", "BHR", "BRB", "BEL", "BMU", "VGB", "BRN", "BGR", "CAN", "CYM", "CHI", "CHL", "CRI", "HRV", "CUW", "CYP", "CZE", "DNK", "EST", "FRO", "FIN", "FRA", "PYF", "DEU", "GIB", "GRC", "GRL", "GUM", "GUY", "HKG", "HUN", "ISL", "IRL", "IMN", "ISR", "ITA", "JPN", "KOR", "KWT", "LVA", "LIE", "LTU", "LUX", "MAC", "MLT", "MCO", "NRU", "NLD", "NCL", "NZL", "MNP", "NOR", "OMN", "PLW", "PAN", "POL", "PRT", "PRI", "QAT", "ROU", "RUS", "SMR", "SAU", "SYC", "SGP", "SXM", "SVK", "SVN", "ESP", "KNA", "MAF", "SWE", "CHE", "TWN", "TTO", "TCA", "ARE", "GBR", "USA", "URY", "VIR"]
+tax_hic = 75.0 # $/tCO2 for 2025-2030
+
+nice2020_differenciated_prices = MimiNICE2020.create_nice2020()
+
+# Creation of the country x year matrix of carbon tax rates
+
+years = collect(dim_keys(base_model, :time))
+countries = collect(dim_keys(base_model, :country))
+
+diff_country_tax = zeros(Float64, length(years), length(countries))
+
+LIC_LMIC = Symbol.(LIC_LMIC)
+UMIC     = Symbol.(UMIC)
+HIC      = Symbol.(HIC)
+
+years_index = findall(y -> 2025 <= y <= 2030, years)
+
+for t in years_index
+    for (c_idx, country) in enumerate(countries)
+        if country in LIC_LMIC
+            diff_country_tax[t, c_idx] = tax_lic_lmic
+        elseif country in UMIC
+            diff_country_tax[t, c_idx] = tax_umic
+        elseif country in HIC
+            diff_country_tax[t, c_idx] = tax_hic
+        else
+            diff_country_tax[t, c_idx] = 0.0  # si pays non classé
+        end
+    end
+end
+
+years_index_post2030 = findall(y -> y > 2030, years)
+# Growth rate of the tax beyond 2030, chosen to reach approx 2°C
+growth_rate = 0.05
+for t in years_index_post2030
+    for (c_idx, country) in enumerate(countries)
+        diff_country_tax[t, c_idx] = diff_country_tax[t-1, c_idx] * (1 + growth_rate)
+    end
+end
+
+
+global_recycle_share            = 0
+update_param!(nice2020_differenciated_prices, :switch_custom_transfers, 0)
+update_param!(nice2020_differenciated_prices, :switch_recycle, 1)
+update_param!(nice2020_differenciated_prices, :switch_global_recycling, 0)
+update_param!(nice2020_differenciated_prices, :revenue_recycle, :global_recycle_share,  ones(nb_country) * global_recycle_share ) 
+update_param!(nice2020_differenciated_prices, :revenue_recycle, :switch_global_pc_recycle, 0)
+
+update_param!(nice2020_differenciated_prices, :abatement, :control_regime, 6) # Switch for emissions control regime  1:"global_carbon_tax", 2:"country_carbon_tax", 3:"country_abatement_rate"
+update_param!(nice2020_differenciated_prices, :switch_footprint, switch_footprint)
+update_param!(nice2020_differenciated_prices, :switch_recycle, switch_recycle)
+update_param!(nice2020_differenciated_prices, :switch_transfers_affect_growth, switch_transfers_affect_growth)
+update_param!(nice2020_differenciated_prices, :policy_scenario, MimiNICE2020.scenario_index[switch_scenario])
+
+run(nice2020_differenciated_prices)
+
+# Save the run (see helper functions for saving function details)
+#MimiNICE2020.save_nice2020_output(nice2020_global_cap_share, output_directory_uniform, revenue_recycling=false)
+dir=joinpath(@__DIR__, "..", "cap_and_share", "output", "differenciated_prices")
+mkpath(dir)  # create directory if it does not exist
+MimiNICE2020.save_nice2020_output(nice2020_differenciated_prices, joinpath(@__DIR__, "..", "cap_and_share", "output", "differenciated_prices"))
+
+
+
+
+
+
+##Second version 
+
+years_model = collect(dim_keys(nice2020_differenciated_prices, :time))
+countries_model = dim_keys(nice2020_differenciated_prices, :country)
+T = length(years_model)
+C = length(countries_model)
+
+# Convert string country lists to Symbol for comparaison
+LIC_LMIC_sym = Symbol.(LIC_LMIC)
+UMIC_sym     = Symbol.(UMIC)
+HIC_sym      = Symbol.(HIC)
+
+# Créer la matrice complète
+diff_country_tax_mat = zeros(Float64, T, C)
+
+# Indices pour les années 2025-2030
+years_idx = findall(y -> 2025 <= y <= 2030, years_model)
+
+for t in years_idx
+    for (c_idx, country) in enumerate(countries_model)
+        if country in LIC_LMIC_sym
+            diff_country_tax_mat[t, c_idx] = tax_lic_lmic
+        elseif country in UMIC_sym
+            diff_country_tax_mat[t, c_idx] = tax_umic
+        elseif country in HIC_sym
+            diff_country_tax_mat[t, c_idx] = tax_hic
+        end
+    end
+end
+
+# Croissance post-2030
+growth_rate = 0.05
+years_idx_post2030 = findall(y -> y > 2030, years_model)
+for t in years_idx_post2030
+    for c_idx in 1:C
+        diff_country_tax_mat[t, c_idx] = diff_country_tax_mat[t-1, c_idx] * (1 + growth_rate)
+    end
+end
+
+# Injecter dans le modèle
+
+update_param!(nice2020_differenciated_prices, :abatement, :control_regime, 6) 
+update_param!(nice2020_differenciated_prices, :abatement, :diff_country_tax, diff_country_tax_mat)
+ # différenciated carbon prices
+run(nice2020_differenciated_prices)
+dir=joinpath(@__DIR__, "..", "cap_and_share", "output", "differenciated_prices")
+mkpath(dir)  # create directory if it does not exist
+MimiNICE2020.save_nice2020_output(nice2020_differenciated_prices, joinpath(@__DIR__, "..", "cap_and_share", "output", "differenciated_prices"))
