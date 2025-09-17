@@ -13,7 +13,8 @@ Pkg.activate(joinpath(@__DIR__, ".."))
 Pkg.instantiate()
 using Mimi, MimiFAIRv2, DataFrames, CSVFiles, CSV
 
-include("nice2020_module.jl") # Creating an instance of the NICE2020 model and retrieving some necessary parameters
+include("nice2020_module.jl") 
+# Creating an instance of the NICE2020 model and retrieving some necessary parameters
 
 base_model = MimiNICE2020.create_nice2020()
 
@@ -113,7 +114,7 @@ update_param!(nice2020_ffu, :switch_transfers_affect_growth, switch_transfers_af
 run(nice2020_ffu)
 
 MimiNICE2020.save_nice2020_output(nice2020_ffu, joinpath(@__DIR__, "..", "cap_and_share", "output", "ffu"))
-run(`powershell -c "[console]::beep(1000, 300)"`)
+#run(`powershell -c "[console]::beep(1000, 300)"`)
 
 ###########################
 # 3. global_price_ffu: Global (all countries) carbon pricing with price equal to Union's one.
@@ -167,7 +168,7 @@ run(nice2020_global_price_ffu)
 # Save the run (see helper functions for saving function details)
 #MimiNICE2020.save_nice2020_output(nice2020_global_price_ffu, output_directory_uniform, revenue_recycling=false)
 MimiNICE2020.save_nice2020_output(nice2020_global_price_ffu, joinpath(@__DIR__, "..", "cap_and_share", "output", "global_price_ffu"))
-run(`powershell -c "[console]::beep(1000, 300)"`)
+#run(`powershell -c "[console]::beep(1000, 300)"`)
 
 ###########################
 # 4. non_losing: Within-country carbon pricing, with non-losing rights
@@ -224,7 +225,7 @@ update_param!(nice2020_non_losing, :switch_custom_transfers, switch_custom_trans
 run(nice2020_non_losing)
 
 MimiNICE2020.save_nice2020_output(nice2020_non_losing, joinpath(@__DIR__, "..", "cap_and_share", "output", "non_losing"))
-run(`powershell -c "[console]::beep(1000, 300)"`)
+#run(`powershell -c "[console]::beep(1000, 300)"`)
 
 ###########################
 # 5. global_cap_share: Global (all countries) egalitarian carbon pricing with 1.8°C carbon budget (corresponding to FFU's budget).
@@ -278,4 +279,4 @@ run(nice2020_global_cap_share)
 # Save the run (see helper functions for saving function details)
 #MimiNICE2020.save_nice2020_output(nice2020_global_cap_share, output_directory_uniform, revenue_recycling=false)
 MimiNICE2020.save_nice2020_output(nice2020_global_cap_share, joinpath(@__DIR__, "..", "cap_and_share", "output", "global_cap_share"))
-run(`powershell -c "[console]::beep(1000, 300)"`)
+#run(`powershell -c "[console]::beep(1000, 300)"`)

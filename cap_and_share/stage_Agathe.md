@@ -13,6 +13,7 @@
 10. Concevoir procédure de décision entre différentes propositions d'écarts à l'allocation de base; rédiger une proposition de traité.
 11. IMACLIM?
 
++ voir les commentaires dans revenue_recycle
 
 ## 0. Installation et exécution
 
