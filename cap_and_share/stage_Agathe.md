@@ -14,6 +14,7 @@
 10. Concevoir procédure de décision entre différentes propositions d'écarts à l'allocation de base; rédiger une proposition de traité.
 11. IMACLIM?
 
++ voir les commentaires dans revenue_recycle
 
 ## 0. Installation et exécution
 
@@ -39,7 +40,7 @@
 ## 1. Simuler des prix différenciés
 
 ### Étapes
-- Rajouter une section dans example_runs.jl où simuler des prix différenciés du FMI (sans transferts internationaux, i.e. within-country recycling).
+- Rajouter une section dans FFU.jl où simuler des prix différenciés du FMI (sans transferts internationaux, i.e. within-country recycling).
 - Trouver dans le code comment le coder.
 - Simuler les prix suivants : de 2025 à 2030, $25/tCO2 pour les LICs et LMICs, $50 pour les UMICs, $75 pour HICs. Au-delà de 2030, faire croître le prix de x% par an. Tester plusieurs x et s'arrêter lorsque le x est tel que la température en 2100 est +2 +/- 0.05 °C.
 - Rapporter ci-dessous la conso EDE mondiale et dans les principaux pays (disons CHN, USA, DEU, IND, COD, RUS) pour les scénarios suivants: FMI, cap and share, BAU, et pour les dates suivantes: 2030, 2050, 2100, net present value 2030-2100.
