@@ -8,15 +8,16 @@
 1. Tester prix différenciés du FMI ($25/t LIC & LMIC, $50 UMIC, $75 HIC pour 2025-30, increasing at x% beyond that, where x is chosen to get us to 2+/-.1°C), et d'Equal Right: comparer le welfare avec un equal pc cap-and-trade.
 1bis. Model Cramton & Stoft (midway between grandfathering and equal pc)
 2. Year at which undiscounted aggregate EDE turns positive
-3. Réduire la taille des données de sortie.
-4. Modéliser une transition entre absence de taxe et taxe optimale pour les premières années.
-5. Compute equivalent prices / rights / transfers
-6. Décomposer les gains de bien-être
-7. Raffiner la présentation de la distribution des revenus, en utilisant les données par percentile du WID. 
-8. Estimate welfare of Peskzo, Golub & van der Mensbrugghe (2019)
-9. Modéliser en R l'apport de NICE, à savoir la désagrégation en décile-pays et les dégâts par pays.
-10. Concevoir procédure de décision entre différentes propositions d'écarts à l'allocation de base; rédiger une proposition de traité.
-11. IMACLIM?
+3. Ajouter une redistribution de la conso
+4. Réduire la taille des données de sortie.
+5. Modéliser une transition entre absence de taxe et taxe optimale pour les premières années.
+6. Compute equivalent prices / rights / transfers
+7. Décomposer les gains de bien-être
+8. Raffiner la présentation de la distribution des revenus, en utilisant les données par percentile du WID. 
+9. Estimate welfare of Peskzo, Golub & van der Mensbrugghe (2019)
+10. Modéliser en R l'apport de NICE, à savoir la désagrégation en décile-pays et les dégâts par pays.
+11. Concevoir procédure de décision entre différentes propositions d'écarts à l'allocation de base; rédiger une proposition de traité.
+12. IMACLIM?
 
 + voir les commentaires dans revenue_recycle
 
@@ -71,7 +72,23 @@
 ### Résultat
 
 
-## 3. Réduire la taille des données de sortie.
+## 3. Ajouter une redistribution de la conso
+
+### Étapes
+- Dans quantile_recycle, ajouter la possibilité d'une redistribution de la conso, prenant comme paramètres la part du PIB net à verser au monde entier (par défaut: 1%), la fraction perdue par inefficience de la redistr, les quantiles concernés et les taux auxquels ils sont taxés (par défaut: 1% pour le top 20%, 5% pour le top 10%). 
+- D'abord calculer les recettes totales et les nouvelles consos par quantile une fois la taxe prélevée. 
+- Allouer la partie mondiale proportionnellement à la population des pays et calculer la somme dispo à redistribuer par pays "conso_tax_obtained", une fois enlevée la fraction perdue par inefficience (par défaut: 10%). Si la conso_tax_obtained est négative, émettre un Warning. Exporter la liste des conso_tax_obtained/conso_totale par pays x année.
+- Pour chaque pays, redistribuer conso_tax_obtained en commençant par les plus pauvres: tant que conso_tax_obtained n'est pas épuisée, remonter les k déciles les plus pauvres au niveau du k+1 ème; puis répartir ce qui reste à part égale aux k plus pauvres. Si conso_tax_obtained était négative, faire le symétrique en partant des déciles les plus hauts (et en les taxant). 
+- TODO plus tard: permettre une répartition internationale en fonction du poverty gap
+
+### Problèmes rencontrés / observations
+
+### Où en est-on ?
+
+### Résultat
+
+
+## 4. Réduire la taille des données de sortie.
 
 ### Étapes
 - Faire un tableur avec la liste des variables, un indicateur disant si elles sont exportées, et si oui quelles années sont exportées.
@@ -86,7 +103,7 @@
 ### Résultat
 
 
-## 4. Modéliser une transition entre absence de taxe et taxe optimale pour les premières années.
+## 5. Modéliser une transition entre absence de taxe et taxe optimale pour les premières années.
 
 ### Étapes
 - Modifier le code qui calcule la taxe optimale pour un budget donné, afin d'avoir une trajectoire croissante linéaire les 5 premières années. Pour l'instant, ce code calcule le niveau initial de la taxe t0 et son taux de croissance optimaux pour atteindre un budget donné. Changer le code pour qu'il calcule le niveau de t5 et le taux de croissance optimaux, avec t1, ..., t4 interpolés linéairement entre t0 = 0 et t5.
@@ -98,7 +115,7 @@
 ### Résultat
 
 
-## 5. Compute equivalent prices / rights / transfers
+## 6. Compute equivalent prices / rights / transfers
 
 ### Étapes
 - Compute two types of equivalent prices, rights and transfers:
@@ -120,7 +137,7 @@
 ### Résultat
 
 
-## 6. Décomposer les gains de bien-être
+## 7. Décomposer les gains de bien-être
 
 ### Étapes
 - Écrire une fonction qui prend deux scénarios, par défaut le cap-and-trade with rights_proposed et le BAU.
@@ -133,6 +150,7 @@
     - amélioration totale: différence de conso_EDE
     - résidu: amélioration totale - somme(5 autres)
 - Calculer la Net Present Value de chaque variable x_t qui précède de t0 à t_max au tax de R% (t0, t_max, R sont des paramètres de la fonction avec pour défaut 2025, 2100, 3%): sum_t0^tmax(x_t/(1+R)^(t-t0))
+- Coder une option de calculer R à partir des sorties du modèles: R = rho + η * g, avec rho un paramètre (= 0 par défaut), η est déjà défini, et g: croissance moyenne de la conso EDE entre t0 et t.
 - Exporter un graphique donnant la décomposition au cours du temps pour le monde entier et pour les pays majeurs, avec des stacked barres pour tout sauf amélioration totale, qui est elle en trait plein.
 
 ### Problèmes rencontrés / observations
@@ -142,7 +160,7 @@
 ### Résultat
 
 
-## 7. Raffiner la présentation de la distribution des revenus, en utilisant les données par percentile du WID. 
+## 8. Raffiner la présentation de la distribution des revenus, en utilisant les données par percentile du WID. 
 
 ### Étapes
 - Télécharger les données du WID et lire dans leur doc / papiers de recherche la méthode qu'ils utilisent pour avoir la distribution des revenus. Si c'est pas paramétrique (comme NICE fait, i.e. partir d'un Gini pour en déduire une loi lognormale), continuer les étapes suivantes.
@@ -155,7 +173,7 @@
 ### Résultat
 
 
-## 8. Estimate welfare of Peskzo, Golub & van der Mensbrugghe (2019)
+## 9. Estimate welfare of Peskzo, Golub & van der Mensbrugghe (2019)
 
 ### Étapes
 - Trouver les sources d'émission par pays: pour charbon, pétrole, gaz, trouver les principaux pays producteurs, agréger ça en termes de "production de CO2", et définir des droits d'émission proportionnellement à la production de CO2 du pays
@@ -172,7 +190,7 @@
 ### Résultat
 
 
-## 9. Modéliser en R l'apport de NICE, à savoir la désagrégation en décile-pays et les dégâts par pays.
+## 10. Modéliser en R l'apport de NICE, à savoir la désagrégation en décile-pays et les dégâts par pays.
 
 ### Étapes
 - Réécrire le code du modèle en R.
@@ -184,7 +202,7 @@
 ### Résultat
 
 
-## 10. Concevoir procédure de décision entre différentes propositions d'écarts à l'allocation de base; rédiger une proposition de traité.
+## 11. Concevoir procédure de décision entre différentes propositions d'écarts à l'allocation de base; rédiger une proposition de traité.
 
 ### Étapes
 - Adrien: TODO
