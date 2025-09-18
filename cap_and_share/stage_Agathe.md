@@ -1,5 +1,6 @@
 ## Tâches pour Adrien
 - Mettre à jour rights_proposed
+- Expliquer méthodo en annexe
 
 ## Tâches à effectuer
 
