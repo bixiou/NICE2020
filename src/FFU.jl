@@ -9,7 +9,7 @@
 # Activate the project and make sure packages are installed.
 using Pkg
 Pkg.activate(joinpath(@__DIR__, ".."))
-Pkg.resolve() # To resolve inconsistencies between Manifest.toml and Project.toml
+#Pkg.resolve() # To resolve inconsistencies between Manifest.toml and Project.toml
 Pkg.instantiate()
 using Mimi, MimiFAIRv2, DataFrames, CSVFiles, CSV
 
@@ -306,8 +306,8 @@ nice2020_differenciated_prices = MimiNICE2020.create_nice2020()
 
 # Creation of the country x year matrix of carbon tax rates
 
-years = collect(dim_keys(base_model, :time))
-countries = collect(dim_keys(base_model, :country))
+years = collect(dim_keys(nice2020_differenciated_prices, :time))
+countries = collect(dim_keys(nice2020_differenciated_prices, :country))
 
 diff_country_tax = zeros(Float64, length(years), length(countries))
 
@@ -341,7 +341,9 @@ for t in years_index_post2030
 end
 
 
+
 global_recycle_share            = 0
+switch_scenario = :All_World  # Choice of scenario by name (:All_World, :All_Except_Oil_Countries, :Optimistic, :Generous_EU, :Africa_Eu)
 update_param!(nice2020_differenciated_prices, :switch_custom_transfers, 0)
 update_param!(nice2020_differenciated_prices, :switch_recycle, 1)
 update_param!(nice2020_differenciated_prices, :switch_global_recycling, 0)
@@ -349,9 +351,9 @@ update_param!(nice2020_differenciated_prices, :revenue_recycle, :global_recycle_
 update_param!(nice2020_differenciated_prices, :revenue_recycle, :switch_global_pc_recycle, 0)
 
 update_param!(nice2020_differenciated_prices, :abatement, :control_regime, 6) # Switch for emissions control regime  1:"global_carbon_tax", 2:"country_carbon_tax", 3:"country_abatement_rate"
-update_param!(nice2020_differenciated_prices, :switch_footprint, switch_footprint)
-update_param!(nice2020_differenciated_prices, :switch_recycle, switch_recycle)
-update_param!(nice2020_differenciated_prices, :switch_transfers_affect_growth, switch_transfers_affect_growth)
+update_param!(nice2020_differenciated_prices, :abatement, :diff_country_tax, diff_country_tax)
+update_param!(nice2020_differenciated_prices, :switch_footprint, 1)
+update_param!(nice2020_differenciated_prices, :switch_transfers_affect_growth, 1)
 update_param!(nice2020_differenciated_prices, :policy_scenario, MimiNICE2020.scenario_index[switch_scenario])
 
 run(nice2020_differenciated_prices)
@@ -359,59 +361,6 @@ run(nice2020_differenciated_prices)
 # Save the run (see helper functions for saving function details)
 #MimiNICE2020.save_nice2020_output(nice2020_global_cap_share, output_directory_uniform, revenue_recycling=false)
 dir=joinpath(@__DIR__, "..", "cap_and_share", "output", "differenciated_prices")
-mkpath(dir)  # create directory if it does not exist
+#mkpath(dir)  # create directory if it does not exist
 MimiNICE2020.save_nice2020_output(nice2020_differenciated_prices, joinpath(@__DIR__, "..", "cap_and_share", "output", "differenciated_prices"))
 
-
-
-
-
-
-##Second version 
-
-years_model = collect(dim_keys(nice2020_differenciated_prices, :time))
-countries_model = dim_keys(nice2020_differenciated_prices, :country)
-T = length(years_model)
-C = length(countries_model)
-
-# Convert string country lists to Symbol for comparaison
-LIC_LMIC_sym = Symbol.(LIC_LMIC)
-UMIC_sym     = Symbol.(UMIC)
-HIC_sym      = Symbol.(HIC)
-
-# Créer la matrice complète
-diff_country_tax_mat = zeros(Float64, T, C)
-
-# Indices pour les années 2025-2030
-years_idx = findall(y -> 2025 <= y <= 2030, years_model)
-
-for t in years_idx
-    for (c_idx, country) in enumerate(countries_model)
-        if country in LIC_LMIC_sym
-            diff_country_tax_mat[t, c_idx] = tax_lic_lmic
-        elseif country in UMIC_sym
-            diff_country_tax_mat[t, c_idx] = tax_umic
-        elseif country in HIC_sym
-            diff_country_tax_mat[t, c_idx] = tax_hic
-        end
-    end
-end
-
-# Croissance post-2030
-growth_rate = 0.05
-years_idx_post2030 = findall(y -> y > 2030, years_model)
-for t in years_idx_post2030
-    for c_idx in 1:C
-        diff_country_tax_mat[t, c_idx] = diff_country_tax_mat[t-1, c_idx] * (1 + growth_rate)
-    end
-end
-
-# Injecter dans le modèle
-
-update_param!(nice2020_differenciated_prices, :abatement, :control_regime, 6) 
-update_param!(nice2020_differenciated_prices, :abatement, :diff_country_tax, diff_country_tax_mat)
- # différenciated carbon prices
-run(nice2020_differenciated_prices)
-dir=joinpath(@__DIR__, "..", "cap_and_share", "output", "differenciated_prices")
-mkpath(dir)  # create directory if it does not exist
-MimiNICE2020.save_nice2020_output(nice2020_differenciated_prices, joinpath(@__DIR__, "..", "cap_and_share", "output", "differenciated_prices"))
