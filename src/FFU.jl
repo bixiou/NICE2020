@@ -286,20 +286,16 @@ MimiNICE2020.save_nice2020_output(nice2020_global_cap_share, joinpath(@__DIR__, 
 ###########################
 
 #Creation of groups according to the level of development (World Bank classification)
+#Venezuela (VEN) and Ethiopia (ETH) are excluded from the classification, we chose to classify them as UMIC and LMIC respectively according to their GDP per capita
 
 # Low income countries (LIC) and Lower middle income countries (LMIC)
 
-LIC_LMIC =  ["AFG", "AGO", "BGD", "BEN", "BTN", "BOL", "BFA", "BDI", "KHM", "CMR", "CAF", "TCD", "COM", "COD", "COG", "CIV", "DJI", "EGY", "ERI", "SWZ", "GMB", "GHA", "GIN", "GNB", "HTI", "HND", "IND", "JOR", "KEN", "KIR", "PRK", "KGZ", "LAO", "LBN", "LSO", "LBR", "MDG", "MWI", "MLI", "MRT", "FSM", "MAR", "MOZ", "MMR", "NAM", "NPL", "NIC", "NER", "NGA", "PAK", "PNG", "PHL", "RWA", "STP", "SEN", "SLE", "SLB", "SOM", "SSD", "LKA", "SDN", "SYR", "TJK", "TZA", "TLS", "TGO", "TUN", "UGA", "UZB", "VUT", "VNM", "PSE", "YEM", "ZMB", "ZWE"]
+#We load the list of LIC, LMIC, UMIC and HIC countries from parameters.jl
+include("../data/parameters.jl")
+
+#Creation of the differenciated tax
 tax_lic_lmic = 25.0 # $/tCO2 for 2025-2030 (checked that same unit as global_co2_tax)
-
-# Upper middle income countries (UMIC)
-
-UMIC = ["ALB", "DZA", "ARG", "ARM", "AZE", "BLR", "BLZ", "BIH", "BWA", "BRA", "CPV", "CHN", "COL", "CUB", "DMA", "DOM", "ECU", "SLV", "GNQ", "FJI", "GAB", "GEO", "GRD", "GTM", "IDN", "IRN", "IRQ", "JAM", "KAZ", "XKX", "LBY", "MYS", "MDV", "MHL", "MUS", "MEX", "MDA", "MNG", "MNE", "MKD", "PRY", "PER", "WSM", "SRB", "ZAF", "LCA", "VCT", "SUR", "THA", "TON", "TUR", "TKM", "TUV", "UKR"]
 tax_umic = 50.0 # $/tCO2 for 2025-2030
-
-# High income countries (HIC)
-
-HIC = ["ASM", "AND", "ATG", "ABW", "AUS", "AUT", "BHS", "BHR", "BRB", "BEL", "BMU", "VGB", "BRN", "BGR", "CAN", "CYM", "CHI", "CHL", "CRI", "HRV", "CUW", "CYP", "CZE", "DNK", "EST", "FRO", "FIN", "FRA", "PYF", "DEU", "GIB", "GRC", "GRL", "GUM", "GUY", "HKG", "HUN", "ISL", "IRL", "IMN", "ISR", "ITA", "JPN", "KOR", "KWT", "LVA", "LIE", "LTU", "LUX", "MAC", "MLT", "MCO", "NRU", "NLD", "NCL", "NZL", "MNP", "NOR", "OMN", "PLW", "PAN", "POL", "PRT", "PRI", "QAT", "ROU", "RUS", "SMR", "SAU", "SYC", "SGP", "SXM", "SVK", "SVN", "ESP", "KNA", "MAF", "SWE", "CHE", "TWN", "TTO", "TCA", "ARE", "GBR", "USA", "URY", "VIR"]
 tax_hic = 75.0 # $/tCO2 for 2025-2030
 
 nice2020_differenciated_prices = MimiNICE2020.create_nice2020()
@@ -332,8 +328,8 @@ for t in years_index
 end
 
 years_index_post2030 = findall(y -> y > 2030, years)
-# Growth rate of the tax beyond 2030, chosen to reach approx 2°C
-growth_rate = 0.05
+# Growth rate of the tax beyond 2030, chosen to reach approx 2°C => target of 2.02°C in 2100
+growth_rate = 0.036
 for t in years_index_post2030
     for (c_idx, country) in enumerate(countries)
         diff_country_tax[t, c_idx] = diff_country_tax[t-1, c_idx] * (1 + growth_rate)
@@ -347,12 +343,12 @@ switch_scenario = :All_World  # Choice of scenario by name (:All_World, :All_Exc
 update_param!(nice2020_differenciated_prices, :switch_custom_transfers, 0)
 update_param!(nice2020_differenciated_prices, :switch_recycle, 1)
 update_param!(nice2020_differenciated_prices, :switch_global_recycling, 0)
-update_param!(nice2020_differenciated_prices, :revenue_recycle, :global_recycle_share,  ones(nb_country) * global_recycle_share ) 
+update_param!(nice2020_differenciated_prices, :revenue_recycle, :global_recycle_share, ones(nb_country) * global_recycle_share) 
 update_param!(nice2020_differenciated_prices, :revenue_recycle, :switch_global_pc_recycle, 0)
 
-update_param!(nice2020_differenciated_prices, :abatement, :control_regime, 6) # Switch for emissions control regime  1:"global_carbon_tax", 2:"country_carbon_tax", 3:"country_abatement_rate"
-update_param!(nice2020_differenciated_prices, :abatement, :diff_country_tax, diff_country_tax)
-update_param!(nice2020_differenciated_prices, :switch_footprint, 1)
+update_param!(nice2020_differenciated_prices, :abatement, :control_regime, 4) # Switch for emissions control regime  1:"global_carbon_tax", 2:"country_carbon_tax", 3:"country_abatement_rate"
+update_param!(nice2020_differenciated_prices, :abatement, :direct_country_tax, diff_country_tax)
+update_param!(nice2020_differenciated_prices, :switch_footprint, 0)
 update_param!(nice2020_differenciated_prices, :switch_transfers_affect_growth, 1)
 update_param!(nice2020_differenciated_prices, :policy_scenario, MimiNICE2020.scenario_index[switch_scenario])
 

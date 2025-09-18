@@ -144,6 +144,17 @@ club_country = transpose(reduce(hcat,[
 ]))
 
 #-----------------------------------------
+# Load World Bank income group classification
+#----------------------------------------
+#Venezuela (VEN) and Ethiopia (ETH) are excluded from the classification, we chose to classify them as UMIC and LMIC respectively according to their GDP per capita
+
+LIC_LMIC =  ["AFG", "AGO", "BGD", "BEN", "BTN", "BOL", "BFA", "BDI", "KHM", "CMR", "CAF", "TCD", "COM", "COD", "COG", "CIV", "DJI", "EGY", "ERI", "ETH","SWZ", "GMB", "GHA", "GIN", "GNB", "HTI", "HND", "IND", "JOR", "KEN", "KIR", "PRK", "KGZ", "LAO", "LBN", "LSO", "LBR", "MDG", "MWI", "MLI", "MRT", "FSM", "MAR", "MOZ", "MMR", "NAM", "NPL", "NIC", "NER", "NGA", "PAK", "PNG", "PHL", "RWA", "STP", "SEN", "SLE", "SLB", "SOM", "SSD", "LKA", "SDN", "SYR", "TJK", "TZA", "TLS", "TGO", "TUN", "UGA", "UZB", "VUT", "VNM", "PSE", "YEM", "ZMB", "ZWE"]
+LIC = ["AFG", "BFA", "BDI", "CAF", "TCD", "COD", "ERI", "GMB", "GNB", "PRK", "LBR", "MDG", "MWI", "MLI", "MOZ", "NER", "RWA", "SLE", "SOM", "SSD", "SDN", "SYR", "TGO", "UGA", "YEM"]
+LMIC = ["AGO", "BGD", "BEN", "BTN", "BOL", "KHM", "CMR", "COM", "COG", "CIV", "DJI", "EGY", "ETH","SWZ", "GHA", "GIN", "HTI", "HND", "IND", "JOR", "KEN", "KIR", "KGZ", "LAO", "LBN", "LSO", "MRT", "FSM", "MAR", "MMR", "NAM", "NPL", "NIC", "NGA", "PAK", "PNG", "PHL", "STP", "SEN", "SLB", "LKA", "TJK", "TZA", "TLS", "TUN", "UZB", "VUT", "VNM", "PSE", "ZMB", "ZWE"]
+UMIC = ["ALB", "DZA", "ARG", "ARM", "AZE", "BLR", "BLZ", "BIH", "BWA", "BRA", "CPV", "CHN", "COL", "CUB", "DMA", "DOM", "ECU", "SLV", "GNQ", "FJI", "GAB", "GEO", "GRD", "GTM", "IDN", "IRN", "IRQ", "JAM", "KAZ", "XKX", "LBY", "MYS", "MDV", "MHL", "MUS", "MEX", "MDA", "MNG", "MNE", "MKD", "PRY", "PER", "WSM", "SRB", "ZAF", "LCA", "VCT", "SUR", "THA", "TON", "TUR", "TKM", "TUV", "UKR", "VEN"]
+HIC = ["ASM", "AND", "ATG", "ABW", "AUS", "AUT", "BHS", "BHR", "BRB", "BEL", "BMU", "VGB", "BRN", "BGR", "CAN", "CYM", "CHI", "CHL", "CRI", "HRV", "CUW", "CYP", "CZE", "DNK", "EST", "FRO", "FIN", "FRA", "PYF", "DEU", "GIB", "GRC", "GRL", "GUM", "GUY", "HKG", "HUN", "ISL", "IRL", "IMN", "ISR", "ITA", "JPN", "KOR", "KWT", "LVA", "LIE", "LTU", "LUX", "MAC", "MLT", "MCO", "NRU", "NLD", "NCL", "NZL", "MNP", "NOR", "OMN", "PLW", "PAN", "POL", "PRT", "PRI", "QAT", "ROU", "RUS", "SMR", "SAU", "SYC", "SGP", "SXM", "SVK", "SVN", "ESP", "KNA", "MAF", "SWE", "CHE", "TWN", "TTO", "TCA", "ARE", "GBR", "USA", "URY", "VIR"]
+
+#-----------------------------------------
 # Load economic and emissions calibration
 #----------------------------------------
 
