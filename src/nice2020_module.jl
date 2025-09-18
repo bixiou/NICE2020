@@ -278,4 +278,5 @@ function create_nice2020()
 	# Return model.
 	return m
 end
+
 end #module

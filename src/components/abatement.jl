@@ -24,7 +24,6 @@
     policy_scenario         = Parameter()                       # Policy scenario for the country, used to determine which countries are in the club
     club_country            = Parameter(index=[scenario, country])  # Countries in the club for each scenario (1) or not (0)
     direct_country_tax      = Parameter(index=[time, country])
-    diff_country_tax        = Parameter(index=[time, country])  # Differenciated carbon tax according to the level of development of the country
     rights_mat         = Parameter(index=[time, country])    # allocated rights (GtCO2)
 
     θ1                 = Variable(index=[time, country])    # Multiplicative parameter of abatement cost function. Equal to ABATEFRAC at 100% mitigation
@@ -86,11 +85,6 @@
                   0.0), 1.0) * p.club_country[p.policy_scenario,c] * (maximum(p.rights_mat[t,:]) > -1)
                 v.country_carbon_tax[t,c] =  p.pbacktime[t] * v.μ[t,c]^(p.θ2 - 1.0)
 
-            elseif (p.control_regime==6) # differenciated carbon prices according to the level of development of the country
-               v.country_carbon_tax[t,c] = p.diff_country_tax[t,c]
-                v.μ[t,c] = min(max(
-                  (v.country_carbon_tax[t,c] / p.pbacktime[t])^(1/(p.θ2-1)),
-                  0.0), 1.0)
             end
         end
 
