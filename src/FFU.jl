@@ -360,3 +360,39 @@ dir=joinpath(@__DIR__, "..", "cap_and_share", "output", "differenciated_prices")
 #mkpath(dir)  # create directory if it does not exist
 MimiNICE2020.save_nice2020_output(nice2020_differenciated_prices, joinpath(@__DIR__, "..", "cap_and_share", "output", "differenciated_prices"))
 
+#Code to retrieve the needed values :
+
+#a) cons_EDE_country
+imf_cons = getdataframe(nice2020_differenciated_prices, :welfare=>:cons_EDE_country)
+filtre_imf_cons = filter(row -> row.time in (2030, 2050, 2100) && row.country in (:IND, :NGA, :CHN, :MNG, :USA, :FRA, :DEU, :COD, :RUS), imf_cons)
+println(filtre_imf_cons)
+
+bau_cons = getdataframe(bau_model, :welfare=>:cons_EDE_country)
+filtre_bau_cons = filter(row -> row.time in (2030, 2050, 2100) && row.country in (:IND, :NGA, :CHN, :MNG, :USA, :FRA, :DEU, :COD, :RUS), bau_cons)
+println(filtre_bau_cons)
+
+ffu_cons = getdataframe(nice2020_ffu, :welfare=>:cons_EDE_country)
+filtre_ffu_cons = filter(row -> row.time in (2030, 2050, 2100) && row.country in (:IND, :NGA, :CHN, :MNG, :USA, :FRA, :DEU, :COD, :RUS), ffu_cons)
+println(filtre_ffu_cons)
+
+global_cap_share_cons = getdataframe(nice2020_global_cap_share, :welfare=>:cons_EDE_country)
+filtre_global_cap_share_cons = filter(row -> row.time in (2030, 2050, 2100) && row.country in (:IND, :NGA, :CHN, :MNG, :USA, :FRA, :DEU, :COD, :RUS), global_cap_share_cons)
+println(filtre_global_cap_share_cons)
+
+#b) cons_EDE_global
+getdataframe(nice2020_differenciated_prices, :welfare=>:cons_EDE_global)[[11, 31, 81], :]
+getdataframe(bau_model, :welfare=>:cons_EDE_global)[[11, 31, 81], :]
+getdataframe(nice2020_ffu, :welfare=>:cons_EDE_global)[[11, 31, 81], :]
+getdataframe(nice2020_global_cap_share, :welfare=>:cons_EDE_global)[[11, 31, 81], :]
+
+#c) Global temperature in 2100
+getdataframe(nice2020_differenciated_prices, :temperature=>:T)[81, :]
+getdataframe(bau_model, :temperature=>:T)[81, :]
+getdataframe(nice2020_global_cap_share, :temperature=>:T)[81, :]
+getdataframe(nice2020_ffu, :temperature=>:T)[81, :]
+
+#d) Transfers in India in 2050
+filtre_trans_bau = filter(row -> row.time == 2050 && row.country == :IND, getdataframe(bau_model, :revenue_recycle=>:transfer))
+filtre_trans_global = filter(row -> row.time == 2050 && row.country == :IND, getdataframe(nice2020_global_cap_share, :revenue_recycle=>:transfer))
+filtre_trans_ffu = filter(row -> row.time == 2050 && row.country == :IND, getdataframe(nice2020_ffu, :revenue_recycle=>:transfer))
+filtre_trans_imf = filter(row -> row.time == 2050 && row.country == :IND, getdataframe(nice2020_differenciated_prices, :revenue_recycle=>:transfer))
