@@ -285,11 +285,6 @@ MimiNICE2020.save_nice2020_output(nice2020_global_cap_share, joinpath(@__DIR__, 
 # 6. differenciated_prices: FMI proposal - $25/t LIC & LMIC, $50 UMIC, $75 HIC pour 2025-30, increasing at x% beyond that, where x is chosen to get us to 2+/-.1°C
 ###########################
 
-#Creation of groups according to the level of development (World Bank classification)
-#Venezuela (VEN) and Ethiopia (ETH) are excluded from the classification, we chose to classify them as UMIC and LMIC respectively according to their GDP per capita
-
-# Low income countries (LIC) and Lower middle income countries (LMIC)
-
 #We load the list of LIC, LMIC, UMIC and HIC countries from parameters.jl
 include("../data/parameters.jl")
 
@@ -384,30 +379,31 @@ nice2020_stoft = MimiNICE2020.create_nice2020()
 switch_scenario = :All_World  # Choice of scenario by name (:All_World, :All_Except_Oil_Countries, :Optimistic, :Generous_EU, :Africa_Eu)
 global_recycle_share            = 0.1
 
-
-update_param!(nice2020_global_cap_share, :switch_custom_transfers, 0)
-update_param!(nice2020_global_cap_share, :switch_recycle, 1)
-update_param!(nice2020_global_cap_share, :switch_global_recycling, 1)
-update_param!(nice2020_global_cap_share, :revenue_recycle, :global_recycle_share,  ones(nb_country) * global_recycle_share ) 
-update_param!(nice2020_global_cap_share, :revenue_recycle, :switch_global_pc_recycle, 1)
+update_param!(nice2020_stoft, :switch_custom_transfers, 0)
+update_param!(nice2020_stoft, :switch_recycle, 1)
+update_param!(nice2020_stoft, :switch_global_recycling, 1)
+update_param!(nice2020_stoft, :revenue_recycle, :global_recycle_share,  ones(nb_country) * global_recycle_share ) 
+update_param!(nice2020_stoft, :revenue_recycle, :switch_global_pc_recycle, 1)
 # Set uniform global carbon tax rates and run model.
-update_param!(nice2020_global_cap_share, :abatement, :control_regime, 1) # Switch for emissions control regime  1:"global_carbon_tax", 2:"country_carbon_tax", 3:"country_abatement_rate"
-update_param!(nice2020_global_cap_share, :abatement, :global_carbon_tax, global_co2_tax)
-update_param!(nice2020_global_cap_share, :switch_footprint, 1)
-update_param!(nice2020_global_cap_share, :switch_recycle, switch_recycle)
-update_param!(nice2020_global_cap_share, :switch_transfers_affect_growth, 1)
-update_param!(nice2020_global_cap_share, :policy_scenario, MimiNICE2020.scenario_index[switch_scenario])
-# update_param!(nice2020_global_cap_share, :revenue_recycle, :rights_proposed, rights_proposed_mat)
+update_param!(nice2020_stoft, :abatement, :control_regime, 1) # Switch for emissions control regime  1:"global_carbon_tax", 2:"country_carbon_tax", 3:"country_abatement_rate"
+update_param!(nice2020_stoft, :abatement, :global_carbon_tax, global_co2_tax)
+update_param!(nice2020_stoft, :switch_footprint, 1)
+update_param!(nice2020_stoft, :switch_transfers_affect_growth, 1)
+update_param!(nice2020_stoft, :policy_scenario, MimiNICE2020.scenario_index[switch_scenario])
+# update_param!(nice2020_stoft, :revenue_recycle, :rights_proposed, rights_proposed_mat)
 
-run(nice2020_global_cap_share)
+run(nice2020_stoft)
 
 # Save the run (see helper functions for saving function details)
 #MimiNICE2020.save_nice2020_output(nice2020_global_cap_share, output_directory_uniform, revenue_recycling=false)
-MimiNICE2020.save_nice2020_output(nice2020_global_cap_share, joinpath(@__DIR__, "..", "cap_and_share", "output", "global_cap_share"))
+dir_b=joinpath(@__DIR__, "..", "cap_and_share", "output", "Cramton_Stoft")
+mkpath(dir_b)
+MimiNICE2020.save_nice2020_output(nice2020_stoft, joinpath(@__DIR__, "..", "cap_and_share", "output", "Cramton_Stoft"))
 
 ###########################
 #Code to retrieve the needed values :
 ###########################
+
 #a) cons_EDE_country
 imf_cons = getdataframe(nice2020_differenciated_prices, :welfare=>:cons_EDE_country)
 filtre_imf_cons = filter(row -> row.time in (2030, 2050, 2100) && row.country in (:IND, :NGA, :CHN, :MNG, :USA, :FRA, :DEU, :COD, :RUS), imf_cons)
@@ -426,19 +422,157 @@ filtre_global_cap_share_cons = filter(row -> row.time in (2030, 2050, 2100) && r
 println(filtre_global_cap_share_cons)
 
 #b) cons_EDE_global
-getdataframe(nice2020_differenciated_prices, :welfare=>:cons_EDE_global)[[11, 31, 81], :]
-getdataframe(bau_model, :welfare=>:cons_EDE_global)[[11, 31, 81], :]
-getdataframe(nice2020_ffu, :welfare=>:cons_EDE_global)[[11, 31, 81], :]
-getdataframe(nice2020_global_cap_share, :welfare=>:cons_EDE_global)[[11, 31, 81], :]
+global_cons_imf = getdataframe(nice2020_differenciated_prices, :welfare=>:cons_EDE_global)[[11, 31, 81], :]
+global_cons_bau = getdataframe(bau_model, :welfare=>:cons_EDE_global)[[11, 31, 81], :]
+global_cons_ffu = getdataframe(nice2020_ffu, :welfare=>:cons_EDE_global)[[11, 31, 81], :]
+global_cons_cap_share = getdataframe(nice2020_global_cap_share, :welfare=>:cons_EDE_global)[[11, 31, 81], :]
 
-#c) Global temperature in 2100
-getdataframe(nice2020_differenciated_prices, :temperature=>:T)[81, :]
-getdataframe(bau_model, :temperature=>:T)[81, :]
-getdataframe(nice2020_global_cap_share, :temperature=>:T)[81, :]
-getdataframe(nice2020_ffu, :temperature=>:T)[81, :]
+# c) Global temperature in 2100
+imf_temp = getdataframe(nice2020_differenciated_prices, :temperature=>:T)[81, :]
+bau_temp = getdataframe(bau_model, :temperature=>:T)[81, :]
+capshare_temp = getdataframe(nice2020_global_cap_share, :temperature=>:T)[81, :]
+ffu_temp = getdataframe(nice2020_ffu, :temperature=>:T)[81, :]
+
 
 #d) Transfers in India in 2050
-filtre_trans_bau = filter(row -> row.time == 2050 && row.country == :IND, getdataframe(bau_model, :revenue_recycle=>:transfer))
-filtre_trans_global = filter(row -> row.time == 2050 && row.country == :IND, getdataframe(nice2020_global_cap_share, :revenue_recycle=>:transfer))
-filtre_trans_ffu = filter(row -> row.time == 2050 && row.country == :IND, getdataframe(nice2020_ffu, :revenue_recycle=>:transfer))
-filtre_trans_imf = filter(row -> row.time == 2050 && row.country == :IND, getdataframe(nice2020_differenciated_prices, :revenue_recycle=>:transfer))
+india_2050_bau = filter(row -> row.time == 2050 && row.country == :IND, getdataframe(bau_model, :revenue_recycle=>:transfer))
+india_2050_global = filter(row -> row.time == 2050 && row.country == :IND, getdataframe(nice2020_global_cap_share, :revenue_recycle=>:transfer))
+india_2050_ffu = filter(row -> row.time == 2050 && row.country == :IND, getdataframe(nice2020_ffu, :revenue_recycle=>:transfer))
+india_2050_imf = filter(row -> row.time == 2050 && row.country == :IND, getdataframe(nice2020_differenciated_prices, :revenue_recycle=>:transfer))
+
+# ======================================================
+# Organisation en tableau Excel
+# ======================================================
+
+using CSV
+
+# Fonction pour construire le DataFrame complet
+function build_results_csv(bau, capshare, ffu, imf, stoft, global_bau, global_capshare, global_ffu, global_imf, global_stoft, bautemp, capsharetemp, ffutemp, imftemp, stofttemp, india_bau, india_global, india_ffu, india_imf, india_stoft)
+    df = DataFrame()
+    countries = (:IND, :NGA, :CHN, :MNG, :USA, :FRA, :DEU, :COD, :RUS)
+    years = (2030, 2050, 2100)
+
+    # Consommation EDE par pays
+    for t in years
+        for c in countries
+            BAU_val = bau[(bau.time .== t) .& (bau.country .== c), :cons_EDE_country][1]
+            CapShare_val = capshare[(capshare.time .== t) .& (capshare.country .== c), :cons_EDE_country][1]
+            FFU_val = ffu[(ffu.time .== t) .& (ffu.country .== c), :cons_EDE_country][1]
+            IMF_val = imf[(imf.time .== t) .& (imf.country .== c), :cons_EDE_country][1]
+            STOFT_val = stoft[(stoft.time .== t) .& (stoft.country .== c), :cons_EDE_country][1]
+            Var_Rate_FFU_IMF_val = (IMF_val-FFU_val)/FFU_val * 100
+            Var_Rate_CapShare_STOFT_val = (STOFT_val-CapShare_val)/CapShare_val * 100
+            push!(df, (
+                Indicator = "Consumption EDE (countries)",
+                Year = t,
+                Country = String(c),
+                BAU = BAU_val,
+                CapShare = CapShare_val,
+                FFU = FFU_val,
+                IMF = IMF_val,
+                STOFT = STOFT_val,
+                Var_Rate_FFU_IMF = Var_Rate_FFU_IMF_val,
+                Var_Rate_CapShare_STOFT = Var_Rate_CapShare_STOFT_val
+            ))
+        end
+    end
+
+    # Consommation EDE globale
+    for t in years
+        BAU_val = global_bau[(global_bau.time .== t), :cons_EDE_global][1]
+        CapShare_val = global_capshare[(global_capshare.time .== t), :cons_EDE_global][1]
+        FFU_val = global_ffu[(global_ffu.time .== t), :cons_EDE_global][1]
+        IMF_val = global_imf[(global_imf.time .== t), :cons_EDE_global][1]
+        STOFT_val = global_stoft[(global_stoft.time .== t), :cons_EDE_global][1]
+        Var_Rate_FFU_IMF_val = (IMF_val-FFU_val)/FFU_val * 100
+        Var_Rate_CapShare_STOFT_val = (STOFT_val-CapShare_val)/CapShare_val * 100
+        
+        push!(df, (
+            Indicator = "Consumption EDE (Global)",
+            Year = t,
+            Country = "Global",
+            BAU = BAU_val,
+            CapShare = CapShare_val,
+            FFU = FFU_val,
+            IMF = IMF_val,
+            STOFT = STOFT_val,
+            Var_Rate_FFU_IMF = Var_Rate_FFU_IMF_val,
+            Var_Rate_CapShare_STOFT = Var_Rate_CapShare_STOFT_val
+        ))
+    end
+
+    for t in years
+        BAU_val = bautemp.T
+        CapShare_val = capsharetemp.T
+        FFU_val = ffutemp.T
+        IMF_val = imftemp.T
+        STOFT_val = stofttemp.T
+        Var_Rate_FFU_IMF_val = (IMF_val-FFU_val)/FFU_val * 100
+        Var_Rate_CapShare_STOFT_val = (STOFT_val-CapShare_val)/CapShare_val * 100
+        if t ==2100
+            push!(df, (
+                Indicator = "Global Temperature (2100)",
+                Year = t,
+                Country = "Global",
+                BAU = BAU_val,
+                CapShare = CapShare_val,
+                FFU = FFU_val,
+                IMF = IMF_val,
+                STOFT = STOFT_val,
+                Var_Rate_FFU_IMF = Var_Rate_FFU_IMF_val,
+                Var_Rate_CapShare_STOFT = Var_Rate_CapShare_STOFT_val
+            ))
+        end
+        
+        if t == 2050
+            BAU_val = india_bau[(india_bau.time .== t) .& (india_bau.country .== :IND), :transfer][1]
+            CapShare_val = india_global[(india_global.time .== t) .& (india_global.country .== :IND), :transfer][1]
+            FFU_val = india_ffu[(india_ffu.time .== t) .& (india_ffu.country .== :IND), :transfer][1]
+            IMF_val = india_imf[(india_imf.time .== t) .& (india_imf.country .== :IND), :transfer][1]
+            STOFT_val = india_stoft[(india_stoft.time .== t) .& (india_stoft.country .== :IND), :transfer][1]
+            Var_Rate_FFU_IMF_val = (IMF_val-FFU_val)/FFU_val * 100
+            Var_Rate_CapShare_STOFT_val = (STOFT_val-CapShare_val)/CapShare_val * 100
+            push!(df, (
+                Indicator = "Transfers India (2050)",
+                Year = t,
+                Country = "IND",
+                BAU = BAU_val,
+                CapShare = CapShare_val,
+                FFU = FFU_val,
+                IMF = IMF_val,
+                STOFT = STOFT_val,
+                Var_Rate_FFU_IMF = Var_Rate_FFU_IMF_val,
+                Var_Rate_CapShare_STOFT = Var_Rate_CapShare_STOFT_val
+            ))
+        end
+    end    
+
+
+    return df
+end
+
+# Création du DataFrame complet
+results = build_results_csv(bau_cons, 
+global_cap_share_cons, 
+ffu_cons, 
+imf_cons,
+filter(row -> row.time in (2030, 2050, 2100) && row.country in (:IND, :NGA, :CHN, :MNG, :USA, :FRA, :DEU, :COD, :RUS), getdataframe(nice2020_stoft, :welfare=>:cons_EDE_country)),
+global_cons_bau, 
+global_cons_cap_share, 
+global_cons_ffu, 
+global_cons_imf,
+getdataframe(nice2020_stoft, :welfare=>:cons_EDE_global)[[11, 31, 81], :],
+bau_temp, 
+capshare_temp, 
+ffu_temp,
+imf_temp,
+getdataframe(nice2020_stoft, :temperature=>:T)[81, :],
+india_2050_bau, 
+india_2050_global, 
+india_2050_ffu, 
+india_2050_imf,
+filter(row -> row.time == 2050 && row.country == :IND, getdataframe(nice2020_stoft, :revenue_recycle=>:transfer)))
+
+# Sauvegarde finale dans le CSV
+output_file = "/Users/agathe/Desktop/Cired/NICE2020/cap_and_share/output/comparison_output.csv"
+CSV.write(output_file, results)
