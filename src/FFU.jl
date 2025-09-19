@@ -401,6 +401,74 @@ mkpath(dir_b)
 MimiNICE2020.save_nice2020_output(nice2020_stoft, joinpath(@__DIR__, "..", "cap_and_share", "output", "Cramton_Stoft"))
 
 ###########################
+#Year at which consumption_EDE becomes higher than consumption_capita :
+###########################
+
+#On compare la consommation EDE (exprimé en 10^3 $/pers/year) avec la consommation par tête (exprimé en 10^3 $/pers/year) pour chaque pays et chaque scénario.
+
+#Creation of a function that returns the year at which cons_EDE_country > cons_capita
+
+function year_EDE_higher_than_capita(model)
+    countries = dim_keys(model, :country)
+    years = dim_keys(model, :time)
+    df = DataFrame(country = String[], year = Int64[])
+    conso_pc = getdataframe(model, :quantile_recycle, :CPC_post)
+    conso_pc_global = getdataframe(model, :quantile_recycle, :CPC_post_global)
+    conso_EDE = getdataframe(model, :welfare, :cons_EDE_country)
+    conso_EDE_global = getdataframe(model, :welfare, :cons_EDE_global)
+    for t in years
+        for c in countries
+            conso_pc_val = conso_pc[(conso_pc.time .== t) .& (conso_pc.country .== c), :CPC_post][1]
+            conso_EDE_val = conso_EDE[(conso_EDE.time .== t) .& (conso_EDE.country .== c), :cons_EDE_country][1]
+            if conso_EDE_val > conso_pc_val
+                push!(df, (string(c), t))
+                break
+            end
+        end
+    end
+
+    for t in years
+        conso_pc_global_val = conso_pc_global[conso_pc_global.time .== t, :CPC_post_global][1]
+        conso_EDE_global_val = conso_EDE_global[conso_EDE_global.time .== t, :cons_EDE_global][1]
+        if conso_EDE_global_val > conso_pc_global_val
+            push!(df, ("Global", t))
+            break
+        end
+    end
+    
+    return df
+end
+
+println(year_EDE_higher_than_capita(nice2020_ffu))
+
+#TEST (à supprimer lundi)
+conso_pc_test = getdataframe(nice2020_ffu, :quantile_recycle, :CPC_post)
+conso_EDE_test = getdataframe(nice2020_ffu, :welfare, :cons_EDE_country)
+conso_pc_val_test = conso_pc_test[(conso_pc_test.time .== 2100) .& (conso_pc_test.country .== :FRA), :CPC_post][1]
+conso_EDE_val_test = conso_EDE_test[(conso_EDE_test.time .== 2100) .& (conso_EDE_test.country .== :FRA), :cons_EDE_country][1]
+
+countries = dim_keys(nice2020_ffu, :country)
+years = dim_keys(nice2020_ffu, :time)
+df_test = DataFrame(country = String[], year = Int64[])
+conso_pc_test = getdataframe(nice2020_ffu, :quantile_recycle, :CPC_post)
+conso_pc_global_test = getdataframe(nice2020_ffu, :quantile_recycle, :CPC_post_global)
+conso_EDE_test = getdataframe(nice2020_ffu, :welfare, :cons_EDE_country)
+conso_EDE_global_test = getdataframe(nice2020_ffu, :welfare, :cons_EDE_global)
+for t in years
+    for c in countries
+        conso_pc_val = conso_pc_test[(conso_pc_test.time .== t) .& (conso_pc_test.country .== c), :CPC_post][1]
+        conso_EDE_val = conso_EDE_test[(conso_EDE_test.time .== t) .& (conso_EDE_test.country .== c), :cons_EDE_country][1]
+        if conso_EDE_val < conso_pc_val
+            push!(df_test, (string(c), t))
+        end
+    end
+end
+println(df_test)
+
+#en fait peut être qu'il faut comparer la consommation EDE d'un des scénarios avec la consommation EDE BAU 
+# à partir du moment où ça devient supérieur, ça veut dire qu'il y a moins d'inégalités dans le scénario que dans le BAU
+
+###########################
 #Code to retrieve the needed values :
 ###########################
 
