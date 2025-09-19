@@ -360,8 +360,54 @@ dir=joinpath(@__DIR__, "..", "cap_and_share", "output", "differenciated_prices")
 #mkpath(dir)  # create directory if it does not exist
 MimiNICE2020.save_nice2020_output(nice2020_differenciated_prices, joinpath(@__DIR__, "..", "cap_and_share", "output", "differenciated_prices"))
 
-#Code to retrieve the needed values :
+###########################
+# 7. Stoft: scenario cap_and_share but with global_recycle_share = 0.1
+###########################
 
+# CARBON TAX PATHWAY 
+years = collect(dim_keys(base_model, :time))
+global_co2_tax = zeros(Float64, nb_steps)
+df_tax = CSV.read(joinpath(@__DIR__, "..", "cap_and_share", "data", "output", "calibrated_global_cs.csv"), DataFrame) # calibrated_global_tax_ffu below_bau_calibrated_global_tax_union calibrated_global_tax_union
+df_tax.time       = Int.(df_tax.time)   # be sure it is Int
+df_tax.global_tax = Float64.(df_tax.global_tax)
+tax_dict = Dict(row.time => row.global_tax for row in eachrow(df_tax))
+for (i, y) in enumerate(years)
+    if haskey(tax_dict, y)
+        global_co2_tax[i] = tax_dict[y]
+    else
+        global_co2_tax[i] = 0.0
+    end
+end
+
+nice2020_stoft = MimiNICE2020.create_nice2020()
+  
+switch_scenario = :All_World  # Choice of scenario by name (:All_World, :All_Except_Oil_Countries, :Optimistic, :Generous_EU, :Africa_Eu)
+global_recycle_share            = 0.1
+
+
+update_param!(nice2020_global_cap_share, :switch_custom_transfers, 0)
+update_param!(nice2020_global_cap_share, :switch_recycle, 1)
+update_param!(nice2020_global_cap_share, :switch_global_recycling, 1)
+update_param!(nice2020_global_cap_share, :revenue_recycle, :global_recycle_share,  ones(nb_country) * global_recycle_share ) 
+update_param!(nice2020_global_cap_share, :revenue_recycle, :switch_global_pc_recycle, 1)
+# Set uniform global carbon tax rates and run model.
+update_param!(nice2020_global_cap_share, :abatement, :control_regime, 1) # Switch for emissions control regime  1:"global_carbon_tax", 2:"country_carbon_tax", 3:"country_abatement_rate"
+update_param!(nice2020_global_cap_share, :abatement, :global_carbon_tax, global_co2_tax)
+update_param!(nice2020_global_cap_share, :switch_footprint, 1)
+update_param!(nice2020_global_cap_share, :switch_recycle, switch_recycle)
+update_param!(nice2020_global_cap_share, :switch_transfers_affect_growth, 1)
+update_param!(nice2020_global_cap_share, :policy_scenario, MimiNICE2020.scenario_index[switch_scenario])
+# update_param!(nice2020_global_cap_share, :revenue_recycle, :rights_proposed, rights_proposed_mat)
+
+run(nice2020_global_cap_share)
+
+# Save the run (see helper functions for saving function details)
+#MimiNICE2020.save_nice2020_output(nice2020_global_cap_share, output_directory_uniform, revenue_recycling=false)
+MimiNICE2020.save_nice2020_output(nice2020_global_cap_share, joinpath(@__DIR__, "..", "cap_and_share", "output", "global_cap_share"))
+
+###########################
+#Code to retrieve the needed values :
+###########################
 #a) cons_EDE_country
 imf_cons = getdataframe(nice2020_differenciated_prices, :welfare=>:cons_EDE_country)
 filtre_imf_cons = filter(row -> row.time in (2030, 2050, 2100) && row.country in (:IND, :NGA, :CHN, :MNG, :USA, :FRA, :DEU, :COD, :RUS), imf_cons)
