@@ -397,7 +397,7 @@ run(nice2020_stoft)
 # Save the run (see helper functions for saving function details)
 #MimiNICE2020.save_nice2020_output(nice2020_global_cap_share, output_directory_uniform, revenue_recycling=false)
 dir_b=joinpath(@__DIR__, "..", "cap_and_share", "output", "Cramton_Stoft")
-mkpath(dir_b)
+#mkpath(dir_b) => to execute only once to create the directory
 MimiNICE2020.save_nice2020_output(nice2020_stoft, joinpath(@__DIR__, "..", "cap_and_share", "output", "Cramton_Stoft"))
 
 ###########################
@@ -406,21 +406,24 @@ MimiNICE2020.save_nice2020_output(nice2020_stoft, joinpath(@__DIR__, "..", "cap_
 
 #On compare la consommation EDE (exprimé en 10^3 $/pers/year) avec la consommation par tête (exprimé en 10^3 $/pers/year) pour chaque pays et chaque scénario.
 
-#Creation of a function that returns the year at which cons_EDE_country > cons_capita
+#Creation of a function that returns the year at which cons_EDE_country_model > cons_EDE_country_bau
+#mettre en paramètre la cnsommation EDE
+#regarder la dernière année où c'est inférieur
+# la mettre dans helper functions
 
-function year_EDE_higher_than_capita(model)
+function year_EDE_higher_than_BAU(model)
     countries = dim_keys(model, :country)
     years = dim_keys(model, :time)
     df = DataFrame(country = String[], year = Int64[])
-    conso_pc = getdataframe(model, :quantile_recycle, :CPC_post)
-    conso_pc_global = getdataframe(model, :quantile_recycle, :CPC_post_global)
-    conso_EDE = getdataframe(model, :welfare, :cons_EDE_country)
-    conso_EDE_global = getdataframe(model, :welfare, :cons_EDE_global)
-    for t in years
-        for c in countries
-            conso_pc_val = conso_pc[(conso_pc.time .== t) .& (conso_pc.country .== c), :CPC_post][1]
-            conso_EDE_val = conso_EDE[(conso_EDE.time .== t) .& (conso_EDE.country .== c), :cons_EDE_country][1]
-            if conso_EDE_val > conso_pc_val
+    cons_EDE_bau = getdataframe(bau_model, :welfare, :cons_EDE_country)
+    cons_EDE_bau_global = getdataframe(bau_model, :welfare, :cons_EDE_global)
+    cons_EDE = getdataframe(model, :welfare, :cons_EDE_country)
+    cons_EDE_global = getdataframe(model, :welfare, :cons_EDE_global)
+    for c in countries
+        for t in years
+            cons_EDE_bau_val = cons_EDE_bau[(cons_EDE_bau.time .== t) .& (cons_EDE_bau.country .== c), :cons_EDE_country][1]
+            cons_EDE_val = cons_EDE[(cons_EDE.time .== t) .& (cons_EDE.country .== c), :cons_EDE_country][1]
+            if cons_EDE_val > cons_EDE_bau_val
                 push!(df, (string(c), t))
                 break
             end
@@ -428,9 +431,9 @@ function year_EDE_higher_than_capita(model)
     end
 
     for t in years
-        conso_pc_global_val = conso_pc_global[conso_pc_global.time .== t, :CPC_post_global][1]
-        conso_EDE_global_val = conso_EDE_global[conso_EDE_global.time .== t, :cons_EDE_global][1]
-        if conso_EDE_global_val > conso_pc_global_val
+        cons_EDE_bau_global_val = cons_EDE_bau_global[cons_EDE_bau_global.time .== t, :cons_EDE_global][1]
+        cons_EDE_global_val = cons_EDE_global[cons_EDE_global.time .== t, :cons_EDE_global][1]
+        if cons_EDE_global_val > cons_EDE_bau_global_val
             push!(df, ("Global", t))
             break
         end
@@ -439,82 +442,42 @@ function year_EDE_higher_than_capita(model)
     return df
 end
 
-println(year_EDE_higher_than_capita(nice2020_ffu))
+println(year_EDE_higher_than_BAU(nice2020_global_cap_share))
 
-#TEST (à supprimer lundi)
-conso_pc_test = getdataframe(nice2020_ffu, :quantile_recycle, :CPC_post)
-conso_EDE_test = getdataframe(nice2020_ffu, :welfare, :cons_EDE_country)
-conso_pc_val_test = conso_pc_test[(conso_pc_test.time .== 2100) .& (conso_pc_test.country .== :FRA), :CPC_post][1]
-conso_EDE_val_test = conso_EDE_test[(conso_EDE_test.time .== 2100) .& (conso_EDE_test.country .== :FRA), :cons_EDE_country][1]
-
-countries = dim_keys(nice2020_ffu, :country)
-years = dim_keys(nice2020_ffu, :time)
-df_test = DataFrame(country = String[], year = Int64[])
-conso_pc_test = getdataframe(nice2020_ffu, :quantile_recycle, :CPC_post)
-conso_pc_global_test = getdataframe(nice2020_ffu, :quantile_recycle, :CPC_post_global)
-conso_EDE_test = getdataframe(nice2020_ffu, :welfare, :cons_EDE_country)
-conso_EDE_global_test = getdataframe(nice2020_ffu, :welfare, :cons_EDE_global)
-for t in years
-    for c in countries
-        conso_pc_val = conso_pc_test[(conso_pc_test.time .== t) .& (conso_pc_test.country .== c), :CPC_post][1]
-        conso_EDE_val = conso_EDE_test[(conso_EDE_test.time .== t) .& (conso_EDE_test.country .== c), :cons_EDE_country][1]
-        if conso_EDE_val < conso_pc_val
-            push!(df_test, (string(c), t))
-        end
+#Creation of a complete dataframe with all scenarios
+model = [nice2020_ffu, nice2020_global_cap_share, nice2020_differenciated_prices, nice2020_stoft]
+scenario_names = ["FFU", "Global_Cap_Share", "IMF", "Cramton_Stoft"]
+df_temp = DataFrame()
+df_final = DataFrame()
+for (i, m) in enumerate(model)
+    df_temp = year_EDE_higher_than_BAU(m)
+    df_temp[!, :scenario] .= scenario_names[i]
+    if i == 1
+        df_final = df_temp
+    else
+        append!(df_final, df_temp)
     end
 end
-println(df_test)
+println(df_final)
 
-#en fait peut être qu'il faut comparer la consommation EDE d'un des scénarios avec la consommation EDE BAU 
+df_EDE_global = filter(row -> row.country == "Global", df_final)
+println(df_EDE_global)
+
+#Here we have three columns: country, year and scenario -> see if we need to do do one column per scenario, but that would mean to have to deal with missing values (not the same number of lines)
+
 # à partir du moment où ça devient supérieur, ça veut dire qu'il y a moins d'inégalités dans le scénario que dans le BAU
 
 ###########################
 #Code to retrieve the needed values :
 ###########################
 
-#a) cons_EDE_country
-imf_cons = getdataframe(nice2020_differenciated_prices, :welfare=>:cons_EDE_country)
-filtre_imf_cons = filter(row -> row.time in (2030, 2050, 2100) && row.country in (:IND, :NGA, :CHN, :MNG, :USA, :FRA, :DEU, :COD, :RUS), imf_cons)
-println(filtre_imf_cons)
-
-bau_cons = getdataframe(bau_model, :welfare=>:cons_EDE_country)
-filtre_bau_cons = filter(row -> row.time in (2030, 2050, 2100) && row.country in (:IND, :NGA, :CHN, :MNG, :USA, :FRA, :DEU, :COD, :RUS), bau_cons)
-println(filtre_bau_cons)
-
-ffu_cons = getdataframe(nice2020_ffu, :welfare=>:cons_EDE_country)
-filtre_ffu_cons = filter(row -> row.time in (2030, 2050, 2100) && row.country in (:IND, :NGA, :CHN, :MNG, :USA, :FRA, :DEU, :COD, :RUS), ffu_cons)
-println(filtre_ffu_cons)
-
-global_cap_share_cons = getdataframe(nice2020_global_cap_share, :welfare=>:cons_EDE_country)
-filtre_global_cap_share_cons = filter(row -> row.time in (2030, 2050, 2100) && row.country in (:IND, :NGA, :CHN, :MNG, :USA, :FRA, :DEU, :COD, :RUS), global_cap_share_cons)
-println(filtre_global_cap_share_cons)
-
-#b) cons_EDE_global
-global_cons_imf = getdataframe(nice2020_differenciated_prices, :welfare=>:cons_EDE_global)[[11, 31, 81], :]
-global_cons_bau = getdataframe(bau_model, :welfare=>:cons_EDE_global)[[11, 31, 81], :]
-global_cons_ffu = getdataframe(nice2020_ffu, :welfare=>:cons_EDE_global)[[11, 31, 81], :]
-global_cons_cap_share = getdataframe(nice2020_global_cap_share, :welfare=>:cons_EDE_global)[[11, 31, 81], :]
-
-# c) Global temperature in 2100
-imf_temp = getdataframe(nice2020_differenciated_prices, :temperature=>:T)[81, :]
-bau_temp = getdataframe(bau_model, :temperature=>:T)[81, :]
-capshare_temp = getdataframe(nice2020_global_cap_share, :temperature=>:T)[81, :]
-ffu_temp = getdataframe(nice2020_ffu, :temperature=>:T)[81, :]
-
-
-#d) Transfers in India in 2050
-india_2050_bau = filter(row -> row.time == 2050 && row.country == :IND, getdataframe(bau_model, :revenue_recycle=>:transfer))
-india_2050_global = filter(row -> row.time == 2050 && row.country == :IND, getdataframe(nice2020_global_cap_share, :revenue_recycle=>:transfer))
-india_2050_ffu = filter(row -> row.time == 2050 && row.country == :IND, getdataframe(nice2020_ffu, :revenue_recycle=>:transfer))
-india_2050_imf = filter(row -> row.time == 2050 && row.country == :IND, getdataframe(nice2020_differenciated_prices, :revenue_recycle=>:transfer))
-
-# ======================================================
 # Organisation en tableau Excel
-# ======================================================
 
 using CSV
 
 # Fonction pour construire le DataFrame complet
+#mettre dans helper functions
+
 function build_results_csv(bau, capshare, ffu, imf, stoft, global_bau, global_capshare, global_ffu, global_imf, global_stoft, bautemp, capsharetemp, ffutemp, imftemp, stofttemp, india_bau, india_global, india_ffu, india_imf, india_stoft)
     df = DataFrame()
     countries = (:IND, :NGA, :CHN, :MNG, :USA, :FRA, :DEU, :COD, :RUS)
@@ -620,25 +583,28 @@ function build_results_csv(bau, capshare, ffu, imf, stoft, global_bau, global_ca
 end
 
 # Création du DataFrame complet
-results = build_results_csv(bau_cons, 
-global_cap_share_cons, 
-ffu_cons, 
-imf_cons,
-filter(row -> row.time in (2030, 2050, 2100) && row.country in (:IND, :NGA, :CHN, :MNG, :USA, :FRA, :DEU, :COD, :RUS), getdataframe(nice2020_stoft, :welfare=>:cons_EDE_country)),
-global_cons_bau, 
-global_cons_cap_share, 
-global_cons_ffu, 
-global_cons_imf,
+countries_wanted = (:IND, :NGA, :CHN, :MNG, :USA, :FRA, :DEU, :COD, :RUS)
+years_wanted = (2030, 2050, 2100)
+
+results = build_results_csv(filter(row -> row.time in years_wanted && row.country in countries_wanted, getdataframe(bau_model, :welfare=>:cons_EDE_country)), 
+filter(row -> row.time in years_wanted && row.country in countries_wanted, getdataframe(nice2020_global_cap_share, :welfare=>:cons_EDE_country)), 
+filter(row -> row.time in years_wanted && row.country in countries_wanted, getdataframe(nice2020_ffu, :welfare=>:cons_EDE_country)), 
+filter(row -> row.time in years_wanted && row.country in countries_wanted, getdataframe(nice2020_differenciated_prices, :welfare=>:cons_EDE_country)),
+filter(row -> row.time in years_wanted && row.country in countries_wanted, getdataframe(nice2020_stoft, :welfare=>:cons_EDE_country)),
+getdataframe(bau_model, :welfare=>:cons_EDE_global)[[11, 31, 81], :], 
+getdataframe(nice2020_global_cap_share, :welfare=>:cons_EDE_global)[[11, 31, 81], :], 
+getdataframe(nice2020_ffu, :welfare=>:cons_EDE_global)[[11, 31, 81], :], 
+getdataframe(nice2020_differenciated_prices, :welfare=>:cons_EDE_global)[[11, 31, 81], :],
 getdataframe(nice2020_stoft, :welfare=>:cons_EDE_global)[[11, 31, 81], :],
-bau_temp, 
-capshare_temp, 
-ffu_temp,
-imf_temp,
+getdataframe(bau_model, :temperature=>:T)[81, :], 
+getdataframe(nice2020_global_cap_share, :temperature=>:T)[81, :], 
+getdataframe(nice2020_ffu, :temperature=>:T)[81, :],
+getdataframe(nice2020_differenciated_prices, :temperature=>:T)[81, :],
 getdataframe(nice2020_stoft, :temperature=>:T)[81, :],
-india_2050_bau, 
-india_2050_global, 
-india_2050_ffu, 
-india_2050_imf,
+filter(row -> row.time == 2050 && row.country == :IND, getdataframe(bau_model, :revenue_recycle=>:transfer)), 
+filter(row -> row.time == 2050 && row.country == :IND, getdataframe(nice2020_global_cap_share, :revenue_recycle=>:transfer)), 
+filter(row -> row.time == 2050 && row.country == :IND, getdataframe(nice2020_ffu, :revenue_recycle=>:transfer)), 
+filter(row -> row.time == 2050 && row.country == :IND, getdataframe(nice2020_differenciated_prices, :revenue_recycle=>:transfer)),
 filter(row -> row.time == 2050 && row.country == :IND, getdataframe(nice2020_stoft, :revenue_recycle=>:transfer)))
 
 # Sauvegarde finale dans le CSV
