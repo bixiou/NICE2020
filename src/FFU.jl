@@ -414,35 +414,75 @@ MimiNICE2020.save_nice2020_output(nice2020_stoft, joinpath(@__DIR__, "..", "cap_
 function year_EDE_higher_than_BAU(model)
     countries = dim_keys(model, :country)
     years = dim_keys(model, :time)
-    df = DataFrame(country = String[], year = Int64[])
+    df = DataFrame(country = String[], year = Int[])
     cons_EDE_bau = getdataframe(bau_model, :welfare, :cons_EDE_country)
     cons_EDE_bau_global = getdataframe(bau_model, :welfare, :cons_EDE_global)
     cons_EDE = getdataframe(model, :welfare, :cons_EDE_country)
     cons_EDE_global = getdataframe(model, :welfare, :cons_EDE_global)
     for c in countries
+        years_inf = Vector{Int}()
         for t in years
             cons_EDE_bau_val = cons_EDE_bau[(cons_EDE_bau.time .== t) .& (cons_EDE_bau.country .== c), :cons_EDE_country][1]
             cons_EDE_val = cons_EDE[(cons_EDE.time .== t) .& (cons_EDE.country .== c), :cons_EDE_country][1]
-            if cons_EDE_val > cons_EDE_bau_val
-                push!(df, (string(c), t))
-                break
+            if cons_EDE_val <= cons_EDE_bau_val
+                push!(years_inf, t)
+            end
+        end
+        if isempty(years_inf)
+            push!(df, (String(c), 2020))
+        else
+            last_year = maximum(years_inf)
+            first_year = last_year + 1
+            if first_year <= maximum(years)
+                push!(df, (String(c), first_year))
+            else
+                push!(df, (String(c), 9999))
             end
         end
     end
 
+    years_inf_global = Vector{Int}()
     for t in years
         cons_EDE_bau_global_val = cons_EDE_bau_global[cons_EDE_bau_global.time .== t, :cons_EDE_global][1]
         cons_EDE_global_val = cons_EDE_global[cons_EDE_global.time .== t, :cons_EDE_global][1]
-        if cons_EDE_global_val > cons_EDE_bau_global_val
-            push!(df, ("Global", t))
-            break
+        if cons_EDE_global_val <= cons_EDE_bau_global_val
+            push!(years_inf_global, t)
         end
     end
-    
+    if isempty(years_inf_global)
+        push!(df, ("Global", 2020))
+    else
+        last_year_global = maximum(years_inf_global)
+        first_year_global = last_year_global + 1
+        if first_year_global <= maximum(years)
+            push!(df, ("Global", first_year_global))
+        else
+            push!(df, ("Global", 9999))
+        end
+    end
     return df
 end
 
+
+
+
+
+println(year_EDE_higher_than_BAU(nice2020_ffu))
 println(year_EDE_higher_than_BAU(nice2020_global_cap_share))
+println(year_EDE_higher_than_BAU(nice2020_differenciated_prices))
+
+# TEST POUR ABW 
+cons_EDE_imf = getdataframe(nice2020_differenciated_prices, :welfare, :cons_EDE_country)
+cons_EDE_ffu = getdataframe(nice2020_ffu, :welfare, :cons_EDE_country)
+cons_EDE_bau = getdataframe(bau_model, :welfare, :cons_EDE_country)
+imf = cons_EDE_imf[(cons_EDE_imf.time .== 2060) .& (cons_EDE_imf.country .== :ABW), :cons_EDE_country][1]
+ffu = cons_EDE_ffu[(cons_EDE_ffu.time .== 2060) .& (cons_EDE_ffu.country .== :ABW), :cons_EDE_country][1]
+bau = cons_EDE_bau[(cons_EDE_bau.time .== 2060) .& (cons_EDE_bau.country .== :ABW), :cons_EDE_country][1]
+if ffu > bau
+    println("OK")
+else
+    println("PB")
+end
 
 #Creation of a complete dataframe with all scenarios
 model = [nice2020_ffu, nice2020_global_cap_share, nice2020_differenciated_prices, nice2020_stoft]
@@ -463,6 +503,7 @@ println(df_final)
 df_EDE_global = filter(row -> row.country == "Global", df_final)
 println(df_EDE_global)
 
+getdataframe(bau_model, :welfare, :cons_EDE_country)
 #Here we have three columns: country, year and scenario -> see if we need to do do one column per scenario, but that would mean to have to deal with missing values (not the same number of lines)
 
 # à partir du moment où ça devient supérieur, ça veut dire qu'il y a moins d'inégalités dans le scénario que dans le BAU
@@ -471,122 +512,12 @@ println(df_EDE_global)
 #Code to retrieve the needed values :
 ###########################
 
-# Organisation en tableau Excel
+include("helper_functions.jl")
 
-using CSV
-
-# Fonction pour construire le DataFrame complet
-#mettre dans helper functions
-
-function build_results_csv(bau, capshare, ffu, imf, stoft, global_bau, global_capshare, global_ffu, global_imf, global_stoft, bautemp, capsharetemp, ffutemp, imftemp, stofttemp, india_bau, india_global, india_ffu, india_imf, india_stoft)
-    df = DataFrame()
-    countries = (:IND, :NGA, :CHN, :MNG, :USA, :FRA, :DEU, :COD, :RUS)
-    years = (2030, 2050, 2100)
-
-    # Consommation EDE par pays
-    for t in years
-        for c in countries
-            BAU_val = bau[(bau.time .== t) .& (bau.country .== c), :cons_EDE_country][1]
-            CapShare_val = capshare[(capshare.time .== t) .& (capshare.country .== c), :cons_EDE_country][1]
-            FFU_val = ffu[(ffu.time .== t) .& (ffu.country .== c), :cons_EDE_country][1]
-            IMF_val = imf[(imf.time .== t) .& (imf.country .== c), :cons_EDE_country][1]
-            STOFT_val = stoft[(stoft.time .== t) .& (stoft.country .== c), :cons_EDE_country][1]
-            Var_Rate_FFU_IMF_val = (IMF_val-FFU_val)/FFU_val * 100
-            Var_Rate_CapShare_STOFT_val = (STOFT_val-CapShare_val)/CapShare_val * 100
-            push!(df, (
-                Indicator = "Consumption EDE (countries)",
-                Year = t,
-                Country = String(c),
-                BAU = BAU_val,
-                CapShare = CapShare_val,
-                FFU = FFU_val,
-                IMF = IMF_val,
-                STOFT = STOFT_val,
-                Var_Rate_FFU_IMF = Var_Rate_FFU_IMF_val,
-                Var_Rate_CapShare_STOFT = Var_Rate_CapShare_STOFT_val
-            ))
-        end
-    end
-
-    # Consommation EDE globale
-    for t in years
-        BAU_val = global_bau[(global_bau.time .== t), :cons_EDE_global][1]
-        CapShare_val = global_capshare[(global_capshare.time .== t), :cons_EDE_global][1]
-        FFU_val = global_ffu[(global_ffu.time .== t), :cons_EDE_global][1]
-        IMF_val = global_imf[(global_imf.time .== t), :cons_EDE_global][1]
-        STOFT_val = global_stoft[(global_stoft.time .== t), :cons_EDE_global][1]
-        Var_Rate_FFU_IMF_val = (IMF_val-FFU_val)/FFU_val * 100
-        Var_Rate_CapShare_STOFT_val = (STOFT_val-CapShare_val)/CapShare_val * 100
-        
-        push!(df, (
-            Indicator = "Consumption EDE (Global)",
-            Year = t,
-            Country = "Global",
-            BAU = BAU_val,
-            CapShare = CapShare_val,
-            FFU = FFU_val,
-            IMF = IMF_val,
-            STOFT = STOFT_val,
-            Var_Rate_FFU_IMF = Var_Rate_FFU_IMF_val,
-            Var_Rate_CapShare_STOFT = Var_Rate_CapShare_STOFT_val
-        ))
-    end
-
-    for t in years
-        BAU_val = bautemp.T
-        CapShare_val = capsharetemp.T
-        FFU_val = ffutemp.T
-        IMF_val = imftemp.T
-        STOFT_val = stofttemp.T
-        Var_Rate_FFU_IMF_val = (IMF_val-FFU_val)/FFU_val * 100
-        Var_Rate_CapShare_STOFT_val = (STOFT_val-CapShare_val)/CapShare_val * 100
-        if t ==2100
-            push!(df, (
-                Indicator = "Global Temperature (2100)",
-                Year = t,
-                Country = "Global",
-                BAU = BAU_val,
-                CapShare = CapShare_val,
-                FFU = FFU_val,
-                IMF = IMF_val,
-                STOFT = STOFT_val,
-                Var_Rate_FFU_IMF = Var_Rate_FFU_IMF_val,
-                Var_Rate_CapShare_STOFT = Var_Rate_CapShare_STOFT_val
-            ))
-        end
-        
-        if t == 2050
-            BAU_val = india_bau[(india_bau.time .== t) .& (india_bau.country .== :IND), :transfer][1]
-            CapShare_val = india_global[(india_global.time .== t) .& (india_global.country .== :IND), :transfer][1]
-            FFU_val = india_ffu[(india_ffu.time .== t) .& (india_ffu.country .== :IND), :transfer][1]
-            IMF_val = india_imf[(india_imf.time .== t) .& (india_imf.country .== :IND), :transfer][1]
-            STOFT_val = india_stoft[(india_stoft.time .== t) .& (india_stoft.country .== :IND), :transfer][1]
-            Var_Rate_FFU_IMF_val = (IMF_val-FFU_val)/FFU_val * 100
-            Var_Rate_CapShare_STOFT_val = (STOFT_val-CapShare_val)/CapShare_val * 100
-            push!(df, (
-                Indicator = "Transfers India (2050)",
-                Year = t,
-                Country = "IND",
-                BAU = BAU_val,
-                CapShare = CapShare_val,
-                FFU = FFU_val,
-                IMF = IMF_val,
-                STOFT = STOFT_val,
-                Var_Rate_FFU_IMF = Var_Rate_FFU_IMF_val,
-                Var_Rate_CapShare_STOFT = Var_Rate_CapShare_STOFT_val
-            ))
-        end
-    end    
-
-
-    return df
-end
-
-# Création du DataFrame complet
 countries_wanted = (:IND, :NGA, :CHN, :MNG, :USA, :FRA, :DEU, :COD, :RUS)
 years_wanted = (2030, 2050, 2100)
 
-results = build_results_csv(filter(row -> row.time in years_wanted && row.country in countries_wanted, getdataframe(bau_model, :welfare=>:cons_EDE_country)), 
+results = MimiNICE2020.build_results_csv(filter(row -> row.time in years_wanted && row.country in countries_wanted, getdataframe(bau_model, :welfare=>:cons_EDE_country)), 
 filter(row -> row.time in years_wanted && row.country in countries_wanted, getdataframe(nice2020_global_cap_share, :welfare=>:cons_EDE_country)), 
 filter(row -> row.time in years_wanted && row.country in countries_wanted, getdataframe(nice2020_ffu, :welfare=>:cons_EDE_country)), 
 filter(row -> row.time in years_wanted && row.country in countries_wanted, getdataframe(nice2020_differenciated_prices, :welfare=>:cons_EDE_country)),
@@ -607,6 +538,11 @@ filter(row -> row.time == 2050 && row.country == :IND, getdataframe(nice2020_ffu
 filter(row -> row.time == 2050 && row.country == :IND, getdataframe(nice2020_differenciated_prices, :revenue_recycle=>:transfer)),
 filter(row -> row.time == 2050 && row.country == :IND, getdataframe(nice2020_stoft, :revenue_recycle=>:transfer)))
 
-# Sauvegarde finale dans le CSV
-output_file = "/Users/agathe/Desktop/Cired/NICE2020/cap_and_share/output/comparison_output.csv"
-CSV.write(output_file, results)
+#############################
+
+
+
+countries = dim_keys(nice2020_differenciated_prices, :country)
+years = dim_keys(nice2020_differenciated_prices, :time)
+attendu = length(countries) * length(years)
+réel = nrow(getdataframe(nice2020_differenciated_prices, :welfare, :cons_EDE_country))

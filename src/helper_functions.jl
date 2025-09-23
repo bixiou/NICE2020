@@ -355,3 +355,115 @@ function save_nice2020_output(m::Model, output_directory::String)
     save(joinpath(quantile_path, "post_recycle_share_consumption.csv"), filter!(:time => x -> x<2121, getdataframe(m, :quantile_recycle => :qc_share)))
 
 end
+
+#########################################################################################################################
+# FUNCTION TO RETRIEVE OUTPUT VALUES AND BUILD A SUMMARY CSV
+#########################################################################################################################
+
+
+function build_results_csv(bau, capshare, ffu, imf, stoft, global_bau, global_capshare, global_ffu, global_imf, global_stoft, bautemp, capsharetemp, ffutemp, imftemp, stofttemp, india_bau, india_global, india_ffu, india_imf, india_stoft)
+    df = DataFrame()
+    countries = (:IND, :NGA, :CHN, :MNG, :USA, :FRA, :DEU, :COD, :RUS)
+    years = (2030, 2050, 2100)
+    using CSV
+
+    # Consommation EDE par pays
+    for t in years
+        for c in countries
+            BAU_val = bau[(bau.time .== t) .& (bau.country .== c), :cons_EDE_country][1]
+            CapShare_val = capshare[(capshare.time .== t) .& (capshare.country .== c), :cons_EDE_country][1]
+            FFU_val = ffu[(ffu.time .== t) .& (ffu.country .== c), :cons_EDE_country][1]
+            IMF_val = imf[(imf.time .== t) .& (imf.country .== c), :cons_EDE_country][1]
+            STOFT_val = stoft[(stoft.time .== t) .& (stoft.country .== c), :cons_EDE_country][1]
+            Var_Rate_FFU_IMF_val = (IMF_val-FFU_val)/FFU_val * 100
+            Var_Rate_CapShare_STOFT_val = (STOFT_val-CapShare_val)/CapShare_val * 100
+            push!(df, (
+                Indicator = "Consumption EDE (countries)",
+                Year = t,
+                Country = String(c),
+                BAU = BAU_val,
+                CapShare = CapShare_val,
+                FFU = FFU_val,
+                IMF = IMF_val,
+                STOFT = STOFT_val,
+                Var_Rate_FFU_IMF = Var_Rate_FFU_IMF_val,
+                Var_Rate_CapShare_STOFT = Var_Rate_CapShare_STOFT_val
+            ))
+        end
+    end
+
+    # Consommation EDE globale
+    for t in years
+        BAU_val = global_bau[(global_bau.time .== t), :cons_EDE_global][1]
+        CapShare_val = global_capshare[(global_capshare.time .== t), :cons_EDE_global][1]
+        FFU_val = global_ffu[(global_ffu.time .== t), :cons_EDE_global][1]
+        IMF_val = global_imf[(global_imf.time .== t), :cons_EDE_global][1]
+        STOFT_val = global_stoft[(global_stoft.time .== t), :cons_EDE_global][1]
+        Var_Rate_FFU_IMF_val = (IMF_val-FFU_val)/FFU_val * 100
+        Var_Rate_CapShare_STOFT_val = (STOFT_val-CapShare_val)/CapShare_val * 100
+        
+        push!(df, (
+            Indicator = "Consumption EDE (Global)",
+            Year = t,
+            Country = "Global",
+            BAU = BAU_val,
+            CapShare = CapShare_val,
+            FFU = FFU_val,
+            IMF = IMF_val,
+            STOFT = STOFT_val,
+            Var_Rate_FFU_IMF = Var_Rate_FFU_IMF_val,
+            Var_Rate_CapShare_STOFT = Var_Rate_CapShare_STOFT_val
+        ))
+    end
+
+    for t in years
+        BAU_val = bautemp.T
+        CapShare_val = capsharetemp.T
+        FFU_val = ffutemp.T
+        IMF_val = imftemp.T
+        STOFT_val = stofttemp.T
+        Var_Rate_FFU_IMF_val = (IMF_val-FFU_val)/FFU_val * 100
+        Var_Rate_CapShare_STOFT_val = (STOFT_val-CapShare_val)/CapShare_val * 100
+        if t ==2100
+            push!(df, (
+                Indicator = "Global Temperature (2100)",
+                Year = t,
+                Country = "Global",
+                BAU = BAU_val,
+                CapShare = CapShare_val,
+                FFU = FFU_val,
+                IMF = IMF_val,
+                STOFT = STOFT_val,
+                Var_Rate_FFU_IMF = Var_Rate_FFU_IMF_val,
+                Var_Rate_CapShare_STOFT = Var_Rate_CapShare_STOFT_val
+            ))
+        end
+        
+        if t == 2050
+            BAU_val = india_bau[(india_bau.time .== t) .& (india_bau.country .== :IND), :transfer][1]
+            CapShare_val = india_global[(india_global.time .== t) .& (india_global.country .== :IND), :transfer][1]
+            FFU_val = india_ffu[(india_ffu.time .== t) .& (india_ffu.country .== :IND), :transfer][1]
+            IMF_val = india_imf[(india_imf.time .== t) .& (india_imf.country .== :IND), :transfer][1]
+            STOFT_val = india_stoft[(india_stoft.time .== t) .& (india_stoft.country .== :IND), :transfer][1]
+            Var_Rate_FFU_IMF_val = (IMF_val-FFU_val)/FFU_val * 100
+            Var_Rate_CapShare_STOFT_val = (STOFT_val-CapShare_val)/CapShare_val * 100
+            push!(df, (
+                Indicator = "Transfers India (2050)",
+                Year = t,
+                Country = "IND",
+                BAU = BAU_val,
+                CapShare = CapShare_val,
+                FFU = FFU_val,
+                IMF = IMF_val,
+                STOFT = STOFT_val,
+                Var_Rate_FFU_IMF = Var_Rate_FFU_IMF_val,
+                Var_Rate_CapShare_STOFT = Var_Rate_CapShare_STOFT_val
+            ))
+        end
+    end    
+
+
+    return df
+    path = joinpath(@__DIR__, "..", "cap_and_share", "data", "output", "comparison_output.csv")
+    CSV.write(path, df)
+end
