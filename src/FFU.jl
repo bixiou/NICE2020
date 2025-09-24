@@ -404,86 +404,6 @@ MimiNICE2020.save_nice2020_output(nice2020_stoft, joinpath(@__DIR__, "..", "cap_
 #Year at which consumption_EDE becomes higher than consumption_capita :
 ###########################
 
-#On compare la consommation EDE (exprimé en 10^3 $/pers/year) avec la consommation par tête (exprimé en 10^3 $/pers/year) pour chaque pays et chaque scénario.
-
-#Creation of a function that returns the year at which cons_EDE_country_model > cons_EDE_country_bau
-#mettre en paramètre la cnsommation EDE
-#regarder la dernière année où c'est inférieur
-# la mettre dans helper functions
-
-function year_EDE_higher_than_BAU(model)
-    countries = dim_keys(model, :country)
-    years = dim_keys(model, :time)
-    df = DataFrame(country = String[], year = Int[])
-    cons_EDE_bau = getdataframe(bau_model, :welfare, :cons_EDE_country)
-    cons_EDE_bau_global = getdataframe(bau_model, :welfare, :cons_EDE_global)
-    cons_EDE = getdataframe(model, :welfare, :cons_EDE_country)
-    cons_EDE_global = getdataframe(model, :welfare, :cons_EDE_global)
-    for c in countries
-        years_inf = Vector{Int}()
-        for t in years
-            cons_EDE_bau_val = cons_EDE_bau[(cons_EDE_bau.time .== t) .& (cons_EDE_bau.country .== c), :cons_EDE_country][1]
-            cons_EDE_val = cons_EDE[(cons_EDE.time .== t) .& (cons_EDE.country .== c), :cons_EDE_country][1]
-            if cons_EDE_val <= cons_EDE_bau_val
-                push!(years_inf, t)
-            end
-        end
-        if isempty(years_inf)
-            push!(df, (String(c), 2020))
-        else
-            last_year = maximum(years_inf)
-            first_year = last_year + 1
-            if first_year <= maximum(years)
-                push!(df, (String(c), first_year))
-            else
-                push!(df, (String(c), 9999))
-            end
-        end
-    end
-
-    years_inf_global = Vector{Int}()
-    for t in years
-        cons_EDE_bau_global_val = cons_EDE_bau_global[cons_EDE_bau_global.time .== t, :cons_EDE_global][1]
-        cons_EDE_global_val = cons_EDE_global[cons_EDE_global.time .== t, :cons_EDE_global][1]
-        if cons_EDE_global_val <= cons_EDE_bau_global_val
-            push!(years_inf_global, t)
-        end
-    end
-    if isempty(years_inf_global)
-        push!(df, ("Global", 2020))
-    else
-        last_year_global = maximum(years_inf_global)
-        first_year_global = last_year_global + 1
-        if first_year_global <= maximum(years)
-            push!(df, ("Global", first_year_global))
-        else
-            push!(df, ("Global", 9999))
-        end
-    end
-    return df
-end
-
-
-
-
-
-println(year_EDE_higher_than_BAU(nice2020_ffu))
-println(year_EDE_higher_than_BAU(nice2020_global_cap_share))
-println(year_EDE_higher_than_BAU(nice2020_differenciated_prices))
-
-# TEST POUR ABW 
-cons_EDE_imf = getdataframe(nice2020_differenciated_prices, :welfare, :cons_EDE_country)
-cons_EDE_ffu = getdataframe(nice2020_ffu, :welfare, :cons_EDE_country)
-cons_EDE_bau = getdataframe(bau_model, :welfare, :cons_EDE_country)
-imf = cons_EDE_imf[(cons_EDE_imf.time .== 2060) .& (cons_EDE_imf.country .== :ABW), :cons_EDE_country][1]
-ffu = cons_EDE_ffu[(cons_EDE_ffu.time .== 2060) .& (cons_EDE_ffu.country .== :ABW), :cons_EDE_country][1]
-bau = cons_EDE_bau[(cons_EDE_bau.time .== 2060) .& (cons_EDE_bau.country .== :ABW), :cons_EDE_country][1]
-if ffu > bau
-    println("OK")
-else
-    println("PB")
-end
-
 #Creation of a complete dataframe with all scenarios
 model = [nice2020_ffu, nice2020_global_cap_share, nice2020_differenciated_prices, nice2020_stoft]
 scenario_names = ["FFU", "Global_Cap_Share", "IMF", "Cramton_Stoft"]
@@ -503,10 +423,6 @@ println(df_final)
 df_EDE_global = filter(row -> row.country == "Global", df_final)
 println(df_EDE_global)
 
-getdataframe(bau_model, :welfare, :cons_EDE_country)
-#Here we have three columns: country, year and scenario -> see if we need to do do one column per scenario, but that would mean to have to deal with missing values (not the same number of lines)
-
-# à partir du moment où ça devient supérieur, ça veut dire qu'il y a moins d'inégalités dans le scénario que dans le BAU
 
 ###########################
 #Code to retrieve the needed values :
@@ -517,7 +433,7 @@ include("helper_functions.jl")
 countries_wanted = (:IND, :NGA, :CHN, :MNG, :USA, :FRA, :DEU, :COD, :RUS)
 years_wanted = (2030, 2050, 2100)
 
-results = MimiNICE2020.build_results_csv(filter(row -> row.time in years_wanted && row.country in countries_wanted, getdataframe(bau_model, :welfare=>:cons_EDE_country)), 
+results = build_results_csv(filter(row -> row.time in years_wanted && row.country in countries_wanted, getdataframe(bau_model, :welfare=>:cons_EDE_country)), 
 filter(row -> row.time in years_wanted && row.country in countries_wanted, getdataframe(nice2020_global_cap_share, :welfare=>:cons_EDE_country)), 
 filter(row -> row.time in years_wanted && row.country in countries_wanted, getdataframe(nice2020_ffu, :welfare=>:cons_EDE_country)), 
 filter(row -> row.time in years_wanted && row.country in countries_wanted, getdataframe(nice2020_differenciated_prices, :welfare=>:cons_EDE_country)),
@@ -541,8 +457,27 @@ filter(row -> row.time == 2050 && row.country == :IND, getdataframe(nice2020_sto
 #############################
 
 
+years = dim_keys(base_model, :time)
+models = [bau_model, nice2020_global_cap_share, nice2020_ffu, nice2020_differenciated_prices, nice2020_stoft]
+names_models = ["BAU", "Global_Cap_Share", "FFU", "IMF", "Cramton_Stoft"]
+data_pnv = DataFrame(model = String[], country = String[], value = Float64[])
 
-countries = dim_keys(nice2020_differenciated_prices, :country)
-years = dim_keys(nice2020_differenciated_prices, :time)
-attendu = length(countries) * length(years)
-réel = nrow(getdataframe(nice2020_differenciated_prices, :welfare, :cons_EDE_country))
+for c in countries_wanted
+    for (i, m) in enumerate(models)
+        cons_EDE = filter(row -> row.country == c, getdataframe(m, :welfare=>:cons_EDE_country))
+        npv_val = net_present_value(cons_EDE, 2030, 2100, 0.03, "cons_EDE_country")
+        push!(data_pnv,(String(names_models[i]), String(c), npv_val))
+    end
+end
+
+println(data_pnv)
+
+data_pnv_global = DataFrame(model = String[], country = String[], value = Float64[])
+
+for (i, m) in enumerate(models)
+    cons_EDE = getdataframe(m, :welfare=>:cons_EDE_global)
+    npv_val = net_present_value(cons_EDE, 2030, 2100, 0.03, "cons_EDE_global")
+    push!(data_pnv_global,(String(names_models[i]), "Global", npv_val))
+end
+println(data_pnv_global)
+

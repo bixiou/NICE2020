@@ -365,7 +365,6 @@ function build_results_csv(bau, capshare, ffu, imf, stoft, global_bau, global_ca
     df = DataFrame()
     countries = (:IND, :NGA, :CHN, :MNG, :USA, :FRA, :DEU, :COD, :RUS)
     years = (2030, 2050, 2100)
-    using CSV
 
     # Consommation EDE par pays
     for t in years
@@ -467,3 +466,76 @@ function build_results_csv(bau, capshare, ffu, imf, stoft, global_bau, global_ca
     path = joinpath(@__DIR__, "..", "cap_and_share", "data", "output", "comparison_output.csv")
     CSV.write(path, df)
 end
+
+#########################################################################################################################
+#FUNCTION TO COMPUTE THE YEAR AT WHICH CONSUMPTION EDE PER CAPITA OF THE MODEL BECOMES PERMANENTLY HIGHER THAN THE CONSUMPTION EDE PER CAPITA OF THE BAU
+#########################################################################################################################
+
+function year_EDE_higher_than_BAU(model)
+    countries = dim_keys(model, :country)
+    years = dim_keys(model, :time)
+    df = DataFrame(country = String[], year = Int[])
+    cons_EDE_bau = getdataframe(bau_model, :welfare, :cons_EDE_country)
+    cons_EDE_bau_global = getdataframe(bau_model, :welfare, :cons_EDE_global)
+    cons_EDE = getdataframe(model, :welfare, :cons_EDE_country)
+    cons_EDE_global = getdataframe(model, :welfare, :cons_EDE_global)
+    for c in countries
+        years_inf = Vector{Int}()
+        for t in years
+            cons_EDE_bau_val = cons_EDE_bau[(cons_EDE_bau.time .== t) .& (cons_EDE_bau.country .== c), :cons_EDE_country][1]
+            cons_EDE_val = cons_EDE[(cons_EDE.time .== t) .& (cons_EDE.country .== c), :cons_EDE_country][1]
+            if cons_EDE_val <= cons_EDE_bau_val
+                push!(years_inf, t)
+            end
+        end
+        if isempty(years_inf)
+            push!(df, (String(c), 2020))
+        else
+            last_year = maximum(years_inf)
+            first_year = last_year + 1
+            if first_year <= maximum(years)
+                push!(df, (String(c), first_year))
+            else
+                push!(df, (String(c), 9999))
+            end
+        end
+    end
+
+    years_inf_global = Vector{Int}()
+    for t in years
+        cons_EDE_bau_global_val = cons_EDE_bau_global[cons_EDE_bau_global.time .== t, :cons_EDE_global][1]
+        cons_EDE_global_val = cons_EDE_global[cons_EDE_global.time .== t, :cons_EDE_global][1]
+        if cons_EDE_global_val <= cons_EDE_bau_global_val
+            push!(years_inf_global, t)
+        end
+    end
+    if isempty(years_inf_global)
+        push!(df, ("Global", 2020))
+    else
+        last_year_global = maximum(years_inf_global)
+        first_year_global = last_year_global + 1
+        if first_year_global <= maximum(years)
+            push!(df, ("Global", first_year_global))
+        else
+            push!(df, ("Global", 9999))
+        end
+    end
+    return df
+end
+
+
+#########################################################################################################################
+#FUNCTION TO COMPUTE THE NET PRESENT VALUE 
+#########################################################################################################################
+
+function net_present_value(value, start_year, end_year, discount_rate, name_value)
+    col = Symbol(name_value)  # convertir le nom en symbole
+    mask = (value.time .>= start_year) .& (value.time .<= end_year)
+    npv = sum(
+        value[mask, col] ./ (1 .+ discount_rate) .^ (value[mask, :time] .- start_year)
+    )
+    return npv
+end
+
+#########################################################################################################################
+
