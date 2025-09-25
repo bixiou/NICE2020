@@ -361,9 +361,9 @@ end
 #########################################################################################################################
 
 
-function build_results_csv(bau, capshare, ffu, imf, stoft, global_bau, global_capshare, global_ffu, global_imf, global_stoft, bautemp, capsharetemp, ffutemp, imftemp, stofttemp, india_bau, india_global, india_ffu, india_imf, india_stoft)
+function build_results_csv(bau, capshare, ffu, imf, stoft, non_losing, global_bau, global_capshare, global_ffu, global_imf, global_stoft,global_non_losing, bautemp, capsharetemp, ffutemp, imftemp, stofttemp, nonlosingtemp, india_bau, india_global, india_ffu, india_imf, india_stoft, india_non_losing)
     df = DataFrame()
-    countries = (:IND, :NGA, :CHN, :MNG, :USA, :FRA, :DEU, :COD, :RUS)
+    countries = (:IND, :NGA, :CHN, :MNG, :USA, :FRA, :COD, :RUS)
     years = (2030, 2050, 2100)
 
     # Consommation EDE par pays
@@ -374,6 +374,7 @@ function build_results_csv(bau, capshare, ffu, imf, stoft, global_bau, global_ca
             FFU_val = ffu[(ffu.time .== t) .& (ffu.country .== c), :cons_EDE_country][1]
             IMF_val = imf[(imf.time .== t) .& (imf.country .== c), :cons_EDE_country][1]
             STOFT_val = stoft[(stoft.time .== t) .& (stoft.country .== c), :cons_EDE_country][1]
+            Non_losing_val = non_losing[(non_losing.time .== t) .& (non_losing.country .== c), :cons_EDE_country][1]
             Var_Rate_FFU_IMF_val = (IMF_val-FFU_val)/FFU_val * 100
             Var_Rate_CapShare_STOFT_val = (STOFT_val-CapShare_val)/CapShare_val * 100
             push!(df, (
@@ -384,9 +385,10 @@ function build_results_csv(bau, capshare, ffu, imf, stoft, global_bau, global_ca
                 CapShare = CapShare_val,
                 FFU = FFU_val,
                 IMF = IMF_val,
-                STOFT = STOFT_val,
+                Stoft = STOFT_val,
+                Non_losing = Non_losing_val,
                 Var_Rate_FFU_IMF = Var_Rate_FFU_IMF_val,
-                Var_Rate_CapShare_STOFT = Var_Rate_CapShare_STOFT_val
+                Var_Rate_CapShare_Stoft = Var_Rate_CapShare_STOFT_val
             ))
         end
     end
@@ -398,6 +400,7 @@ function build_results_csv(bau, capshare, ffu, imf, stoft, global_bau, global_ca
         FFU_val = global_ffu[(global_ffu.time .== t), :cons_EDE_global][1]
         IMF_val = global_imf[(global_imf.time .== t), :cons_EDE_global][1]
         STOFT_val = global_stoft[(global_stoft.time .== t), :cons_EDE_global][1]
+        Non_losing_val = global_non_losing[(global_non_losing.time .== t), :cons_EDE_global][1]
         Var_Rate_FFU_IMF_val = (IMF_val-FFU_val)/FFU_val * 100
         Var_Rate_CapShare_STOFT_val = (STOFT_val-CapShare_val)/CapShare_val * 100
         
@@ -409,9 +412,10 @@ function build_results_csv(bau, capshare, ffu, imf, stoft, global_bau, global_ca
             CapShare = CapShare_val,
             FFU = FFU_val,
             IMF = IMF_val,
-            STOFT = STOFT_val,
+            Stoft = STOFT_val,
+            Non_losing = Non_losing_val,
             Var_Rate_FFU_IMF = Var_Rate_FFU_IMF_val,
-            Var_Rate_CapShare_STOFT = Var_Rate_CapShare_STOFT_val
+            Var_Rate_CapShare_Stoft = Var_Rate_CapShare_STOFT_val
         ))
     end
 
@@ -421,6 +425,7 @@ function build_results_csv(bau, capshare, ffu, imf, stoft, global_bau, global_ca
         FFU_val = ffutemp.T
         IMF_val = imftemp.T
         STOFT_val = stofttemp.T
+        Non_losing_val = nonlosingtemp.T
         Var_Rate_FFU_IMF_val = (IMF_val-FFU_val)/FFU_val * 100
         Var_Rate_CapShare_STOFT_val = (STOFT_val-CapShare_val)/CapShare_val * 100
         if t ==2100
@@ -432,9 +437,10 @@ function build_results_csv(bau, capshare, ffu, imf, stoft, global_bau, global_ca
                 CapShare = CapShare_val,
                 FFU = FFU_val,
                 IMF = IMF_val,
-                STOFT = STOFT_val,
+                Stoft = STOFT_val,
+                Non_losing = Non_losing_val,
                 Var_Rate_FFU_IMF = Var_Rate_FFU_IMF_val,
-                Var_Rate_CapShare_STOFT = Var_Rate_CapShare_STOFT_val
+                Var_Rate_CapShare_Stoft = Var_Rate_CapShare_STOFT_val
             ))
         end
         
@@ -444,8 +450,9 @@ function build_results_csv(bau, capshare, ffu, imf, stoft, global_bau, global_ca
             FFU_val = india_ffu[(india_ffu.time .== t) .& (india_ffu.country .== :IND), :transfer][1]
             IMF_val = india_imf[(india_imf.time .== t) .& (india_imf.country .== :IND), :transfer][1]
             STOFT_val = india_stoft[(india_stoft.time .== t) .& (india_stoft.country .== :IND), :transfer][1]
+            Non_losing_val = india_non_losing[(india_non_losing.time .== t) .& (india_non_losing.country .== :IND), :transfer][1]
             Var_Rate_FFU_IMF_val = (IMF_val-FFU_val)/FFU_val * 100
-            Var_Rate_CapShare_STOFT_val = (STOFT_val-CapShare_val)/CapShare_val * 100
+            Var_Rate_CapShare_stoft_val = (STOFT_val-CapShare_val)/CapShare_val * 100
             push!(df, (
                 Indicator = "Transfers India (2050)",
                 Year = t,
@@ -454,31 +461,28 @@ function build_results_csv(bau, capshare, ffu, imf, stoft, global_bau, global_ca
                 CapShare = CapShare_val,
                 FFU = FFU_val,
                 IMF = IMF_val,
-                STOFT = STOFT_val,
+                Stoft = STOFT_val,
+                Non_losing = Non_losing_val,
                 Var_Rate_FFU_IMF = Var_Rate_FFU_IMF_val,
-                Var_Rate_CapShare_STOFT = Var_Rate_CapShare_STOFT_val
+                Var_Rate_CapShare_Stoft = Var_Rate_CapShare_stoft_val
             ))
         end
     end    
-
-
     return df
-    path = joinpath(@__DIR__, "..", "cap_and_share", "data", "output", "comparison_output.csv")
-    CSV.write(path, df)
 end
 
 #########################################################################################################################
-#FUNCTION TO COMPUTE THE YEAR AT WHICH CONSUMPTION EDE PER CAPITA OF THE MODEL BECOMES PERMANENTLY HIGHER THAN THE CONSUMPTION EDE PER CAPITA OF THE BAU
+#FUNCTION TO COMPUTE THE YEAR AT WHICH CONSUMPTION EDE PER CAPITA OF THE SCENARIO BECOMES PERMANENTLY HIGHER THAN THE CONSUMPTION EDE PER CAPITA OF THE BAU
 #########################################################################################################################
 
-function year_EDE_higher_than_BAU(model)
-    countries = dim_keys(model, :country)
-    years = dim_keys(model, :time)
+function year_EDE_higher_than_BAU(scenario)
+    countries = dim_keys(scenario, :country)
+    years = dim_keys(scenario, :time)
     df = DataFrame(country = String[], year = Int[])
     cons_EDE_bau = getdataframe(bau_model, :welfare, :cons_EDE_country)
     cons_EDE_bau_global = getdataframe(bau_model, :welfare, :cons_EDE_global)
-    cons_EDE = getdataframe(model, :welfare, :cons_EDE_country)
-    cons_EDE_global = getdataframe(model, :welfare, :cons_EDE_global)
+    cons_EDE = getdataframe(scenario, :welfare, :cons_EDE_country)
+    cons_EDE_global = getdataframe(scenario, :welfare, :cons_EDE_global)
     for c in countries
         years_inf = Vector{Int}()
         for t in years

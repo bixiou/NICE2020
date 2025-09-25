@@ -22,12 +22,13 @@ library(readr)
 
 
 conso_EDE <- read_delim("cap_and_share/output/comparison_output.csv", delim = "," )
-conso_EDE <- conso_EDE %>% select(-c(9,10))
-conso_EDE <- conso_EDE[-c(31, 32),]
+conso_EDE <- conso_EDE %>% select(-((ncol(conso_EDE)-1):ncol(conso_EDE)))
+conso_EDE <- conso_EDE[-c(28, 29),]
+View(conso_EDE)
 
 df_long <- conso_EDE %>%
   pivot_longer(
-    cols = 4:8,          # colonnes correspondant aux scénarios
+    cols = 4:9,          # colonnes correspondant aux scénarios
     names_to = "Scenario",
     values_to = "Conso"
   )
@@ -131,3 +132,59 @@ ggplot(df_var_bau_2100, aes(x = Country, y = Var_Conso, fill = Scenario)) +
     theme(legend.position = "bottom")
 end 
 
+
+#2) Variation compared to the non_losing scenario
+
+df_var_non_losing <- df_long
+df_var_non_losing$Var_Conso <- NA
+
+for (c in unique(df_var_non_losing$Country)){
+  for (t in unique(df_var_non_losing$Year)){
+    for (m in (df_var_non_losing$Scenario)){
+      cons <- df_var_non_losing$Conso[df_var_non_losing$Country == c & df_var_non_losing$Year == t & df_var_non_losing$Scenario == m]
+      cons_non_losing <- df_var_non_losing$Conso[df_var_non_losing$Country == c & df_var_non_losing$Year == t & df_var_non_losing$Scenario == "Non_losing"]
+      df_var_non_losing <- df_var_non_losing %>%
+        mutate(Var_Conso = ifelse(Country == c & Year == t & Scenario == m,
+        ((cons - cons_non_losing)/cons_non_losing)*100, Var_Conso))
+    }
+  }
+}
+View(df_var_non_losing)
+
+df_var_without_non_losing <- df_var_non_losing %>% filter(Scenario != "Non_losing")
+
+df_var_non_losing_2030 <- df_var_without_non_losing %>% filter(Year == "2030")
+
+ggplot(df_var_non_losing_2030, aes(x = Country, y = Var_Conso, fill = Scenario)) +
+    geom_col(position = "dodge") + 
+    labs(title = "Consumption EDE per capita in 2030 by Country and Scenario",
+         x = "Country",
+         y = "Variation rate of Consumption EDE per capita in 2030 in terms of Non_losing") +
+    scale_y_continuous(limits = c(-5, 25)) +
+    theme_minimal() +
+    theme(legend.position = "bottom")
+end 
+
+df_var_non_losing_2050 <- df_var_without_non_losing %>% filter(Year == "2050")
+
+ggplot(df_var_non_losing_2050, aes(x = Country, y = Var_Conso, fill = Scenario)) +
+    geom_col(position = "dodge") + 
+    labs(title = "Consumption EDE per capita in 2050 by Country and Scenario",
+         x = "Country",
+         y = "Variation rate of Consumption EDE per capita in 2050 in terms of Non_losing") +
+    scale_y_continuous(limits = c(-5, 20)) +
+    theme_minimal() +
+    theme(legend.position = "bottom")
+end 
+
+df_var_non_losing_2100 <- df_var_without_non_losing %>% filter(Year == "2100")
+
+ggplot(df_var_non_losing_2100, aes(x = Country, y = Var_Conso, fill = Scenario)) +
+    geom_col(position = "dodge") + 
+    labs(title = "Consumption EDE per capita in 2100 by Country and Scenario",
+         x = "Country",
+         y = "Variation rate of Consumption EDE per capita in 2100 in terms of Non_losing") +
+    scale_y_continuous(limits = c(-10, 25)) +
+    theme_minimal() +
+    theme(legend.position = "bottom")
+end 

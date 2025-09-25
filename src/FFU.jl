@@ -282,7 +282,7 @@ MimiNICE2020.save_nice2020_output(nice2020_global_cap_share, joinpath(@__DIR__, 
 #run(`powershell -c "[console]::beep(1000, 300)"`)
 
 ###########################
-# 6. differenciated_prices: FMI proposal - $25/t LIC & LMIC, $50 UMIC, $75 HIC pour 2025-30, increasing at x% beyond that, where x is chosen to get us to 2+/-.1°C
+# 6. IMF_2: IMF proposal - $25/t LIC & LMIC, $50 UMIC, $75 HIC pour 2025-30, increasing at x% beyond that, where x is chosen to get us to 2+/-.1°C
 ###########################
 
 #We load the list of LIC, LMIC, UMIC and HIC countries from parameters.jl
@@ -293,12 +293,12 @@ tax_lic_lmic = 25.0 # $/tCO2 for 2025-2030 (checked that same unit as global_co2
 tax_umic = 50.0 # $/tCO2 for 2025-2030
 tax_hic = 75.0 # $/tCO2 for 2025-2030
 
-nice2020_differenciated_prices = MimiNICE2020.create_nice2020()
+nice2020_IMF_2 = MimiNICE2020.create_nice2020()
 
 # Creation of the country x year matrix of carbon tax rates
 
-years = collect(dim_keys(nice2020_differenciated_prices, :time))
-countries = collect(dim_keys(nice2020_differenciated_prices, :country))
+years = collect(dim_keys(nice2020_IMF_2, :time))
+countries = collect(dim_keys(nice2020_IMF_2, :country))
 
 diff_country_tax = zeros(Float64, length(years), length(countries))
 
@@ -335,25 +335,25 @@ end
 
 global_recycle_share            = 0
 switch_scenario = :All_World  # Choice of scenario by name (:All_World, :All_Except_Oil_Countries, :Optimistic, :Generous_EU, :Africa_Eu)
-update_param!(nice2020_differenciated_prices, :switch_custom_transfers, 0)
-update_param!(nice2020_differenciated_prices, :switch_recycle, 1)
-update_param!(nice2020_differenciated_prices, :switch_global_recycling, 0)
-update_param!(nice2020_differenciated_prices, :revenue_recycle, :global_recycle_share, ones(nb_country) * global_recycle_share) 
-update_param!(nice2020_differenciated_prices, :revenue_recycle, :switch_global_pc_recycle, 0)
+update_param!(nice2020_IMF_2, :switch_custom_transfers, 0)
+update_param!(nice2020_IMF_2, :switch_recycle, 1)
+update_param!(nice2020_IMF_2, :switch_global_recycling, 0)
+update_param!(nice2020_IMF_2, :revenue_recycle, :global_recycle_share, ones(nb_country) * global_recycle_share) 
+update_param!(nice2020_IMF_2, :revenue_recycle, :switch_global_pc_recycle, 0)
 
-update_param!(nice2020_differenciated_prices, :abatement, :control_regime, 4) # Switch for emissions control regime  1:"global_carbon_tax", 2:"country_carbon_tax", 3:"country_abatement_rate"
-update_param!(nice2020_differenciated_prices, :abatement, :direct_country_tax, diff_country_tax)
-update_param!(nice2020_differenciated_prices, :switch_footprint, 0)
-update_param!(nice2020_differenciated_prices, :switch_transfers_affect_growth, 1)
-update_param!(nice2020_differenciated_prices, :policy_scenario, MimiNICE2020.scenario_index[switch_scenario])
+update_param!(nice2020_IMF_2, :abatement, :control_regime, 4) # Switch for emissions control regime  1:"global_carbon_tax", 2:"country_carbon_tax", 3:"country_abatement_rate"
+update_param!(nice2020_IMF_2, :abatement, :direct_country_tax, diff_country_tax)
+update_param!(nice2020_IMF_2, :switch_footprint, 0)
+update_param!(nice2020_IMF_2, :switch_transfers_affect_growth, 1)
+update_param!(nice2020_IMF_2, :policy_scenario, MimiNICE2020.scenario_index[switch_scenario])
 
-run(nice2020_differenciated_prices)
+run(nice2020_IMF_2)
 
 # Save the run (see helper functions for saving function details)
 #MimiNICE2020.save_nice2020_output(nice2020_global_cap_share, output_directory_uniform, revenue_recycling=false)
-dir=joinpath(@__DIR__, "..", "cap_and_share", "output", "differenciated_prices")
-#mkpath(dir)  # create directory if it does not exist
-MimiNICE2020.save_nice2020_output(nice2020_differenciated_prices, joinpath(@__DIR__, "..", "cap_and_share", "output", "differenciated_prices"))
+dir=joinpath(@__DIR__, "..", "cap_and_share", "output", "IMF_2")
+mkpath(dir)  # create directory if it does not exist
+MimiNICE2020.save_nice2020_output(nice2020_IMF_2, joinpath(@__DIR__, "..", "cap_and_share", "output", "IMF_2"))
 
 ###########################
 # 7. Stoft: scenario cap_and_share but with global_recycle_share = 0.1
@@ -396,20 +396,20 @@ run(nice2020_stoft)
 
 # Save the run (see helper functions for saving function details)
 #MimiNICE2020.save_nice2020_output(nice2020_global_cap_share, output_directory_uniform, revenue_recycling=false)
-dir_b=joinpath(@__DIR__, "..", "cap_and_share", "output", "Cramton_Stoft")
-#mkpath(dir_b) => to execute only once to create the directory
-MimiNICE2020.save_nice2020_output(nice2020_stoft, joinpath(@__DIR__, "..", "cap_and_share", "output", "Cramton_Stoft"))
+dir_b=joinpath(@__DIR__, "..", "cap_and_share", "output", "stoft")
+mkpath(dir_b) # => to execute only once to create the directory
+MimiNICE2020.save_nice2020_output(nice2020_stoft, joinpath(@__DIR__, "..", "cap_and_share", "output", "stoft"))
 
 ###########################
-#Year at which consumption_EDE becomes higher than consumption_capita :
+#Year at which consumption_EDE becomes higher than consumption_EDE in the BAU scenario :
 ###########################
 
 #Creation of a complete dataframe with all scenarios
-model = [nice2020_ffu, nice2020_global_cap_share, nice2020_differenciated_prices, nice2020_stoft]
-scenario_names = ["FFU", "Global_Cap_Share", "IMF", "Cramton_Stoft"]
+scenarios = [nice2020_ffu, nice2020_global_cap_share, nice2020_IMF_2, nice2020_stoft]
+scenario_names = ["FFU", "Global_Cap_Share", "IMF_2", "Stoft"]
 df_temp = DataFrame()
 df_final = DataFrame()
-for (i, m) in enumerate(model)
+for (i, m) in enumerate(scenarios)
     df_temp = year_EDE_higher_than_BAU(m)
     df_temp[!, :scenario] .= scenario_names[i]
     if i == 1
@@ -420,8 +420,14 @@ for (i, m) in enumerate(model)
 end
 println(df_final)
 
-df_EDE_global = filter(row -> row.country == "Global", df_final)
-println(df_EDE_global)
+df_imf_2 = unstack(filter(row -> row.scenario == "IMF_2", df_final), :scenario, :year)
+df_ffu = unstack(filter(row -> row.scenario == "FFU", df_final), :scenario, :year)
+df_capshare = unstack(filter(row -> row.scenario == "Global_Cap_Share", df_final), :scenario, :year)
+df_stoft = unstack(filter(row -> row.scenario == "Stoft", df_final), :scenario, :year)
+df_merged = innerjoin(df_ffu, df_capshare, df_imf_2, df_stoft, on=:country)
+
+path_year = joinpath(@__DIR__, "..", "cap_and_share", "output", "year_EDE_higher_than_BAU.csv")
+CSV.write(path_year, df_merged)
 
 
 ###########################
@@ -430,54 +436,61 @@ println(df_EDE_global)
 
 include("helper_functions.jl")
 
-countries_wanted = (:IND, :NGA, :CHN, :MNG, :USA, :FRA, :DEU, :COD, :RUS)
+countries_wanted = (:IND, :NGA, :CHN, :MNG, :USA, :FRA, :COD, :RUS)
 years_wanted = (2030, 2050, 2100)
 
 results = build_results_csv(filter(row -> row.time in years_wanted && row.country in countries_wanted, getdataframe(bau_model, :welfare=>:cons_EDE_country)), 
 filter(row -> row.time in years_wanted && row.country in countries_wanted, getdataframe(nice2020_global_cap_share, :welfare=>:cons_EDE_country)), 
 filter(row -> row.time in years_wanted && row.country in countries_wanted, getdataframe(nice2020_ffu, :welfare=>:cons_EDE_country)), 
-filter(row -> row.time in years_wanted && row.country in countries_wanted, getdataframe(nice2020_differenciated_prices, :welfare=>:cons_EDE_country)),
+filter(row -> row.time in years_wanted && row.country in countries_wanted, getdataframe(nice2020_IMF_2, :welfare=>:cons_EDE_country)),
 filter(row -> row.time in years_wanted && row.country in countries_wanted, getdataframe(nice2020_stoft, :welfare=>:cons_EDE_country)),
+filter(row -> row.time in years_wanted && row.country in countries_wanted, getdataframe(nice2020_non_losing, :welfare=>:cons_EDE_country)),
 getdataframe(bau_model, :welfare=>:cons_EDE_global)[[11, 31, 81], :], 
 getdataframe(nice2020_global_cap_share, :welfare=>:cons_EDE_global)[[11, 31, 81], :], 
 getdataframe(nice2020_ffu, :welfare=>:cons_EDE_global)[[11, 31, 81], :], 
-getdataframe(nice2020_differenciated_prices, :welfare=>:cons_EDE_global)[[11, 31, 81], :],
+getdataframe(nice2020_IMF_2, :welfare=>:cons_EDE_global)[[11, 31, 81], :],
 getdataframe(nice2020_stoft, :welfare=>:cons_EDE_global)[[11, 31, 81], :],
+getdataframe(nice2020_non_losing, :welfare=>:cons_EDE_global)[[11, 31, 81], :],
 getdataframe(bau_model, :temperature=>:T)[81, :], 
 getdataframe(nice2020_global_cap_share, :temperature=>:T)[81, :], 
 getdataframe(nice2020_ffu, :temperature=>:T)[81, :],
-getdataframe(nice2020_differenciated_prices, :temperature=>:T)[81, :],
+getdataframe(nice2020_IMF_2, :temperature=>:T)[81, :],
 getdataframe(nice2020_stoft, :temperature=>:T)[81, :],
+getdataframe(nice2020_non_losing, :temperature=>:T)[81, :],
 filter(row -> row.time == 2050 && row.country == :IND, getdataframe(bau_model, :revenue_recycle=>:transfer)), 
 filter(row -> row.time == 2050 && row.country == :IND, getdataframe(nice2020_global_cap_share, :revenue_recycle=>:transfer)), 
 filter(row -> row.time == 2050 && row.country == :IND, getdataframe(nice2020_ffu, :revenue_recycle=>:transfer)), 
-filter(row -> row.time == 2050 && row.country == :IND, getdataframe(nice2020_differenciated_prices, :revenue_recycle=>:transfer)),
-filter(row -> row.time == 2050 && row.country == :IND, getdataframe(nice2020_stoft, :revenue_recycle=>:transfer)))
+filter(row -> row.time == 2050 && row.country == :IND, getdataframe(nice2020_IMF_2, :revenue_recycle=>:transfer)),
+filter(row -> row.time == 2050 && row.country == :IND, getdataframe(nice2020_stoft, :revenue_recycle=>:transfer)),
+filter(row -> row.time == 2050 && row.country == :IND, getdataframe(nice2020_non_losing, :revenue_recycle=>:transfer)))
+
+path = joinpath(@__DIR__, "..", "cap_and_share", "output", "comparison_output.csv")
+CSV.write(path, results)
 
 #############################
 
 
 years = dim_keys(base_model, :time)
-models = [bau_model, nice2020_global_cap_share, nice2020_ffu, nice2020_differenciated_prices, nice2020_stoft]
-names_models = ["BAU", "Global_Cap_Share", "FFU", "IMF", "Cramton_Stoft"]
+scenarios = [bau_model, nice2020_global_cap_share, nice2020_ffu, nice2020_IMF_2, nice2020_stoft]
+names_scenarios = ["BAU", "Global_Cap_Share", "FFU", "IMF_2", "Stoft"]
 data_pnv = DataFrame(model = String[], country = String[], value = Float64[])
 
 for c in countries_wanted
-    for (i, m) in enumerate(models)
+    for (i, m) in enumerate(scenarios)
         cons_EDE = filter(row -> row.country == c, getdataframe(m, :welfare=>:cons_EDE_country))
         npv_val = net_present_value(cons_EDE, 2030, 2100, 0.03, "cons_EDE_country")
-        push!(data_pnv,(String(names_models[i]), String(c), npv_val))
+        push!(data_pnv,(String(names_scenarios[i]), String(c), npv_val))
     end
 end
 
 println(data_pnv)
 
-data_pnv_global = DataFrame(model = String[], country = String[], value = Float64[])
+data_pnv_global = DataFrame(scenario = String[], country = String[], value = Float64[])
 
-for (i, m) in enumerate(models)
+for (i, m) in enumerate(scenarios)
     cons_EDE = getdataframe(m, :welfare=>:cons_EDE_global)
     npv_val = net_present_value(cons_EDE, 2030, 2100, 0.03, "cons_EDE_global")
-    push!(data_pnv_global,(String(names_models[i]), "Global", npv_val))
+    push!(data_pnv_global,(String(names_scenarios[i]), "Global", npv_val))
 end
 println(data_pnv_global)
 
