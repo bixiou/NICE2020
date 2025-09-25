@@ -154,5 +154,6 @@
         v.CPC_post_global[t] = sum(v.sum_conso_pc_post_recycle[t,:] .* p.l[t,:] ./ p.nb_quantile) / temp_pop_global
         v.gini_cons_global[t] = gini(convert(Vector{Real},vec(v.conso_pc_post_recycle[t,:,:])), convert(Vector{Real},vec(temp_pop_quantile))) *100
 
+
     end # timestep
 end

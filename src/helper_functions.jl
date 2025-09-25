@@ -361,7 +361,73 @@ end
 #########################################################################################################################
 
 
-function build_results_csv(bau, capshare, ffu, imf, stoft, non_losing, global_bau, global_capshare, global_ffu, global_imf, global_stoft,global_non_losing, bautemp, capsharetemp, ffutemp, imftemp, stofttemp, nonlosingtemp, india_bau, india_global, india_ffu, india_imf, india_stoft, india_non_losing)
+function build_results_csv(scenarios, names_scenarios, countries, years)
+    df = DataFrame()
+    #Consumption EDE per country
+    for t in years
+        for c in countries
+            for (i, m) in enumerate(scenarios)
+                val = only(filter(row -> row.time == t && row.country == c,
+                  getdataframe(m, :welfare=>:cons_EDE_country)).cons_EDE_country)
+                push!(df,(
+                    Indicator = "Consumption EDE (countries)",
+                    Year = t,
+                    Country = string(c),
+                    Scenario = String(names_scenarios[i]),
+                    Value = val
+                ))
+            end
+        end        
+    end
+
+    #Consumption EDE global
+    for t in years
+        for (i,m) in enumerate(scenarios)
+            val_global = only(filter(row -> row.time == t,
+                  getdataframe(m, :welfare=>:cons_EDE_global)).cons_EDE_global)
+            push!(df, (
+                Indicator = "Consumption EDE (global)",
+                Year = t,
+                Country = "Global",
+                Scenario = String(names_scenarios[i]),
+                Value = val_global
+            ))
+        end
+    end
+
+    #Temperature in 2100
+    for (i,m) in enumerate(scenarios)
+        var_temp = only(filter(row -> row.time == 2100,
+            getdataframe(m, :temperature=>:T)).T)
+         push!(df, (
+            Indicator = "Global temperature in 2100",
+            Year = 2100,
+            Country = "Global",
+            Scenario = String(names_scenarios[i]),
+            Value = var_temp
+        ))
+    end
+
+    #Transfers in India in 2050
+    for (i,m) in enumerate(scenarios)
+        var_india = only(filter(row -> row.time == 2050 && row.country == :IND,
+            getdataframe(m, :revenue_recycle=>:transfer)).transfer)
+        push!(df, (
+            Indicator = "Transfers in India in 2050",
+            Year = 2050,
+            Country = "IND",
+            Scenario = String(names_scenarios[i]),
+            Value = var_india
+        ))
+    end
+
+    df = unstack(df, [:Indicator, :Country, :Year], :Scenario, :Value)
+    return df
+
+end
+
+
+function build_results_csv_original(bau, capshare, ffu, imf, stoft, non_losing, global_bau, global_capshare, global_ffu, global_imf, global_stoft,global_non_losing, bautemp, capsharetemp, ffutemp, imftemp, stofttemp, nonlosingtemp, india_bau, india_global, india_ffu, india_imf, india_stoft, india_non_losing)
     df = DataFrame()
     countries = (:IND, :NGA, :CHN, :MNG, :USA, :FRA, :COD, :RUS)
     years = (2030, 2050, 2100)
@@ -369,6 +435,20 @@ function build_results_csv(bau, capshare, ffu, imf, stoft, non_losing, global_ba
     # Consommation EDE par pays
     for t in years
         for c in countries
+            for m in scenario
+                sce_val = scenario[(scenario.time .== t) .& (scenario.country .== c), :cons_EDE_country][1]
+                push!(df, (
+                    Indicator = "Consumtion EDE (countries)"
+                    
+                )
+                )
+
+
+
+
+
+
+
             BAU_val = bau[(bau.time .== t) .& (bau.country .== c), :cons_EDE_country][1]
             CapShare_val = capshare[(capshare.time .== t) .& (capshare.country .== c), :cons_EDE_country][1]
             FFU_val = ffu[(ffu.time .== t) .& (ffu.country .== c), :cons_EDE_country][1]
@@ -390,6 +470,7 @@ function build_results_csv(bau, capshare, ffu, imf, stoft, non_losing, global_ba
                 Var_Rate_FFU_IMF = Var_Rate_FFU_IMF_val,
                 Var_Rate_CapShare_Stoft = Var_Rate_CapShare_STOFT_val
             ))
+            end
         end
     end
 
@@ -542,4 +623,3 @@ function net_present_value(value, start_year, end_year, discount_rate, name_valu
 end
 
 #########################################################################################################################
-

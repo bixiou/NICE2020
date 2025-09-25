@@ -282,7 +282,71 @@ MimiNICE2020.save_nice2020_output(nice2020_global_cap_share, joinpath(@__DIR__, 
 #run(`powershell -c "[console]::beep(1000, 300)"`)
 
 ###########################
-# 6. IMF_2: IMF proposal - $25/t LIC & LMIC, $50 UMIC, $75 HIC pour 2025-30, increasing at x% beyond that, where x is chosen to get us to 2+/-.1°C
+# 6. IMF: IMF proposal - $25/t LIC & LMIC, $50 UMIC, $75 HIC starting from 2025 (2025-2300)
+###########################
+
+#We load the list of LIC, LMIC, UMIC and HIC countries from parameters.jl
+include("../data/parameters.jl")
+
+#Creation of the differenciated tax
+tax_lic_lmic = 25.0 # $/tCO2 for 2025-2030 (checked that same unit as global_co2_tax)
+tax_umic = 50.0 # $/tCO2 for 2025-2030
+tax_hic = 75.0 # $/tCO2 for 2025-2030
+
+nice2020_IMF = MimiNICE2020.create_nice2020()
+
+# Creation of the country x year matrix of carbon tax rates
+
+years = collect(dim_keys(nice2020_IMF, :time))
+countries = collect(dim_keys(nice2020_IMF, :country))
+
+diff_country_tax_1 = zeros(Float64, length(years), length(countries))
+
+LIC_LMIC = Symbol.(LIC_LMIC)
+UMIC     = Symbol.(UMIC)
+HIC      = Symbol.(HIC)
+
+years_index = findall(y -> 2025 <= y, years)
+
+for t in years_index
+    for (c_idx, country) in enumerate(countries)
+        if country in LIC_LMIC
+            diff_country_tax_1[t, c_idx] = tax_lic_lmic
+        elseif country in UMIC
+            diff_country_tax_1[t, c_idx] = tax_umic
+        elseif country in HIC
+            diff_country_tax_1[t, c_idx] = tax_hic
+        else
+            diff_country_tax_1[t, c_idx] = 0.0  # si pays non classé
+        end
+    end
+end
+
+
+global_recycle_share            = 0
+switch_scenario = :All_World  # Choice of scenario by name (:All_World, :All_Except_Oil_Countries, :Optimistic, :Generous_EU, :Africa_Eu)
+update_param!(nice2020_IMF_2, :switch_custom_transfers, 0)
+update_param!(nice2020_IMF_2, :switch_recycle, 1)
+update_param!(nice2020_IMF_2, :switch_global_recycling, 0)
+update_param!(nice2020_IMF_2, :revenue_recycle, :global_recycle_share, ones(nb_country) * global_recycle_share) 
+update_param!(nice2020_IMF_2, :revenue_recycle, :switch_global_pc_recycle, 0)
+
+update_param!(nice2020_IMF_2, :abatement, :control_regime, 4) # Switch for emissions control regime  1:"global_carbon_tax", 2:"country_carbon_tax", 3:"country_abatement_rate"
+update_param!(nice2020_IMF_2, :abatement, :direct_country_tax, diff_country_tax_1)
+update_param!(nice2020_IMF_2, :switch_footprint, 0)
+update_param!(nice2020_IMF_2, :switch_transfers_affect_growth, 1)
+update_param!(nice2020_IMF_2, :policy_scenario, MimiNICE2020.scenario_index[switch_scenario])
+
+run(nice2020_IMF)
+
+# Save the run (see helper functions for saving function details)
+#MimiNICE2020.save_nice2020_output(nice2020_global_cap_share, output_directory_uniform, revenue_recycling=false)
+dir_imf_1=joinpath(@__DIR__, "..", "cap_and_share", "output", "IMF")
+mkpath(dir_imf_1)  # create directory if it does not exist
+MimiNICE2020.save_nice2020_output(nice2020_IMF, joinpath(@__DIR__, "..", "cap_and_share", "output", "IMF"))
+
+###########################
+# 7. IMF_2: IMF proposal - $25/t LIC & LMIC, $50 UMIC, $75 HIC for 2025-30, increasing at x% beyond that, where x is chosen to get us to 2+/-.1°C
 ###########################
 
 #We load the list of LIC, LMIC, UMIC and HIC countries from parameters.jl
@@ -300,7 +364,7 @@ nice2020_IMF_2 = MimiNICE2020.create_nice2020()
 years = collect(dim_keys(nice2020_IMF_2, :time))
 countries = collect(dim_keys(nice2020_IMF_2, :country))
 
-diff_country_tax = zeros(Float64, length(years), length(countries))
+diff_country_tax_2 = zeros(Float64, length(years), length(countries))
 
 LIC_LMIC = Symbol.(LIC_LMIC)
 UMIC     = Symbol.(UMIC)
@@ -311,13 +375,13 @@ years_index = findall(y -> 2025 <= y <= 2030, years)
 for t in years_index
     for (c_idx, country) in enumerate(countries)
         if country in LIC_LMIC
-            diff_country_tax[t, c_idx] = tax_lic_lmic
+            diff_country_tax_2[t, c_idx] = tax_lic_lmic
         elseif country in UMIC
-            diff_country_tax[t, c_idx] = tax_umic
+            diff_country_tax_2[t, c_idx] = tax_umic
         elseif country in HIC
-            diff_country_tax[t, c_idx] = tax_hic
+            diff_country_tax_2[t, c_idx] = tax_hic
         else
-            diff_country_tax[t, c_idx] = 0.0  # si pays non classé
+            diff_country_tax_2[t, c_idx] = 0.0  # si pays non classé
         end
     end
 end
@@ -327,7 +391,7 @@ years_index_post2030 = findall(y -> y > 2030, years)
 growth_rate = 0.036
 for t in years_index_post2030
     for (c_idx, country) in enumerate(countries)
-        diff_country_tax[t, c_idx] = diff_country_tax[t-1, c_idx] * (1 + growth_rate)
+        diff_country_tax_2[t, c_idx] = diff_country_tax_2[t-1, c_idx] * (1 + growth_rate)
     end
 end
 
@@ -342,7 +406,7 @@ update_param!(nice2020_IMF_2, :revenue_recycle, :global_recycle_share, ones(nb_c
 update_param!(nice2020_IMF_2, :revenue_recycle, :switch_global_pc_recycle, 0)
 
 update_param!(nice2020_IMF_2, :abatement, :control_regime, 4) # Switch for emissions control regime  1:"global_carbon_tax", 2:"country_carbon_tax", 3:"country_abatement_rate"
-update_param!(nice2020_IMF_2, :abatement, :direct_country_tax, diff_country_tax)
+update_param!(nice2020_IMF_2, :abatement, :direct_country_tax, diff_country_tax_2)
 update_param!(nice2020_IMF_2, :switch_footprint, 0)
 update_param!(nice2020_IMF_2, :switch_transfers_affect_growth, 1)
 update_param!(nice2020_IMF_2, :policy_scenario, MimiNICE2020.scenario_index[switch_scenario])
@@ -352,11 +416,11 @@ run(nice2020_IMF_2)
 # Save the run (see helper functions for saving function details)
 #MimiNICE2020.save_nice2020_output(nice2020_global_cap_share, output_directory_uniform, revenue_recycling=false)
 dir=joinpath(@__DIR__, "..", "cap_and_share", "output", "IMF_2")
-mkpath(dir)  # create directory if it does not exist
+# mkpath(dir)  # create directory if it does not exist
 MimiNICE2020.save_nice2020_output(nice2020_IMF_2, joinpath(@__DIR__, "..", "cap_and_share", "output", "IMF_2"))
 
 ###########################
-# 7. Stoft: scenario cap_and_share but with global_recycle_share = 0.1
+# 8. Stoft: scenario cap_and_share but with global_recycle_share = 0.1
 ###########################
 
 # CARBON TAX PATHWAY 
@@ -401,6 +465,12 @@ mkpath(dir_b) # => to execute only once to create the directory
 MimiNICE2020.save_nice2020_output(nice2020_stoft, joinpath(@__DIR__, "..", "cap_and_share", "output", "stoft"))
 
 ###########################
+#9: FFU_SU: FFU scenario with a tax on consumption and redistribution of 1% of the PIB
+###########################
+
+
+
+###########################
 #Year at which consumption_EDE becomes higher than consumption_EDE in the BAU scenario :
 ###########################
 
@@ -438,31 +508,10 @@ include("helper_functions.jl")
 
 countries_wanted = (:IND, :NGA, :CHN, :MNG, :USA, :FRA, :COD, :RUS)
 years_wanted = (2030, 2050, 2100)
+scenarios = [bau_model, nice2020_global_cap_share, nice2020_ffu, nice2020_IMF, nice2020_IMF_2, nice2020_stoft]
+names_scenarios = ["BAU", "Global_Cap_Share", "FFU", "IMF", "IMF_2", "Stoft"]
 
-results = build_results_csv(filter(row -> row.time in years_wanted && row.country in countries_wanted, getdataframe(bau_model, :welfare=>:cons_EDE_country)), 
-filter(row -> row.time in years_wanted && row.country in countries_wanted, getdataframe(nice2020_global_cap_share, :welfare=>:cons_EDE_country)), 
-filter(row -> row.time in years_wanted && row.country in countries_wanted, getdataframe(nice2020_ffu, :welfare=>:cons_EDE_country)), 
-filter(row -> row.time in years_wanted && row.country in countries_wanted, getdataframe(nice2020_IMF_2, :welfare=>:cons_EDE_country)),
-filter(row -> row.time in years_wanted && row.country in countries_wanted, getdataframe(nice2020_stoft, :welfare=>:cons_EDE_country)),
-filter(row -> row.time in years_wanted && row.country in countries_wanted, getdataframe(nice2020_non_losing, :welfare=>:cons_EDE_country)),
-getdataframe(bau_model, :welfare=>:cons_EDE_global)[[11, 31, 81], :], 
-getdataframe(nice2020_global_cap_share, :welfare=>:cons_EDE_global)[[11, 31, 81], :], 
-getdataframe(nice2020_ffu, :welfare=>:cons_EDE_global)[[11, 31, 81], :], 
-getdataframe(nice2020_IMF_2, :welfare=>:cons_EDE_global)[[11, 31, 81], :],
-getdataframe(nice2020_stoft, :welfare=>:cons_EDE_global)[[11, 31, 81], :],
-getdataframe(nice2020_non_losing, :welfare=>:cons_EDE_global)[[11, 31, 81], :],
-getdataframe(bau_model, :temperature=>:T)[81, :], 
-getdataframe(nice2020_global_cap_share, :temperature=>:T)[81, :], 
-getdataframe(nice2020_ffu, :temperature=>:T)[81, :],
-getdataframe(nice2020_IMF_2, :temperature=>:T)[81, :],
-getdataframe(nice2020_stoft, :temperature=>:T)[81, :],
-getdataframe(nice2020_non_losing, :temperature=>:T)[81, :],
-filter(row -> row.time == 2050 && row.country == :IND, getdataframe(bau_model, :revenue_recycle=>:transfer)), 
-filter(row -> row.time == 2050 && row.country == :IND, getdataframe(nice2020_global_cap_share, :revenue_recycle=>:transfer)), 
-filter(row -> row.time == 2050 && row.country == :IND, getdataframe(nice2020_ffu, :revenue_recycle=>:transfer)), 
-filter(row -> row.time == 2050 && row.country == :IND, getdataframe(nice2020_IMF_2, :revenue_recycle=>:transfer)),
-filter(row -> row.time == 2050 && row.country == :IND, getdataframe(nice2020_stoft, :revenue_recycle=>:transfer)),
-filter(row -> row.time == 2050 && row.country == :IND, getdataframe(nice2020_non_losing, :revenue_recycle=>:transfer)))
+results = build_results_csv(scenarios, names_scenarios, countries_wanted, years_wanted)
 
 path = joinpath(@__DIR__, "..", "cap_and_share", "output", "comparison_output.csv")
 CSV.write(path, results)
@@ -494,3 +543,20 @@ for (i, m) in enumerate(scenarios)
 end
 println(data_pnv_global)
 
+#########
+#TEST 
+#########
+#Consumption tax
+#######################
+
+time = dim_keys(base_model, :time)
+country = dim_keys(base_model, :country)
+for t in time
+    for c in d.country
+        nine = v.conso_pc_post_damage_abatement[t,c,"Ninth"]
+        ten = v.conso_pc_post_damage_abatement[t,c,"Tenth"]
+        tax_ninth[t,c] = 0.01*nine
+        tax_tenth[t,c] = 0.05*ten
+    end
+        sum_tax[t] = sum(tax_ninth[t]) + sum(tax_tenth[t]) 
+        v.total_consumption_tax[t] = sum_tax[t] / p.nb_quantile
