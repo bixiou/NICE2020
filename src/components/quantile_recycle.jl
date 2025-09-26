@@ -32,6 +32,7 @@
     transfer_pc                 = Parameter(index=[time, country])    # $ per capita
     E_gtco2                 	= Parameter(index=[time, country])
     country_carbon_tax       	= Parameter(index=[time, country])         		# CO2 tax rate (USD2017 per tCO2)
+    switch_consumption_tax             = Parameter(default=1)                   # Switch tax on consumption (0 or 1) (1% of the conso_pc_base on the 9th decile and 5% on the 10th) 
 
 
     CO2_income_elasticity    	= Variable(index=[time, country])             	# Elasticity of CO2 price exposure with respect to income
@@ -43,7 +44,7 @@
     conso_pc_post_damage_abatement 	= Variable(index=[time, country, quantile])  	# Post-damage, post-abatement cost per capita quantile consumption (thousand USD2017 per person per year)
     conso_pc_post_tax              	= Variable(index=[time, country, quantile])  	# Quantile per capita consumption after subtracting out carbon tax (thousand USD2017 per person per year)
     conso_pc_post_recycle          	= Variable(index=[time, country, quantile])  	# Quantile per capita consumption after recycling tax back to quantiles (thousand USD2017 per person per year)
-    qc_share				 	= Variable(index=[time, country, quantile])  	# Quantile share of per capita consumption (%)
+    qc_share				 	= Variable(index=[time, country, quantile])  	    # Quantile share of per capita consumption (%)
 	sum_conso_pc_post_recycle  	 	= Variable(index=[time, country]) 				# Sum of quantiles consumption per capita after abatement, damages and revenue recycling (thousand USD2017 per (capita per quantile) per year)
     CPC_post                    = Variable(index=[time, country])               # Country consumption per capita post recycle (thousand USD2017 per person per year)
     CPC_post_rwpp               = Variable(index=[time, regionwpp])             # Region consumption per capita post recycle (thousand USD2017 per person per year)
@@ -54,6 +55,11 @@
     gini_cons_global            = Variable(index=[time])                        # Global consumption gini (%)
 	mu_cons				        = Variable(index=[time, country])				# Parameter mu of the lognormal distribution of consumption
 	sigma_cons			        = Variable(index=[time, country])				# Parameter sigma of the lognormal distribution of consumption
+    tax_cons_ninth              = Variable(index=[time, country])               # Consumption tax revenue for the tax on the 9th decile
+    tax_cons_tenth              = Variable(index=[time, country])               # Consumption tax revenue for the tax on the 10th decile
+    tot_tax_cons                = Variable(index=[time])                        # Total consumtpion tax revenue for all countries
+    tot_tax_cons_country        = Variable(index=[time, country])
+
 
 
     function run_timestep(p, v, d, t)
@@ -153,7 +159,26 @@
 
         v.CPC_post_global[t] = sum(v.sum_conso_pc_post_recycle[t,:] .* p.l[t,:] ./ p.nb_quantile) / temp_pop_global
         v.gini_cons_global[t] = gini(convert(Vector{Real},vec(v.conso_pc_post_recycle[t,:,:])), convert(Vector{Real},vec(temp_pop_quantile))) *100
-
-
+        
+        if switch_consumption_tax == 1 
+            for c in d.country
+                # Compute consumption tax collected on the 9th decile
+                v.tax_cons_ninth[t,c] = v.conso_pc_base(t,c,"Ninth") * 0.01
+                v.conso_post_cons_tax[t,c,"Ninth"] = v.conso_pc_base(t,c,"Ninth") - v.tax_cons_ninth[t,c]
+                # Compute consumption tax collected on the 10th decile
+                v.tax_cons_tenth[t,c] = v.conso_pc_base(t,c,"Tenth") * 0.05
+                v.conso_post_cons_tax[t,c,"Tenth"] = v.conso_pc_base(t,c,"Tenth") - v.tax_cons_tenth[t,c]
+                v.tot_tax_cons_country[t,c] = v.tax_cons_ninth[t,c] + v.tax_cons_tenth[t,c]
+            end
+            v.tot_tax_cons[t] = sum(v.tot_tax_cons_country[t,:])
+            for c in d.country
+                v.pib_contrib[t,c] = p.YGROSS[t,c]*0.01
+            end
+            v.common_pot[t] = sum(v.pib_contrib[t,:])
+            for c in d.country
+                v.recycle_pib[t,c] = (v.common_pot[t]/sum(p.l[t,:]))*p.l[t,c]
+                v.net_surplus[t,c] = v.tot_tax_cons_country[t,c] - v.pib_contrib[t,c] + v.recycle_pib[t,c]
+            end
+        end
     end # timestep
 end
