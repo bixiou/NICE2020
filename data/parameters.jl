@@ -337,3 +337,5 @@ raw_patterns = load(joinpath(@__DIR__, "cmip6_patterns_by_country.csv")) |>
 
 # Select pattern type from varios options.
 cmip_pattern = raw_patterns[!, pattern_type]
+
+

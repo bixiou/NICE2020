@@ -519,8 +519,6 @@ nice2020_ffu_su = MimiNICE2020.create_nice2020()
 
 switch_scenario                 = :Union  # Choice of scenario by name (:All_World, :All_Except_Oil_Countries, :Optimistic, :Generous_EU, :Africa_Eu)
 
-switch_consumption_tax          = 1 #ON 
-
 update_param!(nice2020_ffu_su, :switch_custom_transfers, 1)
 # Rule for share of global tax revenues recycled at global level (switch_recycle and switch_global_recycling must be ON)
 global_recycle_share            = 1 # 100%   Share of tax revenues recycled globally 
@@ -537,13 +535,21 @@ update_param!(nice2020_ffu_su, :revenue_recycle, :switch_global_pc_recycle, 1)
 update_param!(nice2020_ffu_su, :revenue_recycle, :global_recycle_share,  ones(nb_country) * global_recycle_share ) 
 update_param!(nice2020_ffu_su, :policy_scenario, MimiNICE2020.scenario_index[switch_scenario])
 update_param!(nice2020_ffu_su, :switch_transfers_affect_growth, 1)
-update_param!(nice2020_ffu_su, :switch_consumption_tax, 1)
+update_param!(nice2020_ffu_su, :quantile_recycle, :switch_consumption_tax, 1)
+update_param!(nice2020_ffu_su, :quantile_recycle, :rate_ninth, 0.01)
+update_param!(nice2020_ffu_su, :quantile_recycle, :rate_tenth, 0.05)
+update_param!(nice2020_ffu_su, :quantile_recycle, :rate_pib, 0.01)
+update_param!(nice2020_ffu_su, :quantile_recycle, :inefficiency_rate, 0.1)
+
 
 run(nice2020_ffu_su)
 
-dir_c=joinpath(@__DIR__, "..", "cap_and_share", "output", "ffu_su")
-mkpath(dir_c) # => to execute only once to create the directory
-MimiNICE2020.save_nice2020_output(nice2020_stoft, joinpath(@__DIR__, "..", "cap_and_share", "output", "ffu_su"))
+dir_su=joinpath(@__DIR__, "..", "cap_and_share", "output", "ffu_su")
+#mkpath(dir_su) # => to execute only once to create the directory
+MimiNICE2020.save_nice2020_output(nice2020_ffu_su, joinpath(@__DIR__, "..", "cap_and_share", "output", "ffu_su"))
+
+getdataframe(nice2020_ffu_su, :quantile_recycle, :new_conso_pc)
+getdataframe(nice2020_ffu_su, :quantile_recycle, :conso_pc_base)
 
 ###########################
 #10: CSU: Cap and Share Union : same participating countries as in FFU but with an egalitarian repartition of rights
@@ -584,7 +590,7 @@ update_param!(nice2020_csu, :switch_transfers_affect_growth, 1)
 run(nice2020_csu)
 
 dir_d=joinpath(@__DIR__, "..", "cap_and_share", "output", "csu")
-mkpath(dir_d) # => to execute only once to create the directory
+#mkpath(dir_d) # => to execute only once to create the directory
 MimiNICE2020.save_nice2020_output(nice2020_csu, joinpath(@__DIR__, "..", "cap_and_share", "output", "csu"))
 
 ###########################
@@ -625,16 +631,17 @@ include("helper_functions.jl")
 
 countries_wanted = (:IND, :NGA, :CHN, :MNG, :USA, :FRA, :COD, :RUS)
 years_wanted = (2030, 2050, 2100)
-scenarios = [bau_model, nice2020_global_cap_share, nice2020_ffu, nice2020_IMF, nice2020_IMF_2, nice2020_stoft, nice2020_csu]
-names_scenarios = ["BAU", "Global_Cap_Share", "FFU", "IMF", "IMF_2", "Stoft", "CSU"]
+scenarios = [bau_model, nice2020_global_cap_share, nice2020_ffu, nice2020_IMF, nice2020_IMF_2, nice2020_stoft, nice2020_csu, nice2020_non_losing]
+names_scenarios = ["BAU", "Global_Cap_Share", "FFU", "IMF", "IMF_2", "Stoft", "CSU", "Non-losing"]
 
 results = build_results_csv(scenarios, names_scenarios, countries_wanted, years_wanted)
 
 path = joinpath(@__DIR__, "..", "cap_and_share", "output", "comparison_output.csv")
 CSV.write(path, results)
 
-#############################
-
+###########################
+#Compute net present value of consumption EDE from 2030 to 2100 with a rate of 3% :
+###########################
 
 years = dim_keys(base_model, :time)
 scenarios = [bau_model, nice2020_global_cap_share, nice2020_ffu, nice2020_IMF_2, nice2020_stoft]
