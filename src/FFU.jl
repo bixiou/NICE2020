@@ -644,8 +644,8 @@ CSV.write(path, results)
 ###########################
 
 years = dim_keys(base_model, :time)
-scenarios = [bau_model, nice2020_global_cap_share, nice2020_ffu, nice2020_IMF_2, nice2020_stoft]
-names_scenarios = ["BAU", "Global_Cap_Share", "FFU", "IMF_2", "Stoft"]
+scenarios = [bau_model, nice2020_global_cap_share, nice2020_ffu, nice2020_IMF, nice2020_IMF_2, nice2020_stoft, nice2020_csu]
+names_scenarios = ["BAU", "Global_Cap_Share", "FFU", "IMF", "IMF_2", "Stoft", "CSU"]
 data_pnv = DataFrame(model = String[], country = String[], value = Float64[])
 
 for c in countries_wanted

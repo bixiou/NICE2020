@@ -68,6 +68,7 @@
     pop_quantile                = Variable(index=[time, country])               # Quantile population (thousands)
     surplus_pc                  = Variable(index=[time, country])               # (thousand USD2017 per year)
     new_conso_pc                = Variable(index=[time, country, quantile])     # (thousand USD2017 per year)
+    pooled_revenue              = Variable(index=[time])
 
 
 
@@ -110,12 +111,21 @@
 			# This is the former of l.96 : we try and keep the same meaning once transfers can be added in macro variables
             # temp_conso_pc = p.nb_quantile * p.CPC[t,c] * (1.0 + p.LOCAL_DAMFRAC_KW[t,c]) / (1.0 - p.ABATEFRAC[t,c])
             temp_conso_pc = p.nb_quantile * p.YGROSS[t,c] * (1.0 - p.s[t,c])/ p.l[t,c]
+
 			for q in d.quantile
 
 				# Calculate pre-damage, pre-abatement cost quantile consumption.
 				v.conso_pc_base[t,c,q] = temp_conso_pc * p.quantile_consumption_shares[t,c,q]
+            
+				# Calculate post-damage, post-abatement cost per capita quantile consumption (bounded below to ensure consumptions don't collapse to zero or go negative).
+				# Note, this differs from standard NICE equation because quantile CO2 abatement cost and climate damage shares can now vary over time.
+				#This is the former version of l.104 : we try and keep the same meaning once transfers can be added in macro variablesAdd commentMore actions
+				#v.conso_pc_post_damage_abatement[t,c,q] = max(v.qcpc_base[t,c,q] - (p.nb_quantile* p.CPC[t,c] * p.LOCAL_DAMFRAC_KW[t,c] * v.damage_dist[t,c,q]) - (temp_qcpc * p.ABATEFRAC[t,c] * v.abatement_cost_dist[t,c,q]), 1e-8)
+                v.conso_pc_post_damage_abatement[t,c,q] = max(v.conso_pc_base[t,c,q] - (temp_conso_pc* (1.0 - p.ABATEFRAC[t,c]) /(1.0 + p.LOCAL_DAMFRAC_KW[t,c]) * p.LOCAL_DAMFRAC_KW[t,c] * v.damage_dist[t,c,q]) - (temp_conso_pc * p.ABATEFRAC[t,c] * v.abatement_cost_dist[t,c,q]), 1e-8)
             end
 
+           
+           
             ########################################################################################################
             #SUSTAINABLE UNION scenario
             ########################################################################################################
@@ -130,8 +140,15 @@
                 end
                 v.tot_tax_cons_country[t,c] = v.tax_cons_ninth[t,c] + v.tax_cons_tenth[t,c]
                 v.pib_contrib[t,c] = p.YGROSS[t,c] * p.rate_pib
-                #Here pooled_revenue and pib_contrib are in 1e6$ and consumtion in thousand $
-                v.recycle_pib[t,c] = ((sum(v.pib_contrib[t,:]) * p.inefficiency_rate )/sum(p.l[t,:]))*p.l[t,c]
+            end
+        end
+        if p.switch_consumption_tax == 1
+            v.pooled_revenue[t] = sum(v.pib_contrib[t,:])
+        end
+        for c in d.country
+            if p.switch_consumption_tax == 1
+                #Here pooled_revenue and pib_contrib are in 1e6$ and consumtion in thousand $ => we convert everything in thousand $
+                v.recycle_pib[t,c] = ((v.pooled_revenue[t] * p.inefficiency_rate )/sum(p.l[t,:]))*p.l[t,c]
                 v.net_surplus[t,c] = v.tot_tax_cons_country[t,c] - (v.pib_contrib[t,c]*1000)  + (v.recycle_pib[t,c]*1000)
                 for q in d.quantile
                     v.new_conso_pc[t,c,q] = v.conso_pc_base[t,c,q]
@@ -148,7 +165,7 @@
                         if v.new_conso_pc[t,c,q-1] > v.conso_pc_base[t,c,q]
                             v.net_surplus[t,c] = v.new_conso_pc[t,c,q-1] - v.conso_pc_base[t,c,q]
                             for j in 1:q-1
-                                v.new_conso_pc[t,c,j] = v.new_conso_pc[t,c,j] - v.conso_pc_base[t,c,q]
+                                v.new_conso_pc[t,c,j] = v.conso_pc_base[t,c,q]
                             end
                         else
                             v.net_surplus[t,c] = 0
@@ -160,11 +177,11 @@
             ########################################################################################################
 
             for q in d.quantile
-				# Calculate post-damage, post-abatement cost per capita quantile consumption (bounded below to ensure consumptions don't collapse to zero or go negative).
-				# Note, this differs from standard NICE equation because quantile CO2 abatement cost and climate damage shares can now vary over time.
-				#This is the former version of l.104 : we try and keep the same meaning once transfers can be added in macro variablesAdd commentMore actions
-				#v.conso_pc_post_damage_abatement[t,c,q] = max(v.qcpc_base[t,c,q] - (p.nb_quantile* p.CPC[t,c] * p.LOCAL_DAMFRAC_KW[t,c] * v.damage_dist[t,c,q]) - (temp_qcpc * p.ABATEFRAC[t,c] * v.abatement_cost_dist[t,c,q]), 1e-8)
-                v.conso_pc_post_damage_abatement[t,c,q] = max(v.conso_pc_base[t,c,q] - (temp_conso_pc* (1.0 - p.ABATEFRAC[t,c]) /(1.0 + p.LOCAL_DAMFRAC_KW[t,c]) * p.LOCAL_DAMFRAC_KW[t,c] * v.damage_dist[t,c,q]) - (temp_conso_pc * p.ABATEFRAC[t,c] * v.abatement_cost_dist[t,c,q]), 1e-8)
+
+                if p.switch_consumption_tax == 0 
+                    v.new_conso_pc[t,c,q] = v.conso_pc_base[t,c,q]
+                end
+
 
 				# Subtract tax revenue from each quantile based on quantile CO2 tax burden distributions.
 				# Note, per capita tax revenue and consumption should both be in $1000/person.
