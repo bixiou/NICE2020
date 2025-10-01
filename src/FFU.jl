@@ -643,27 +643,33 @@ CSV.write(path, results)
 #Compute net present value of consumption EDE from 2030 to 2100 with a rate of 3% :
 ###########################
 
+include("helper_functions.jl")
+countries_wanted = (:IND, :NGA, :CHN, :MNG, :USA, :FRA, :COD, :RUS)
 years = dim_keys(base_model, :time)
 scenarios = [bau_model, nice2020_global_cap_share, nice2020_ffu, nice2020_IMF, nice2020_IMF_2, nice2020_stoft, nice2020_csu]
 names_scenarios = ["BAU", "Global_Cap_Share", "FFU", "IMF", "IMF_2", "Stoft", "CSU"]
-data_pnv = DataFrame(model = String[], country = String[], value = Float64[])
+data_npv = DataFrame(scenario = String[], country = String[], value = Float64[])
 
 for c in countries_wanted
     for (i, m) in enumerate(scenarios)
         cons_EDE = filter(row -> row.country == c, getdataframe(m, :welfare=>:cons_EDE_country))
         npv_val = net_present_value(cons_EDE, 2030, 2100, 0.03, "cons_EDE_country")
-        push!(data_pnv,(String(names_scenarios[i]), String(c), npv_val))
+        push!(data_npv,(String(names_scenarios[i]), String(c), npv_val))
     end
 end
-
-println(data_pnv)
-
-data_pnv_global = DataFrame(scenario = String[], country = String[], value = Float64[])
 
 for (i, m) in enumerate(scenarios)
     cons_EDE = getdataframe(m, :welfare=>:cons_EDE_global)
     npv_val = net_present_value(cons_EDE, 2030, 2100, 0.03, "cons_EDE_global")
-    push!(data_pnv_global,(String(names_scenarios[i]), "Global", npv_val))
+    push!(data_npv,(String(names_scenarios[i]), "Global", npv_val))
 end
-println(data_pnv_global)
 
+df_npv = unstack(filter(row -> row.scenario == names_scenarios[1], data_npv), :scenario, :value)
+
+for i in 2:length(scenarios)
+    df_tempo = unstack(filter(row -> row.scenario == names_scenarios[i], data_npv), :scenario, :value)
+    df_npv = innerjoin(df_npv, df_tempo, on=:country)
+end
+
+path_npv = joinpath(@__DIR__, "..", "cap_and_share", "output", "net_present_value_cons_EDE.csv")
+CSV.write(path_npv, df_npv)

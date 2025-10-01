@@ -27,7 +27,7 @@ conso_EDE <- conso_EDE[-c(28, 29),]
 
 df_long <- conso_EDE %>%
   pivot_longer(
-    cols = 4:11,          # colonnes correspondant aux scénarios
+    cols = 4:ncol(conso_EDE),
     names_to = "Scenario",
     values_to = "Conso"
   )
@@ -169,3 +169,38 @@ for (name in names(plots)) {
     width = 8, height = 6
   )
 }
+
+
+###########################################
+# Creation of the graph representing net present value of the consumption EDE per capita
+###########################################
+
+data_npv <- read_delim("cap_and_share/output/net_present_value_cons_EDE.csv", delim = "," )
+df_long_npv <- data_npv %>%
+  pivot_longer(
+    cols = 2:ncol(data_npv),
+    names_to = "Scenario",
+    values_to = "NPV_Conso_EDE"
+  )
+end
+View(df_long_npv)
+
+graph_npv <- ggplot(df_long_npv, aes(x = country, y = NPV_Conso_EDE, fill = Scenario)) +
+  geom_col(position = "dodge") + 
+  labs(title = "Net present value consumption EDE per capita 2030-2100",
+    x = "Country",
+    y = "NPV (thousand USD2017 per person)") +
+  scale_y_continuous(limits = c(0, 1500)) +
+  theme_minimal() +
+  theme(legend.position = "bottom")
+end 
+
+graph_npv
+
+dir <- file.path(getwd(), "cap_and_share", "graphs")
+ggsave(
+  filename = file.path(dir, "graph_npv.png"),
+  plot = graph_npv,
+  width = 8,
+  height = 6
+)
