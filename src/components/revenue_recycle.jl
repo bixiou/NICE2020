@@ -158,7 +158,7 @@
                     excess_rights = 1e6 * p.l[t,c] * v.country_pc_dividend[t,c]/p.country_carbon_tax[t,c] - p.E_gtco2[t,c] * 1e9
                 end
             else
-                rights_actual = p.E_gtco2_club[t] * p.rights_proposed[t,c]/sum(p.rights_proposed[t,c] * p.club_country[p.policy_scenario,c] for c in d.country)
+                rights_actual = p.E_gtco2_club[t] * p.rights_proposed[t,c]/sum(p.rights_proposed[t,c] * p.club_country[p.policy_scenario,c] for c in d.country) # rights_actual != rights_proposed when prices are not defined to match rights_proposed
                 excess_rights = (rights_actual - p.E_gtco2[t,c]) * 1e9 * (maximum(p.rights_proposed[t,:]) > 0)
             end
             v.transfer[t,c]          = p.country_carbon_tax[t,c] * excess_rights
