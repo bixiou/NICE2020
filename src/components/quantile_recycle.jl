@@ -32,6 +32,11 @@
     transfer_pc                 = Parameter(index=[time, country])    # $ per capita
     E_gtco2                 	= Parameter(index=[time, country])
     country_carbon_tax       	= Parameter(index=[time, country])         		# CO2 tax rate (USD2017 per tCO2)
+    switch_consumption_tax      = Parameter(default=0)                          # Switch tax on consumption (0 or 1) (1% of the conso_pc_base on the 9th decile and 5% on the 10th) 
+    rate_ninth                  = Parameter(default=0.01)                       # Tax rate on consumption on the ninth decile
+    rate_tenth                  = Parameter(default=0.05)                       # Tax rate on consumption on the tenth decile
+    rate_pib                    = Parameter(default=0.01)                       # Rate of PIB contribution 
+    inefficiency_rate           = Parameter(default=0.1)                        #Rate of inefficency of redistribution of PIB
 
 
     CO2_income_elasticity    	= Variable(index=[time, country])             	# Elasticity of CO2 price exposure with respect to income
@@ -43,7 +48,7 @@
     conso_pc_post_damage_abatement 	= Variable(index=[time, country, quantile])  	# Post-damage, post-abatement cost per capita quantile consumption (thousand USD2017 per person per year)
     conso_pc_post_tax              	= Variable(index=[time, country, quantile])  	# Quantile per capita consumption after subtracting out carbon tax (thousand USD2017 per person per year)
     conso_pc_post_recycle          	= Variable(index=[time, country, quantile])  	# Quantile per capita consumption after recycling tax back to quantiles (thousand USD2017 per person per year)
-    qc_share				 	= Variable(index=[time, country, quantile])  	# Quantile share of per capita consumption (%)
+    qc_share				 	= Variable(index=[time, country, quantile])  	    # Quantile share of per capita consumption (%)
 	sum_conso_pc_post_recycle  	 	= Variable(index=[time, country]) 				# Sum of quantiles consumption per capita after abatement, damages and revenue recycling (thousand USD2017 per (capita per quantile) per year)
     CPC_post                    = Variable(index=[time, country])               # Country consumption per capita post recycle (thousand USD2017 per person per year)
     CPC_post_rwpp               = Variable(index=[time, regionwpp])             # Region consumption per capita post recycle (thousand USD2017 per person per year)
@@ -54,6 +59,17 @@
     gini_cons_global            = Variable(index=[time])                        # Global consumption gini (%)
 	mu_cons				        = Variable(index=[time, country])				# Parameter mu of the lognormal distribution of consumption
 	sigma_cons			        = Variable(index=[time, country])				# Parameter sigma of the lognormal distribution of consumption
+    tax_cons_ninth              = Variable(index=[time, country])               # Consumption tax revenue for the tax on the 9th decile (thousand USD2017 per year)
+    tax_cons_tenth              = Variable(index=[time, country])               # Consumption tax revenue for the tax on the 10th decile (thousand USD2017 per year)
+    tot_tax_cons_country        = Variable(index=[time, country])               # Total consumtion tax revenue for one country (thousand USD2017 per year)
+    pib_contrib                 = Variable(index=[time, country])               # Country contribution to the pooled revenue (1% of its PIB) (1e6 USD2017 per year)
+    recycle_pib                 = Variable(index=[time, country])               # Fraction of the pooled revenue that each country receives in proportion to its population (1e6 USD2017 per year)
+    net_surplus                 = Variable(index=[time, country])               # (thousand USD2017 per year)
+    pop_quantile                = Variable(index=[time, country])               # Quantile population (thousands)
+    surplus_pc                  = Variable(index=[time, country])               # (thousand USD2017 per year)
+    new_conso_pc                = Variable(index=[time, country, quantile])     # (thousand USD2017 per year)
+    pooled_revenue              = Variable(index=[time])
+
 
 
     function run_timestep(p, v, d, t)
@@ -95,21 +111,82 @@
 			# This is the former of l.96 : we try and keep the same meaning once transfers can be added in macro variables
             # temp_conso_pc = p.nb_quantile * p.CPC[t,c] * (1.0 + p.LOCAL_DAMFRAC_KW[t,c]) / (1.0 - p.ABATEFRAC[t,c])
             temp_conso_pc = p.nb_quantile * p.YGROSS[t,c] * (1.0 - p.s[t,c])/ p.l[t,c]
+
 			for q in d.quantile
 
 				# Calculate pre-damage, pre-abatement cost quantile consumption.
 				v.conso_pc_base[t,c,q] = temp_conso_pc * p.quantile_consumption_shares[t,c,q]
-
+            
 				# Calculate post-damage, post-abatement cost per capita quantile consumption (bounded below to ensure consumptions don't collapse to zero or go negative).
 				# Note, this differs from standard NICE equation because quantile CO2 abatement cost and climate damage shares can now vary over time.
 				#This is the former version of l.104 : we try and keep the same meaning once transfers can be added in macro variablesAdd commentMore actions
 				#v.conso_pc_post_damage_abatement[t,c,q] = max(v.qcpc_base[t,c,q] - (p.nb_quantile* p.CPC[t,c] * p.LOCAL_DAMFRAC_KW[t,c] * v.damage_dist[t,c,q]) - (temp_qcpc * p.ABATEFRAC[t,c] * v.abatement_cost_dist[t,c,q]), 1e-8)
                 v.conso_pc_post_damage_abatement[t,c,q] = max(v.conso_pc_base[t,c,q] - (temp_conso_pc* (1.0 - p.ABATEFRAC[t,c]) /(1.0 + p.LOCAL_DAMFRAC_KW[t,c]) * p.LOCAL_DAMFRAC_KW[t,c] * v.damage_dist[t,c,q]) - (temp_conso_pc * p.ABATEFRAC[t,c] * v.abatement_cost_dist[t,c,q]), 1e-8)
+            end
+
+           
+           
+            ########################################################################################################
+            #SUSTAINABLE UNION scenario
+            ########################################################################################################
+            if p.switch_consumption_tax == 1 
+                for q in d.quantile
+                    if q == 9
+                        v.tax_cons_ninth[t,c] = v.conso_pc_base[t,c,q] * p.rate_ninth * (p.l[t,c] / p.nb_quantile)
+                    end
+                    if q == 10
+                        v.tax_cons_tenth[t,c] = v.conso_pc_base[t,c,q] * p.rate_tenth * (p.l[t,c] / p.nb_quantile)
+                    end
+                end
+                v.tot_tax_cons_country[t,c] = v.tax_cons_ninth[t,c] + v.tax_cons_tenth[t,c]
+                v.pib_contrib[t,c] = p.YGROSS[t,c] * p.rate_pib
+            end
+        end
+        if p.switch_consumption_tax == 1
+            v.pooled_revenue[t] = sum(v.pib_contrib[t,:])
+        end
+        for c in d.country
+            if p.switch_consumption_tax == 1
+                #Here pooled_revenue and pib_contrib are in 1e6$ and consumtion in thousand $ => we convert everything in thousand $
+                v.recycle_pib[t,c] = ((v.pooled_revenue[t] * p.inefficiency_rate )/sum(p.l[t,:]))*p.l[t,c]
+                v.net_surplus[t,c] = v.tot_tax_cons_country[t,c] - (v.pib_contrib[t,c]*1000)  + (v.recycle_pib[t,c]*1000)
+                for q in d.quantile
+                    v.new_conso_pc[t,c,q] = v.conso_pc_base[t,c,q]
+                end
+    
+                #Redistribution of the net surplus starting from the poorer quantile
+                for q in 2:p.nb_quantile
+                    if v.net_surplus[t,c] > 0
+                        v.pop_quantile[t,c] = p.l[t,c] / (q-1)
+                        v.surplus_pc[t,c] = v.net_surplus[t,c] / v.pop_quantile[t,c]
+                        for i in 1:q-1
+                            v.new_conso_pc[t,c,i] = v.conso_pc_base[t,c,i] + v.surplus_pc[t,c]
+                        end
+                        if v.new_conso_pc[t,c,q-1] > v.conso_pc_base[t,c,q]
+                            v.net_surplus[t,c] = v.new_conso_pc[t,c,q-1] - v.conso_pc_base[t,c,q]
+                            for j in 1:q-1
+                                v.new_conso_pc[t,c,j] = v.conso_pc_base[t,c,q]
+                            end
+                        else
+                            v.net_surplus[t,c] = 0
+                        end
+                    end
+                end
+            end
+
+            ########################################################################################################
+
+            for q in d.quantile
+
+                if p.switch_consumption_tax == 0 
+                    v.new_conso_pc[t,c,q] = v.conso_pc_base[t,c,q]
+                end
+
 
 				# Subtract tax revenue from each quantile based on quantile CO2 tax burden distributions.
 				# Note, per capita tax revenue and consumption should both be in $1000/person.
 
-                v.conso_pc_post_tax[t,c,q] =  v.conso_pc_post_damage_abatement[t,c,q] - (p.nb_quantile * p.tax_pc_revenue[t,c] * v.tax_burden_distr[t,c,q])* ( 1 - p.s[t,c] * p.switch_transfers_affect_growth)				
+                v.conso_pc_post_tax[t,c,q] =  v.conso_pc_post_damage_abatement[t,c,q] - (p.nb_quantile * p.tax_pc_revenue[t,c] * v.tax_burden_distr[t,c,q])* ( 1 - p.s[t,c] * p.switch_transfers_affect_growth) + p.switch_consumption_tax*(v.new_conso_pc[t,c,q]-v.conso_pc_base[t,c,q])
                                                 
                 # Recycle tax revenue by adding shares back to all quantiles
 				if p.switch_recycle==0 # In the NO revenue recycling case (distributionally neutral), refund tax revenues equal to the initial burden
@@ -153,7 +230,6 @@
 
         v.CPC_post_global[t] = sum(v.sum_conso_pc_post_recycle[t,:] .* p.l[t,:] ./ p.nb_quantile) / temp_pop_global
         v.gini_cons_global[t] = gini(convert(Vector{Real},vec(v.conso_pc_post_recycle[t,:,:])), convert(Vector{Real},vec(temp_pop_quantile))) *100
-
 
     end # timestep
 end

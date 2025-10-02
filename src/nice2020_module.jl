@@ -82,6 +82,7 @@ function create_nice2020()
 	add_shared_param!(m, :switch_transfers_affect_growth, 0) # Switch, to choose whether the redistribution macro effects are included in the model
 
 	add_shared_param!(m, :switch_custom_transfers, 0) # Switch to choose wether we use equal_pc_transfer (dividend) (=0) or the custom_transfer (using rights proposed) (=1)
+
 	# --------------------------------
 	# FAIR Initial (2020) Conditions
 	# --------------------------------
@@ -223,6 +224,7 @@ function create_nice2020()
 	connect_param!(m, :quantile_recycle, :nb_quantile, 	:nb_quantile)
 	connect_param!(m, :quantile_recycle, :switch_transfers_affect_growth, :switch_transfers_affect_growth)
 	connect_param!(m, :quantile_recycle, :switch_custom_transfers, :switch_custom_transfers)
+
 
 	# --------------------------------
 	# Welfare

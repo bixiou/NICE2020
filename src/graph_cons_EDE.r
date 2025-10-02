@@ -22,59 +22,16 @@ library(readr)
 
 
 conso_EDE <- read_delim("cap_and_share/output/comparison_output.csv", delim = "," )
-conso_EDE <- conso_EDE %>% select(-((ncol(conso_EDE)-1):ncol(conso_EDE)))
 conso_EDE <- conso_EDE[-c(28, 29),]
-View(conso_EDE)
+
 
 df_long <- conso_EDE %>%
   pivot_longer(
-    cols = 4:9,          # colonnes correspondant aux scénarios
+    cols = 4:ncol(conso_EDE),
     names_to = "Scenario",
     values_to = "Conso"
   )
-
-View(df_long)
-
-df_IND_2030 <- df_long %>% filter(Country == "IND" & Year == 2030)
-View(df_IND_2030)
-
-barplot(df_IND_2030$Conso, names.arg = df_IND_2030$Scenario, main = "Consumption EDE per capita in India in 2030", ylab = "Consumption EDE per capita (2015 USD)", xlab = "Scenarios", col = "lightblue")
-
-df_long_2030 <- df_long %>% filter(Year == 2030)
-View(df_long_2030)
-
-ggplot(df_IND_2030, aes(x = Scenario, y = Conso, fill = Scenario)) +
-  geom_col() +
-  labs(title = "Consommation par scénario",
-       x = "Scénarios",
-       y = "Consommation") +
-    scale_y_continuous(limits = c(0, 10)) +
-  theme_minimal() +
-  theme(legend.position = "none")
-end 
-
-ggplot(df_long_2030, aes(x = Country, y = Conso, fill = Scenario)) +
-    geom_col(position = "dodge") + 
-    labs(title = "Consumption EDE per capita in 2030 by Country and Scenario",
-         x = "Country",
-         y = "Consumption EDE per capita (2015 USD)") +
-    scale_y_continuous(limits = c(0, 50)) +
-    theme_minimal() +
-    theme(legend.position = "bottom")
-end 
-
-df_long$Year <- as.factor(df_long$Year)
-
-ggplot(df_long, aes(x = Country, y = Conso, fill = Scenario)) +
-    geom_col(position = "dodge") + 
-    facet_grid(. ~ Year) +
-    labs(title = "Consumption EDE per capita in 2030 by Country and Scenario",
-         x = "Country",
-         y = "Consumption EDE per capita (2015 USD)") +
-    scale_y_continuous(limits = c(0, 80)) +
-    theme_minimal() +
-    theme(legend.position = "bottom")
-end 
+end
 
 #1) Variation compared to the BAU scenario
 
@@ -92,44 +49,47 @@ for (c in unique(df_var_bau$Country)){
     }
   }
 }
-View(df_var_bau)
+
 
 df_var_bau_without_bau <- df_var_bau %>% filter(Scenario != "BAU")
 
 df_var_bau_2030 <- df_var_bau_without_bau %>% filter(Year == "2030")
 
-ggplot(df_var_bau_2030, aes(x = Country, y = Var_Conso, fill = Scenario)) +
-    geom_col(position = "dodge") + 
-    labs(title = "Consumption EDE per capita in 2030 by Country and Scenario",
-         x = "Country",
-         y = "Variation rate of Consumption EDE per capita in 2030 in terms of BAU") +
-    scale_y_continuous(limits = c(-5, 25)) +
-    theme_minimal() +
-    theme(legend.position = "bottom")
-end 
+bau_2030 <- ggplot(df_var_bau_2030, aes(x = Country, y = Var_Conso, fill = Scenario)) +
+  geom_col(position = "dodge") + 
+  labs(
+    title = "Variation rate of Consumption EDE per capita in 2030 compared to BAU",
+    x = "Country",
+    y = "Variation rate") +
+  scale_y_continuous(limits = c(-5, 25)) +
+  theme_minimal() +
+  theme(legend.position = "bottom")
+end
 
-df_var_bau_2050 <- df_var_bau %>% filter(Year == "2050")
-View(df_var_bau_2050)
-ggplot(df_var_bau_2050, aes(x = Country, y = Var_Conso, fill = Scenario)) +
-    geom_col(position = "dodge") + 
-    labs(title = "Consumption EDE per capita in 2030 by Country and Scenario",
-         x = "Country",
-         y = "Variation rate of Consumption EDE per capita in 2030 in terms of BAU") +
-    scale_y_continuous(limits = c(-10, 25)) +
-    theme_minimal() +
-    theme(legend.position = "bottom")
-end 
+df_var_bau_2050 <- df_var_bau_without_bau %>% filter(Year == "2050")
 
-df_var_bau_2100 <- df_var_bau %>% filter(Year == "2100")
-View(df_var_bau_2100)
-ggplot(df_var_bau_2100, aes(x = Country, y = Var_Conso, fill = Scenario)) +
-    geom_col(position = "dodge") + 
-    labs(title = "Consumption EDE per capita in 2030 by Country and Scenario",
-         x = "Country",
-         y = "Variation rate of Consumption EDE per capita in 2030 in terms of BAU") +
-    scale_y_continuous(limits = c(-10, 25)) +
-    theme_minimal() +
-    theme(legend.position = "bottom")
+bau_2050 <- ggplot(df_var_bau_2050, aes(x = Country, y = Var_Conso, fill = Scenario)) +
+  geom_col(position = "dodge") + 
+  labs(
+    title = "Variation rate of Consumption EDE per capita in 2050 compared to BAU",
+    x = "Country",
+    y = "Variation rate"
+  ) +
+  scale_y_continuous(limits = c(-10, 25)) +
+  theme_minimal() +
+  theme(legend.position = "bottom")
+end
+
+df_var_bau_2100 <- df_var_bau_without_bau %>% filter(Year == "2100")
+
+bau_2100 <- ggplot(df_var_bau_2100, aes(x = Country, y = Var_Conso, fill = Scenario)) +
+  geom_col(position = "dodge") + 
+  labs(title = "Variation rate of Consumption EDE per capita in 2100 compared to BAU",
+    x = "Country",
+    y = "Variation rate") +
+  scale_y_continuous(limits = c(-10, 25)) +
+  theme_minimal() +
+  theme(legend.position = "bottom")
 end 
 
 
@@ -142,49 +102,105 @@ for (c in unique(df_var_non_losing$Country)){
   for (t in unique(df_var_non_losing$Year)){
     for (m in (df_var_non_losing$Scenario)){
       cons <- df_var_non_losing$Conso[df_var_non_losing$Country == c & df_var_non_losing$Year == t & df_var_non_losing$Scenario == m]
-      cons_non_losing <- df_var_non_losing$Conso[df_var_non_losing$Country == c & df_var_non_losing$Year == t & df_var_non_losing$Scenario == "Non_losing"]
+      cons_non_losing <- df_var_non_losing$Conso[df_var_non_losing$Country == c & df_var_non_losing$Year == t & df_var_non_losing$Scenario == "Non-losing"]
       df_var_non_losing <- df_var_non_losing %>%
         mutate(Var_Conso = ifelse(Country == c & Year == t & Scenario == m,
         ((cons - cons_non_losing)/cons_non_losing)*100, Var_Conso))
     }
   }
 }
-View(df_var_non_losing)
 
-df_var_without_non_losing <- df_var_non_losing %>% filter(Scenario != "Non_losing")
+
+df_var_non_losing %>%
+  group_by(Country, Year) %>%
+  summarise(has_non_losing = any(Scenario == "Non-losing")) %>%
+  filter(!has_non_losing)
+
+df_var_without_non_losing <- df_var_non_losing %>% filter(Scenario != "Non-losing")
 
 df_var_non_losing_2030 <- df_var_without_non_losing %>% filter(Year == "2030")
 
-ggplot(df_var_non_losing_2030, aes(x = Country, y = Var_Conso, fill = Scenario)) +
-    geom_col(position = "dodge") + 
-    labs(title = "Consumption EDE per capita in 2030 by Country and Scenario",
-         x = "Country",
-         y = "Variation rate of Consumption EDE per capita in 2030 in terms of Non_losing") +
-    scale_y_continuous(limits = c(-5, 25)) +
-    theme_minimal() +
-    theme(legend.position = "bottom")
+nonlosing_2030 <- ggplot(df_var_non_losing_2030, aes(x = Country, y = Var_Conso, fill = Scenario)) +
+  geom_col(position = "dodge") + 
+  labs(title = "Variation rate of Consumption EDE per capita in 2030 compared to Non_losing",
+    x = "Country",
+    y = "Variation rate") +
+  scale_y_continuous(limits = c(-5, 25)) +
+  theme_minimal() +
+  theme(legend.position = "bottom")
 end 
 
 df_var_non_losing_2050 <- df_var_without_non_losing %>% filter(Year == "2050")
 
-ggplot(df_var_non_losing_2050, aes(x = Country, y = Var_Conso, fill = Scenario)) +
-    geom_col(position = "dodge") + 
-    labs(title = "Consumption EDE per capita in 2050 by Country and Scenario",
-         x = "Country",
-         y = "Variation rate of Consumption EDE per capita in 2050 in terms of Non_losing") +
-    scale_y_continuous(limits = c(-5, 20)) +
-    theme_minimal() +
-    theme(legend.position = "bottom")
+nonlosing_2050 <- ggplot(df_var_non_losing_2050, aes(x = Country, y = Var_Conso, fill = Scenario)) +
+  geom_col(position = "dodge") + 
+  labs(title = "Variation rate of Consumption EDE per capita in 2050 compared to Non_losing",
+    x = "Country",
+    y = "Variation rate") +
+  scale_y_continuous(limits = c(-5, 20)) +
+  theme_minimal() +
+  theme(legend.position = "bottom")
 end 
 
 df_var_non_losing_2100 <- df_var_without_non_losing %>% filter(Year == "2100")
 
-ggplot(df_var_non_losing_2100, aes(x = Country, y = Var_Conso, fill = Scenario)) +
-    geom_col(position = "dodge") + 
-    labs(title = "Consumption EDE per capita in 2100 by Country and Scenario",
-         x = "Country",
-         y = "Variation rate of Consumption EDE per capita in 2100 in terms of Non_losing") +
-    scale_y_continuous(limits = c(-10, 25)) +
-    theme_minimal() +
-    theme(legend.position = "bottom")
+nonlosing_2100 <- ggplot(df_var_non_losing_2100, aes(x = Country, y = Var_Conso, fill = Scenario)) +
+  geom_col(position = "dodge") + 
+  labs(title = "Variation rate of Consumption EDE per capita in 2100 compared to Non_losing",
+    x = "Country",
+    y = "Variation rate") +
+  scale_y_continuous(limits = c(-10, 25)) +
+  theme_minimal() +
+  theme(legend.position = "bottom")
 end 
+
+#Export the graphs in a folder
+
+dir <- file.path(getwd(), "cap_and_share", "graphs")
+if (!dir.exists(dir)) {
+  dir.create(dir, recursive = TRUE)
+}
+
+plots <- list(var_rate_cons_EDE_compared_bau_2030 = bau_2030, var_rate_cons_EDE_compared_bau_2050 = bau_2050, var_rate_cons_EDE_compared_bau_2100 = bau_2100, var_rate_cons_EDE_compared_nonlosing_2030 = nonlosing_2030, var_rate_cons_EDE_compared_nonlosing_2050 = nonlosing_2050, var_rate_cons_EDE_compared_nonlosing_2100 = nonlosing_2100)
+for (name in names(plots)) {
+  ggsave(
+    filename = file.path(dir, paste0(name, ".png")),
+    plot = plots[[name]],
+    width = 8, height = 6
+  )
+}
+
+
+###########################################
+# Creation of the graph representing net present value of the consumption EDE per capita
+###########################################
+
+data_npv <- read_delim("cap_and_share/output/net_present_value_cons_EDE.csv", delim = "," )
+df_long_npv <- data_npv %>%
+  pivot_longer(
+    cols = 2:ncol(data_npv),
+    names_to = "Scenario",
+    values_to = "NPV_Conso_EDE"
+  )
+end
+View(df_long_npv)
+
+graph_npv <- ggplot(df_long_npv, aes(x = country, y = NPV_Conso_EDE, fill = Scenario)) +
+  geom_col(position = "dodge") + 
+  labs(title = "Net present value consumption EDE per capita 2030-2100",
+    x = "Country",
+    y = "NPV (thousand USD2017 per person)") +
+  scale_y_continuous(limits = c(0, 1500)) +
+  theme_minimal() +
+  theme(legend.position = "bottom")
+end 
+
+graph_npv
+
+dir <- file.path(getwd(), "cap_and_share", "graphs")
+ggsave(
+  filename = file.path(dir, "graph_npv.png"),
+  plot = graph_npv,
+  width = 8,
+  height = 6
+)
