@@ -80,8 +80,8 @@ function create_nice2020()
 	add_shared_param!(m, :policy_scenario, 1) # identifies the club of countries participating in the policy
 	add_shared_param!(m, :club_country, club_country, dims=[:scenario, :country]) # identifies the club of countries participating in the policy
 	add_shared_param!(m, :switch_transfers_affect_growth, 0) # Switch, to choose whether the redistribution macro effects are included in the model
-
 	add_shared_param!(m, :switch_custom_transfers, 0) # Switch to choose wether we use equal_pc_transfer (dividend) (=0) or the custom_transfer (using rights proposed) (=1)
+	add_shared_param!(m, :switch_consumption_tax, 0) # Switch, to choose whether the consumption tax and redistribution of the revenue + x% PIB is added (Sustainable Union)
 
 	# --------------------------------
 	# FAIR Initial (2020) Conditions
@@ -202,7 +202,7 @@ function create_nice2020()
 	connect_param!(m, :neteconomy, :switch_global_recycling, :switch_global_recycling)
 	connect_param!(m, :neteconomy, :switch_transfers_affect_growth, :switch_transfers_affect_growth) 
     connect_param!(m, :neteconomy, :switch_custom_transfers, :switch_custom_transfers)
-
+	connect_param!(m, :neteconomy, :switch_consumption_tax, :switch_consumption_tax)
 	# --------------------------------
 	# Quantile distribution
 	# --------------------------------
@@ -224,6 +224,7 @@ function create_nice2020()
 	connect_param!(m, :quantile_recycle, :nb_quantile, 	:nb_quantile)
 	connect_param!(m, :quantile_recycle, :switch_transfers_affect_growth, :switch_transfers_affect_growth)
 	connect_param!(m, :quantile_recycle, :switch_custom_transfers, :switch_custom_transfers)
+	connect_param!(m, :quantile_recycle, :switch_consumption_tax, :switch_consumption_tax)
 
 
 	# --------------------------------
@@ -268,6 +269,9 @@ function create_nice2020()
 	connect_param!(m, :quantile_recycle => :CPC, 				:neteconomy 		=> :CPC)
 	connect_param!(m, :quantile_recycle => :Y,					:neteconomy 		=> :Y)
 	connect_param!(m, :quantile_recycle => :Y_pc,				:neteconomy 		=> :Y_pc)
+	connect_param!(m, :quantile_recycle => :recycle_pib,        :neteconomy			=> :recycle_pib)
+	connect_param!(m, :quantile_recycle => :pib_contrib,        :neteconomy			=> :pib_contrib)
+	#connect_param!(m, :quantile_recycle => :pooled_revenue,     :neteconomy			=> :pooled_revenue)
 	connect_param!(m, :quantile_recycle => :country_pc_dividend,:revenue_recycle	=> :country_pc_dividend)
 	connect_param!(m, :quantile_recycle => :tax_pc_revenue,		:revenue_recycle	=> :tax_pc_revenue)
 	connect_param!(m, :quantile_recycle => :transfer,           :revenue_recycle	=> :transfer)

@@ -185,6 +185,25 @@ df_long_npv <- data_npv %>%
 end
 View(df_long_npv)
 
+df_var_npv_nonlosing <- df_long_npv
+df_var_npv_nonlosing$Var_Conso_NPV <- NA
+
+for (c in unique(df_var_npv_nonlosing$Country)){
+  for (t in unique(df_var_npv_nonlosing$Year)){
+    for (m in (df_var_npv_nonlosing$Scenario)){
+      cons <- df_var_npv_nonlosing$Conso[df_var_npv_nonlosing$Country == c & df_var_npv_nonlosing$Year == t & df_var_npv_nonlosing$Scenario == m]
+      cons_nonlosing <- df_var_npv_nonlosing$Conso[df_var_npv_nonlosing$Country == c & df_var_npv_nonlosing$Year == t & df_var_npv_nonlosing$Scenario == "Non-losing"]
+      df_var_npv_nonlosing <- df_var_npv_nonlosing %>%
+        mutate(Var_Conso_NPV = ifelse(Country == c & Year == t & Scenario == m,
+        ((cons - cons_nonlosing)/cons_nonlosing)*100, Var_Conso_NPV))
+    }
+  }
+}
+
+
+df_var_bau_without_nonlosing <- df_var_npv_nonlosing %>% filter(Scenario != "Non-losing")
+
+
 graph_npv <- ggplot(df_long_npv, aes(x = country, y = NPV_Conso_EDE, fill = Scenario)) +
   geom_col(position = "dodge") + 
   labs(title = "Net present value consumption EDE per capita 2030-2100",
@@ -197,10 +216,27 @@ end
 
 graph_npv
 
+
+graph_npv_var_nonlosing <- ggplot(df_var_bau_without_nonlosing, aes(x = country, y = Var_Conso_NPV, fill = Scenario)) +
+  geom_col(position = "dodge") + 
+  labs(title = "Variation rate of net present value consumption EDE per capita 2030-2100 in terms of Non-losing scenario",
+    x = "Country",
+    y = "Variation rate") +
+  scale_y_continuous(limits = c(0, 1500)) +
+  theme_minimal() +
+  theme(legend.position = "bottom")
+end 
+
 dir <- file.path(getwd(), "cap_and_share", "graphs")
 ggsave(
   filename = file.path(dir, "graph_npv.png"),
   plot = graph_npv,
+  width = 8,
+  height = 6
+)
+ggsave(
+  filename = file.path(dir, "graph_npv_var_nonlosing.png"),
+  plot = graph_npv_var_nonlosing,
   width = 8,
   height = 6
 )

@@ -535,11 +535,11 @@ update_param!(nice2020_ffu_su, :revenue_recycle, :switch_global_pc_recycle, 1)
 update_param!(nice2020_ffu_su, :revenue_recycle, :global_recycle_share,  ones(nb_country) * global_recycle_share ) 
 update_param!(nice2020_ffu_su, :policy_scenario, MimiNICE2020.scenario_index[switch_scenario])
 update_param!(nice2020_ffu_su, :switch_transfers_affect_growth, 1)
-update_param!(nice2020_ffu_su, :quantile_recycle, :switch_consumption_tax, 1)
+update_param!(nice2020_ffu_su, :switch_consumption_tax, 1)
 update_param!(nice2020_ffu_su, :quantile_recycle, :rate_ninth, 0.01)
 update_param!(nice2020_ffu_su, :quantile_recycle, :rate_tenth, 0.05)
-update_param!(nice2020_ffu_su, :quantile_recycle, :rate_pib, 0.01)
-update_param!(nice2020_ffu_su, :quantile_recycle, :inefficiency_rate, 0.1)
+update_param!(nice2020_ffu_su, :neteconomy, :rate_pib, 0.01)
+update_param!(nice2020_ffu_su, :neteconomy, :inefficiency_rate, 0.1)
 
 
 run(nice2020_ffu_su)
@@ -550,6 +550,15 @@ MimiNICE2020.save_nice2020_output(nice2020_ffu_su, joinpath(@__DIR__, "..", "cap
 
 getdataframe(nice2020_ffu_su, :quantile_recycle, :new_conso_pc)
 getdataframe(nice2020_ffu_su, :quantile_recycle, :conso_pc_base)
+getdataframe(nice2020_ffu_su, :neteconomy, :pib_contrib)
+println(getdataframe(nice2020_ffu_su, :quantile_recycle, :net_surplus))
+
+
+
+println(getdataframe(nice2020_ffu_su, :quantile_recycle=>(:recycle_pib, :pib_contrib, :net_surplus)))
+println(getdataframe(nice2020_ffu_su, :quantile_recycle => (:tot_tax_cons_country, :pib_contrib)))
+println(getdataframe(nice2020_ffu_su, :quantile_recycle=>(:recycle_pib, :pib_contrib)))
+
 
 ###########################
 #10: CSU: Cap and Share Union : same participating countries as in FFU but with an egalitarian repartition of rights
@@ -646,8 +655,8 @@ CSV.write(path, results)
 include("helper_functions.jl")
 countries_wanted = (:IND, :NGA, :CHN, :MNG, :USA, :FRA, :COD, :RUS)
 years = dim_keys(base_model, :time)
-scenarios = [bau_model, nice2020_global_cap_share, nice2020_ffu, nice2020_IMF, nice2020_IMF_2, nice2020_stoft, nice2020_csu]
-names_scenarios = ["BAU", "Global_Cap_Share", "FFU", "IMF", "IMF_2", "Stoft", "CSU"]
+scenarios = [bau_model, nice2020_global_cap_share, nice2020_ffu, nice2020_IMF, nice2020_IMF_2, nice2020_stoft, nice2020_csu, nice2020_non_losing]
+names_scenarios = ["BAU", "Global_Cap_Share", "FFU", "IMF", "IMF_2", "Stoft", "CSU", "Non-losing"]
 data_npv = DataFrame(scenario = String[], country = String[], value = Float64[])
 
 for c in countries_wanted

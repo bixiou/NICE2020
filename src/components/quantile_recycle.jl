@@ -32,11 +32,11 @@
     transfer_pc                 = Parameter(index=[time, country])    # $ per capita
     E_gtco2                 	= Parameter(index=[time, country])
     country_carbon_tax       	= Parameter(index=[time, country])         		# CO2 tax rate (USD2017 per tCO2)
-    switch_consumption_tax      = Parameter(default=0)                          # Switch tax on consumption (0 or 1) (1% of the conso_pc_base on the 9th decile and 5% on the 10th) 
+    switch_consumption_tax      = Parameter()                          # Switch tax on consumption (0 or 1) (1% of the conso_pc_base on the 9th decile and 5% on the 10th) 
     rate_ninth                  = Parameter(default=0.01)                       # Tax rate on consumption on the ninth decile
     rate_tenth                  = Parameter(default=0.05)                       # Tax rate on consumption on the tenth decile
-    rate_pib                    = Parameter(default=0.01)                       # Rate of PIB contribution 
-    inefficiency_rate           = Parameter(default=0.1)                        #Rate of inefficency of redistribution of PIB
+    pib_contrib                 = Parameter(index=[time, country])               # Country contribution to the pooled revenue (1% of its PIB) (1e6 USD2017 per year)
+    recycle_pib                 = Parameter(index=[time, country])               # Fraction of the pooled revenue that each country receives in proportion to its population (1e6 USD2017 per year)
 
 
     CO2_income_elasticity    	= Variable(index=[time, country])             	# Elasticity of CO2 price exposure with respect to income
@@ -62,13 +62,10 @@
     tax_cons_ninth              = Variable(index=[time, country])               # Consumption tax revenue for the tax on the 9th decile (thousand USD2017 per year)
     tax_cons_tenth              = Variable(index=[time, country])               # Consumption tax revenue for the tax on the 10th decile (thousand USD2017 per year)
     tot_tax_cons_country        = Variable(index=[time, country])               # Total consumtion tax revenue for one country (thousand USD2017 per year)
-    pib_contrib                 = Variable(index=[time, country])               # Country contribution to the pooled revenue (1% of its PIB) (1e6 USD2017 per year)
-    recycle_pib                 = Variable(index=[time, country])               # Fraction of the pooled revenue that each country receives in proportion to its population (1e6 USD2017 per year)
     net_surplus                 = Variable(index=[time, country])               # (thousand USD2017 per year)
     pop_quantile                = Variable(index=[time, country])               # Quantile population (thousands)
     surplus_pc                  = Variable(index=[time, country])               # (thousand USD2017 per year)
     new_conso_pc                = Variable(index=[time, country, quantile])     # (thousand USD2017 per year)
-    pooled_revenue              = Variable(index=[time])
 
 
 
@@ -129,47 +126,39 @@
             ########################################################################################################
             #SUSTAINABLE UNION scenario
             ########################################################################################################
-            if p.switch_consumption_tax == 1 
-                for q in d.quantile
-                    if q == 9
-                        v.tax_cons_ninth[t,c] = v.conso_pc_base[t,c,q] * p.rate_ninth * (p.l[t,c] / p.nb_quantile)
-                    end
-                    if q == 10
-                        v.tax_cons_tenth[t,c] = v.conso_pc_base[t,c,q] * p.rate_tenth * (p.l[t,c] / p.nb_quantile)
-                    end
+            for q in d.quantile
+                if q == 9
+                    v.tax_cons_ninth[t,c] = v.conso_pc_base[t,c,q] * p.rate_ninth * (p.l[t,c] / p.nb_quantile)
                 end
-                v.tot_tax_cons_country[t,c] = v.tax_cons_ninth[t,c] + v.tax_cons_tenth[t,c]
-                v.pib_contrib[t,c] = p.YGROSS[t,c] * p.rate_pib
+                if q == 10
+                    v.tax_cons_tenth[t,c] = v.conso_pc_base[t,c,q] * p.rate_tenth * (p.l[t,c] / p.nb_quantile)
+                end
             end
-        end
-        if p.switch_consumption_tax == 1
-            v.pooled_revenue[t] = sum(v.pib_contrib[t,:])
+            v.tot_tax_cons_country[t,c] = v.tax_cons_ninth[t,c] + v.tax_cons_tenth[t,c]
+            
         end
         for c in d.country
-            if p.switch_consumption_tax == 1
-                #Here pooled_revenue and pib_contrib are in 1e6$ and consumtion in thousand $ => we convert everything in thousand $
-                v.recycle_pib[t,c] = ((v.pooled_revenue[t] * p.inefficiency_rate )/sum(p.l[t,:]))*p.l[t,c]
-                v.net_surplus[t,c] = v.tot_tax_cons_country[t,c] - (v.pib_contrib[t,c]*1000)  + (v.recycle_pib[t,c]*1000)
-                for q in d.quantile
-                    v.new_conso_pc[t,c,q] = v.conso_pc_base[t,c,q]
-                end
+            #Here pooled_revenue and pib_contrib are in 1e6$ and consumtion in thousand $ => we convert everything in thousand $
+            v.net_surplus[t,c] = v.tot_tax_cons_country[t,c] - (p.pib_contrib[t,c]*1000)  + (p.recycle_pib[t,c]*1000)
+            for q in d.quantile
+                v.new_conso_pc[t,c,q] = v.conso_pc_base[t,c,q]
+            end
     
-                #Redistribution of the net surplus starting from the poorer quantile
-                for q in 2:p.nb_quantile
-                    if v.net_surplus[t,c] > 0
-                        v.pop_quantile[t,c] = p.l[t,c] / (q-1)
-                        v.surplus_pc[t,c] = v.net_surplus[t,c] / v.pop_quantile[t,c]
-                        for i in 1:q-1
-                            v.new_conso_pc[t,c,i] = v.conso_pc_base[t,c,i] + v.surplus_pc[t,c]
+            #Redistribution of the net surplus starting from the poorer quantile
+            for q in 2:p.nb_quantile
+                if v.net_surplus[t,c] > 0
+                    v.pop_quantile[t,c] = p.l[t,c] / (q-1)
+                    v.surplus_pc[t,c] = v.net_surplus[t,c] / v.pop_quantile[t,c]
+                    for i in 1:q-1
+                        v.new_conso_pc[t,c,i] = v.conso_pc_base[t,c,i] + v.surplus_pc[t,c]
+                    end
+                    if v.new_conso_pc[t,c,q-1] > v.conso_pc_base[t,c,q]
+                        v.net_surplus[t,c] = v.new_conso_pc[t,c,q-1] - v.conso_pc_base[t,c,q]
+                        for j in 1:q-1
+                            v.new_conso_pc[t,c,j] = v.conso_pc_base[t,c,q]
                         end
-                        if v.new_conso_pc[t,c,q-1] > v.conso_pc_base[t,c,q]
-                            v.net_surplus[t,c] = v.new_conso_pc[t,c,q-1] - v.conso_pc_base[t,c,q]
-                            for j in 1:q-1
-                                v.new_conso_pc[t,c,j] = v.conso_pc_base[t,c,q]
-                            end
-                        else
-                            v.net_surplus[t,c] = 0
-                        end
+                    else
+                        v.net_surplus[t,c] = 0
                     end
                 end
             end
@@ -178,15 +167,25 @@
 
             for q in d.quantile
 
-                if p.switch_consumption_tax == 0 
-                    v.new_conso_pc[t,c,q] = v.conso_pc_base[t,c,q]
-                end
-
 
 				# Subtract tax revenue from each quantile based on quantile CO2 tax burden distributions.
 				# Note, per capita tax revenue and consumption should both be in $1000/person.
 
-                v.conso_pc_post_tax[t,c,q] =  v.conso_pc_post_damage_abatement[t,c,q] - (p.nb_quantile * p.tax_pc_revenue[t,c] * v.tax_burden_distr[t,c,q])* ( 1 - p.s[t,c] * p.switch_transfers_affect_growth) + p.switch_consumption_tax*(v.new_conso_pc[t,c,q]-v.conso_pc_base[t,c,q])
+                # First we substract to the consumption of the two last quantiles the tax on consumption
+
+                if q == 9
+                    v.conso_pc_post_tax[t,c,q] =  v.conso_pc_post_damage_abatement[t,c,q] - (p.nb_quantile * p.tax_pc_revenue[t,c] * v.tax_burden_distr[t,c,q])* ( 1 - p.s[t,c] * p.switch_transfers_affect_growth) - p.switch_consumption_tax * (v.tax_cons_ninth[t,c]/(p.l[t,c]/p.nb_quantile))
+                elseif q == 10
+                    v.conso_pc_post_tax[t,c,q] =  v.conso_pc_post_damage_abatement[t,c,q] - (p.nb_quantile * p.tax_pc_revenue[t,c] * v.tax_burden_distr[t,c,q])* ( 1 - p.s[t,c] * p.switch_transfers_affect_growth) - p.switch_consumption_tax * (v.tax_cons_tenth[t,c]/(p.l[t,c]/p.nb_quantile))
+                else
+                    v.conso_pc_post_tax[t,c,q] =  v.conso_pc_post_damage_abatement[t,c,q] - (p.nb_quantile * p.tax_pc_revenue[t,c] * v.tax_burden_distr[t,c,q])* ( 1 - p.s[t,c] * p.switch_transfers_affect_growth) 
+                end
+            
+                # Then we add the redistribution of the consumption tax and the net transfers of pib_contrib
+                # What we add is thus the difference between the consumption before the redistribution (conso_pc_base) and after (new_conso_pc)
+                # Note that for the quantiles that did not receive anything, conso_pc_base = new_conso_pc
+
+                v.conso_pc_post_tax[t,c,q] = v.conso_pc_post_tax[t,c,q] + p.switch_consumption_tax*(v.new_conso_pc[t,c,q]-v.conso_pc_base[t,c,q])
                                                 
                 # Recycle tax revenue by adding shares back to all quantiles
 				if p.switch_recycle==0 # In the NO revenue recycling case (distributionally neutral), refund tax revenues equal to the initial burden

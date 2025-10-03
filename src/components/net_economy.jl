@@ -24,6 +24,10 @@
     transfer                  = Parameter(index=[time, country])
     transfer_over_gdp         = Parameter(index=[time, country])    # % of GDP
     transfer_pc               = Parameter(index=[time, country])    # $ per capita
+    switch_consumption_tax    = Parameter()                         # Switch, to choose whether the consumption tax and redistribution of the revenue + x% PIB is added (Sustainable Union)
+    inefficiency_rate         = Parameter(default=0.1)
+    rate_pib                  = Parameter(default=0.01)                       # Rate of PIB contribution 
+
 
 
     # Variables
@@ -40,16 +44,26 @@
     CPC_rwpp   = Variable(index=[time, regionwpp]) # Regional consumption per capita (thousand 2017USD per person per year)
     Y_pc_rwpp  = Variable(index=[time, regionwpp]) # Regional per capita output net of abatement and damages (USD2017 per person per year).
 
+    pib_contrib = Variable(index=[time, country])     # Part of the PIB of each country that is put into the pooled revenue (1e6 USD2017 per year)
+    recycle_pib = Variable(index=[time, country])     # Part of the pooled revenue that each country received based on an equal per capita distribution (1e6 USD2017 per year per capita)
+    pooled_revenue = Variable(index=[time])
+
     function run_timestep(p, v, d, t)
 
         v.C_rwpp[t,:] .= 0
-
+        
         for c in d.country
+            v.pib_contrib[t,c] = p.YGROSS[t,c] * p.rate_pib
+        end
+        v.pooled_revenue[t] = sum(v.pib_contrib[t,:])
+        for c in d.country
+            v.recycle_pib[t,c] = ((v.pooled_revenue[t]* p.inefficiency_rate )/sum(p.l[t,:]))*p.l[t,c]
 
             # Output net of abatement costs and damages
-            #v.Y[t,c] = (1.0 - p.ABATEFRAC[t,c]) ./ (1.0 + p.LOCAL_DAMFRAC_KW[t,c]) * p.YGROSS[t,c] + p.switch_transfers_affect_growth*(p.country_pc_dividend[t,c]*p.l[t,c] - p.tax_revenue[t,c]/1e3)*p.switch_recycle*p.switch_global_recycling
-            
-            v.Y[t,c] = (1.0 - p.ABATEFRAC[t,c]) ./ (1.0 + p.LOCAL_DAMFRAC_KW[t,c]) * p.YGROSS[t,c] + p.switch_transfers_affect_growth*(p.switch_custom_transfers * p.transfer[t,c] / 1e6 + (1.0 - p.switch_custom_transfers) * (p.country_pc_dividend[t,c] * p.l[t,c] - p.tax_revenue[t,c] / 1e3) )* p.switch_recycle* p.switch_global_recycling 
+            #v.Y[t,c] = (1.0 - p.ABATEFRAC[t,c]) ./ (1.0 + p.LOCAL_DAMFRAC_KW[t,c]) * p.YGROSS[t,c] + p.switch_transfers_affect_growth*(p.country_pc_dividend[t,c]*p.l[t,c] - p.tax_revenue[t,c]/1e3)*p.switch_recycle*p.switch_global_recycling          
+            #v.Y[t,c] = (1.0 - p.ABATEFRAC[t,c]) ./ (1.0 + p.LOCAL_DAMFRAC_KW[t,c]) * p.YGROSS[t,c] + p.switch_transfers_affect_growth*(p.switch_custom_transfers * p.transfer[t,c] / 1e6 + (1.0 - p.switch_custom_transfers) * (p.country_pc_dividend[t,c] * p.l[t,c] - p.tax_revenue[t,c] / 1e3) )* p.switch_recycle* p.switch_global_recycling 
+
+            v.Y[t,c] = (1.0 - p.ABATEFRAC[t,c]) ./ (1.0 + p.LOCAL_DAMFRAC_KW[t,c]) * p.YGROSS[t,c] + p.switch_transfers_affect_growth*(p.switch_custom_transfers * p.transfer[t,c] / 1e6 + (1.0 - p.switch_custom_transfers) * (p.country_pc_dividend[t,c] * p.l[t,c] - p.tax_revenue[t,c] / 1e3) )* p.switch_recycle* p.switch_global_recycling + p.switch_consumption_tax * (v.recycle_pib[t,c] - v.pib_contrib[t,c])
 
             # Investment
             v.I[t,c] = p.s[t,c] * v.Y[t,c]
