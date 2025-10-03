@@ -552,11 +552,12 @@ getdataframe(nice2020_ffu_su, :quantile_recycle, :new_conso_pc)
 getdataframe(nice2020_ffu_su, :quantile_recycle, :conso_pc_base)
 getdataframe(nice2020_ffu_su, :neteconomy, :pib_contrib)
 println(getdataframe(nice2020_ffu_su, :quantile_recycle, :net_surplus))
+println(getdataframe(nice2020_ffu_su, :quantile_recycle, :net_transfer_pib))
 
 
 
 println(getdataframe(nice2020_ffu_su, :quantile_recycle=>(:recycle_pib, :pib_contrib, :net_surplus)))
-println(getdataframe(nice2020_ffu_su, :quantile_recycle => (:tot_tax_cons_country, :pib_contrib)))
+println(getdataframe(nice2020_ffu_su, :quantile_recycle => (:tot_tax_cons_country, :net_transfer_pib)))
 println(getdataframe(nice2020_ffu_su, :quantile_recycle=>(:recycle_pib, :pib_contrib)))
 
 

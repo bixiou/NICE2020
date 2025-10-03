@@ -66,6 +66,7 @@
     pop_quantile                = Variable(index=[time, country])               # Quantile population (thousands)
     surplus_pc                  = Variable(index=[time, country])               # (thousand USD2017 per year)
     new_conso_pc                = Variable(index=[time, country, quantile])     # (thousand USD2017 per year)
+    net_transfer_pib            = Variable(index=[time, country])  
 
 
 
@@ -128,10 +129,10 @@
             ########################################################################################################
             for q in d.quantile
                 if q == 9
-                    v.tax_cons_ninth[t,c] = v.conso_pc_base[t,c,q] * p.rate_ninth * (p.l[t,c] / p.nb_quantile)
+                    v.tax_cons_ninth[t,c] = v.conso_pc_base[t,c,q] * p.rate_ninth * ((p.l[t,c] *1e3) / p.nb_quantile)
                 end
                 if q == 10
-                    v.tax_cons_tenth[t,c] = v.conso_pc_base[t,c,q] * p.rate_tenth * (p.l[t,c] / p.nb_quantile)
+                    v.tax_cons_tenth[t,c] = v.conso_pc_base[t,c,q] * p.rate_tenth * ((p.l[t,c] *1e3) / p.nb_quantile)
                 end
             end
             v.tot_tax_cons_country[t,c] = v.tax_cons_ninth[t,c] + v.tax_cons_tenth[t,c]
@@ -140,6 +141,7 @@
         for c in d.country
             #Here pooled_revenue and pib_contrib are in 1e6$ and consumtion in thousand $ => we convert everything in thousand $
             v.net_surplus[t,c] = v.tot_tax_cons_country[t,c] - (p.pib_contrib[t,c]*1000)  + (p.recycle_pib[t,c]*1000)
+            v.net_transfer_pib[t,c] = (p.recycle_pib[t,c]*1000) - (p.pib_contrib[t,c]*1000) # In thousand USD2017 per year
             for q in d.quantile
                 v.new_conso_pc[t,c,q] = v.conso_pc_base[t,c,q]
             end
@@ -148,7 +150,7 @@
             for q in 2:p.nb_quantile
                 if v.net_surplus[t,c] > 0
                     v.pop_quantile[t,c] = p.l[t,c] / (q-1)
-                    v.surplus_pc[t,c] = v.net_surplus[t,c] / v.pop_quantile[t,c]
+                    v.surplus_pc[t,c] = v.net_surplus[t,c] / (v.pop_quantile[t,c]*1e3)
                     for i in 1:q-1
                         v.new_conso_pc[t,c,i] = v.conso_pc_base[t,c,i] + v.surplus_pc[t,c]
                     end
@@ -174,9 +176,9 @@
                 # First we substract to the consumption of the two last quantiles the tax on consumption
 
                 if q == 9
-                    v.conso_pc_post_tax[t,c,q] =  v.conso_pc_post_damage_abatement[t,c,q] - (p.nb_quantile * p.tax_pc_revenue[t,c] * v.tax_burden_distr[t,c,q])* ( 1 - p.s[t,c] * p.switch_transfers_affect_growth) - p.switch_consumption_tax * (v.tax_cons_ninth[t,c]/(p.l[t,c]/p.nb_quantile))
+                    v.conso_pc_post_tax[t,c,q] =  v.conso_pc_post_damage_abatement[t,c,q] - (p.nb_quantile * p.tax_pc_revenue[t,c] * v.tax_burden_distr[t,c,q])* ( 1 - p.s[t,c] * p.switch_transfers_affect_growth) - p.switch_consumption_tax * (v.tax_cons_ninth[t,c]/((p.l[t,c]*1e3)/p.nb_quantile))
                 elseif q == 10
-                    v.conso_pc_post_tax[t,c,q] =  v.conso_pc_post_damage_abatement[t,c,q] - (p.nb_quantile * p.tax_pc_revenue[t,c] * v.tax_burden_distr[t,c,q])* ( 1 - p.s[t,c] * p.switch_transfers_affect_growth) - p.switch_consumption_tax * (v.tax_cons_tenth[t,c]/(p.l[t,c]/p.nb_quantile))
+                    v.conso_pc_post_tax[t,c,q] =  v.conso_pc_post_damage_abatement[t,c,q] - (p.nb_quantile * p.tax_pc_revenue[t,c] * v.tax_burden_distr[t,c,q])* ( 1 - p.s[t,c] * p.switch_transfers_affect_growth) - p.switch_consumption_tax * (v.tax_cons_tenth[t,c]/((p.l[t,c]*1e3)/p.nb_quantile))
                 else
                     v.conso_pc_post_tax[t,c,q] =  v.conso_pc_post_damage_abatement[t,c,q] - (p.nb_quantile * p.tax_pc_revenue[t,c] * v.tax_burden_distr[t,c,q])* ( 1 - p.s[t,c] * p.switch_transfers_affect_growth) 
                 end
