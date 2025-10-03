@@ -22,10 +22,10 @@ include(joinpath(@__DIR__, "..", "src", "helper_functions.jl"))
 # -------------------------------------------------------------------
 # Participation scenario
 include(joinpath(@__DIR__, "..", "data", "parameters.jl"))
-const scenario_name     = :All_World
+const scenario_name     = :Union
 const policy_scenario   = scenario_index[scenario_name]
 const participation_vec = club_country[policy_scenario, :]
-# -------------------------------------------------------------------
+# -----------------------------------------------------------------
 
 # -------------------------------------------------------------------
 # Target file (global aggregated): columns `time` (Int) and `E_gtco2` (Float64)
