@@ -119,6 +119,7 @@ MimiNICE2020.save_nice2020_output(nice2020_ffu, joinpath(@__DIR__, "..", "cap_an
 ###########################
 # 3. global_price_ffu: Global (all countries) carbon pricing with price equal to Union's one.
 ###########################
+include("nice2020_module.jl") 
 
 # CARBON TAX PATHWAY from the Union's 1.9°C scenario
 years = collect(dim_keys(base_model, :time))
@@ -161,7 +162,7 @@ update_param!(nice2020_global_price_ffu, :switch_footprint, switch_footprint)
 update_param!(nice2020_global_price_ffu, :switch_recycle, switch_recycle)
 update_param!(nice2020_global_price_ffu, :switch_transfers_affect_growth, switch_transfers_affect_growth)
 update_param!(nice2020_global_price_ffu, :policy_scenario, MimiNICE2020.scenario_index[switch_scenario])
-# update_param!(nice2020_global_price_ffu, :revenue_recycle, :rights_proposed, rights_proposed_mat)
+#update_param!(nice2020_global_price_ffu, :revenue_recycle, :rights_proposed, rights_proposed_mat)
 
 run(nice2020_global_price_ffu)
 
@@ -554,9 +555,14 @@ getdataframe(nice2020_ffu_su, :neteconomy, :pib_contrib)
 println(getdataframe(nice2020_ffu_su, :quantile_recycle, :net_surplus))
 println(getdataframe(nice2020_ffu_su, :quantile_recycle, :net_transfer_pib))
 
+df = getdataframe(nice2020_ffu_su, :quantile_recycle, :net_transfer_pib)
+df_pos = filter(:net_transfer_pib => x -> x > 0, df)
 
+df2 = getdataframe(nice2020_ffu_su, :quantile_recycle, :net_surplus)
+df_neg = filter(:net_surplus => x -> x < 0, df2)
+println(df_neg)
 
-println(getdataframe(nice2020_ffu_su, :quantile_recycle=>(:recycle_pib, :pib_contrib, :net_surplus)))
+println(getdataframe(nice2020_ffu_su, :quantile_recycle=>(:net_transfer_pib, :tot_tax_cons_country)))
 println(getdataframe(nice2020_ffu_su, :quantile_recycle => (:tot_tax_cons_country, :net_transfer_pib)))
 println(getdataframe(nice2020_ffu_su, :quantile_recycle=>(:recycle_pib, :pib_contrib)))
 
@@ -641,8 +647,8 @@ include("helper_functions.jl")
 
 countries_wanted = (:IND, :NGA, :CHN, :MNG, :USA, :FRA, :COD, :RUS)
 years_wanted = (2030, 2050, 2100)
-scenarios = [bau_model, nice2020_global_cap_share, nice2020_ffu, nice2020_IMF, nice2020_IMF_2, nice2020_stoft, nice2020_csu, nice2020_non_losing]
-names_scenarios = ["BAU", "Global_Cap_Share", "FFU", "IMF", "IMF_2", "Stoft", "CSU", "Non-losing"]
+scenarios = [bau_model, nice2020_global_cap_share, nice2020_ffu, nice2020_IMF, nice2020_IMF_2, nice2020_stoft, nice2020_csu, nice2020_non_losing, nice2020_ffu_su]
+names_scenarios = ["BAU", "Global_Cap_Share", "FFU", "IMF", "IMF_2", "Stoft", "CSU", "Non-losing", "FFU_SU"]
 
 results = build_results_csv(scenarios, names_scenarios, countries_wanted, years_wanted)
 
@@ -656,8 +662,8 @@ CSV.write(path, results)
 include("helper_functions.jl")
 countries_wanted = (:IND, :NGA, :CHN, :MNG, :USA, :FRA, :COD, :RUS)
 years = dim_keys(base_model, :time)
-scenarios = [bau_model, nice2020_global_cap_share, nice2020_ffu, nice2020_IMF, nice2020_IMF_2, nice2020_stoft, nice2020_csu, nice2020_non_losing]
-names_scenarios = ["BAU", "Global_Cap_Share", "FFU", "IMF", "IMF_2", "Stoft", "CSU", "Non-losing"]
+scenarios = [bau_model, nice2020_global_cap_share, nice2020_ffu, nice2020_IMF, nice2020_IMF_2, nice2020_stoft, nice2020_csu, nice2020_non_losing, nice2020_ffu_su]
+names_scenarios = ["BAU", "Global_Cap_Share", "FFU", "IMF", "IMF_2", "Stoft", "CSU", "Non-losing", "FFU_SU"]
 data_npv = DataFrame(scenario = String[], country = String[], value = Float64[])
 
 for c in countries_wanted

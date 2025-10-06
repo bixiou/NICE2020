@@ -115,7 +115,14 @@
 
         for c in d.country
 
-            if p.switch_recycle==1 # revenue reycling is on
+            denom = sum(p.rights_proposed[t,c2] * p.club_country[p.policy_scenario,c2] for c2 in d.country)
+            if denom > 0.0
+                v.rights_actual[t,c] = p.E_gtco2_club[t] * p.rights_proposed[t,c]/denom
+            else
+                v.rights_actual[t,c] = 0.0
+            end
+
+            if p.switch_recycle==1 # revenue recycling is on
 
                 if p.switch_global_recycling==0 #Revenues recycled only at the country level on per capita basis
 
@@ -128,20 +135,15 @@
                     # Recycle a share (1-global_recycle_share) of global revenue within country (in $1000 per capita)
                     v.country_pc_dividend_domestic_transfers[t,c] = (1-p.global_recycle_share[c]) * v.tax_revenue[t,c]  / p.l[t,c] / 1e3
 
+                    # Custom transfer based on rights proposed and carbon tax
+
                     # Distribute globally recycled revenues to countries according to scenario
                     ## Globally recycled revenues recycled on a per capita basis =======================
                     if p.switch_global_pc_recycle == 1
                         if p.switch_custom_transfers == 0
                             # Standard per capita transfer
                             v.country_pc_dividend_global_transfers[t,c] = v.global_revenue[t] * p.club_country[p.policy_scenario,c] / ((p.l[t,:]' * p.club_country[p.policy_scenario,:]) * 1e3)
-                        elseif p.switch_custom_transfers == 1
-                            # Custom transfer based on rights proposed and carbon tax
-                            denom = sum(p.rights_proposed[t,c2] * p.club_country[p.policy_scenario,c2] for c2 in d.country)
-                            if denom > 0.0
-                                v.rights_actual[t,c] = p.E_gtco2_club[t] * p.rights_proposed[t,c]/denom
-                            else
-                                v.rights_actual[t,c] = 0.0
-                            end
+                        elseif p.switch_custom_transfers == 1 
                             v.country_pc_dividend_global_transfers[t,c] = p.global_recycle_share[c] * ((v.rights_actual[t,c] * p.country_carbon_tax[t,c] * 1e6) * p.club_country[p.policy_scenario,c] / (p.l[t,c] * 1e3))
                         end
                     else
@@ -166,20 +168,15 @@
                     excess_rights = 1e6 * p.l[t,c] * v.country_pc_dividend[t,c]/p.country_carbon_tax[t,c] - p.E_gtco2[t,c] * 1e9
                 end
             else
-                denom = sum(p.rights_proposed[t,c] * p.club_country[p.policy_scenario,c] for c in d.country)
-                if denom > 0.0
-                    v.rights_actual[t,c] = p.E_gtco2_club[t] * p.rights_proposed[t,c]/denom
-                else
-                    v.rights_actual[t,c] = 0.0
-                end
                 excess_rights = (v.rights_actual[t,c] - p.E_gtco2[t,c]) * 1e9 * (maximum(p.rights_proposed[t,:]) > 0)
-
             end
             v.transfer[t,c]          = p.country_carbon_tax[t,c] * excess_rights
             v.transfer_over_gdp[t,c] = v.transfer[t,c] / (p.YGROSS[t,c] * 1e6)
             v.transfer_pc[t,c]       = v.transfer[t,c] / p.l[t,c]
 
         end # country loop
-        v.somme[t] = sum(v.rights_actual[t,c] * p.club_country[p.policy_scenario,c] for c in d.country) 
+        if p.switch_custom_transfers == 1
+            v.somme[t] = sum(v.rights_actual[t,c] * p.club_country[p.policy_scenario,c] for c in d.country) 
+        end
     end # timestep
 end
