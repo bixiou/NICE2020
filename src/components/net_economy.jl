@@ -25,7 +25,6 @@
     transfer_over_gdp         = Parameter(index=[time, country])    # % of GDP
     transfer_pc               = Parameter(index=[time, country])    # $ per capita
     switch_consumption_tax    = Parameter()                         # Switch, to choose whether the consumption tax and redistribution of the revenue + x% PIB is added (Sustainable Union)
-    inefficiency_rate         = Parameter(default=0.1)
     rate_pib                  = Parameter(default=0.01)                       # Rate of PIB contribution 
 
 
@@ -57,7 +56,7 @@
         end
         v.pooled_revenue[t] = sum(v.pib_contrib[t,:])
         for c in d.country
-            v.recycle_pib[t,c] = ((v.pooled_revenue[t]* p.inefficiency_rate )/sum(p.l[t,:]))*p.l[t,c]
+            v.recycle_pib[t,c] = ((v.pooled_revenue[t])/sum(p.l[t,:]))*p.l[t,c]
 
             # Output net of abatement costs and damages
             #v.Y[t,c] = (1.0 - p.ABATEFRAC[t,c]) ./ (1.0 + p.LOCAL_DAMFRAC_KW[t,c]) * p.YGROSS[t,c] + p.switch_transfers_affect_growth*(p.country_pc_dividend[t,c]*p.l[t,c] - p.tax_revenue[t,c]/1e3)*p.switch_recycle*p.switch_global_recycling          

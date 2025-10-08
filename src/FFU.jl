@@ -540,7 +540,7 @@ update_param!(nice2020_ffu_su, :switch_consumption_tax, 1)
 update_param!(nice2020_ffu_su, :quantile_recycle, :rate_ninth, 0.01)
 update_param!(nice2020_ffu_su, :quantile_recycle, :rate_tenth, 0.05)
 update_param!(nice2020_ffu_su, :neteconomy, :rate_pib, 0.01)
-update_param!(nice2020_ffu_su, :neteconomy, :inefficiency_rate, 0.1)
+update_param!(nice2020_ffu_su, :quantile_recycle, :inefficiency_rate, 0.1)
 
 
 run(nice2020_ffu_su)
@@ -555,15 +555,21 @@ getdataframe(nice2020_ffu_su, :neteconomy, :pib_contrib)
 println(getdataframe(nice2020_ffu_su, :quantile_recycle, :net_surplus))
 println(getdataframe(nice2020_ffu_su, :quantile_recycle, :net_transfer_pib))
 
-df = getdataframe(nice2020_ffu_su, :quantile_recycle, :net_transfer_pib)
+df = filter(row->row.time == 2050, getdataframe(nice2020_ffu_su, :quantile_recycle, :net_transfer_pib))
 df_pos = filter(:net_transfer_pib => x -> x > 0, df)
 
-df2 = getdataframe(nice2020_ffu_su, :quantile_recycle, :net_surplus)
+
+
+df2 = filter(row -> row.time == 2050, getdataframe(nice2020_ffu_su, :quantile_recycle, :net_surplus))
 df_neg = filter(:net_surplus => x -> x < 0, df2)
 println(df_neg)
 
+df3 = filter(row -> row.time == 2050, getdataframe(nice2020_ffu_su, :quantile_recycle, :net_surplus_per_pib))
+df_neg = filter(:net_surplus_per_pib => x -> x < 0, df3)
+println(df_neg)
+
 println(getdataframe(nice2020_ffu_su, :quantile_recycle=>(:net_transfer_pib, :tot_tax_cons_country)))
-println(getdataframe(nice2020_ffu_su, :quantile_recycle => (:tot_tax_cons_country, :net_transfer_pib)))
+println(filter(row -> row.time == 2050,getdataframe(nice2020_ffu_su, :quantile_recycle => (:tot_tax_cons_country, :net_transfer_pib))))
 println(getdataframe(nice2020_ffu_su, :quantile_recycle=>(:recycle_pib, :pib_contrib)))
 
 
@@ -689,3 +695,4 @@ end
 
 path_npv = joinpath(@__DIR__, "..", "cap_and_share", "output", "net_present_value_cons_EDE.csv")
 CSV.write(path_npv, df_npv)
+

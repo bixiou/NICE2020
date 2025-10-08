@@ -37,6 +37,7 @@
     rate_tenth                  = Parameter(default=0.05)                       # Tax rate on consumption on the tenth decile
     pib_contrib                 = Parameter(index=[time, country])               # Country contribution to the pooled revenue (1% of its PIB) (1e6 USD2017 per year)
     recycle_pib                 = Parameter(index=[time, country])               # Fraction of the pooled revenue that each country receives in proportion to its population (1e6 USD2017 per year)
+    inefficiency_rate          = Parameter(default=0.1)                        # Inefficiency rate of the pooled revenue
 
 
     CO2_income_elasticity    	= Variable(index=[time, country])             	# Elasticity of CO2 price exposure with respect to income
@@ -67,6 +68,8 @@
     surplus_pc                  = Variable(index=[time, country])               # (thousand USD2017 per year)
     new_conso_pc                = Variable(index=[time, country, quantile])     # (thousand USD2017 per year)
     net_transfer_pib            = Variable(index=[time, country])  
+    net_surplus_per_pib         = Variable(index=[time, country])               # Net surplus as fraction of net output
+    net_surplus_post            = Variable(index=[time, country])               # (thousand USD2017 per year)
 
 
 
@@ -135,32 +138,34 @@
                     v.tax_cons_tenth[t,c] = v.conso_pc_base[t,c,q] * p.rate_tenth * ((p.l[t,c] *1e3) / p.nb_quantile)
                 end
             end
-            v.tot_tax_cons_country[t,c] = v.tax_cons_ninth[t,c] + v.tax_cons_tenth[t,c]
+            v.tot_tax_cons_country[t,c] = (v.tax_cons_ninth[t,c] + v.tax_cons_tenth[t,c]) * (1-p.inefficiency_rate)
             
         end
         for c in d.country
             #Here pooled_revenue and pib_contrib are in 1e6$ and consumtion in thousand $ => we convert everything in thousand $
             v.net_surplus[t,c] = v.tot_tax_cons_country[t,c] - (p.pib_contrib[t,c]*1000)  + (p.recycle_pib[t,c]*1000)
             v.net_transfer_pib[t,c] = (p.recycle_pib[t,c]*1000) - (p.pib_contrib[t,c]*1000) # In thousand USD2017 per year
+            v.net_surplus_per_pib[t,c] = v.net_surplus[t,c] / (p.YGROSS[t,c]*1e6) # Net surplus as fraction of net output
             for q in d.quantile
                 v.new_conso_pc[t,c,q] = v.conso_pc_base[t,c,q]
             end
+            v.net_surplus_post[t,c] = v.net_surplus[t,c]
     
             #Redistribution of the net surplus starting from the poorer quantile
             for q in 2:p.nb_quantile
-                if v.net_surplus[t,c] > 0
+                if v.net_surplus_post[t,c] > 0
                     v.pop_quantile[t,c] = p.l[t,c] / (q-1)
-                    v.surplus_pc[t,c] = v.net_surplus[t,c] / (v.pop_quantile[t,c]*1e3)
+                    v.surplus_pc[t,c] = v.net_surplus_post[t,c] / (v.pop_quantile[t,c]*1e3)
                     for i in 1:q-1
                         v.new_conso_pc[t,c,i] = v.conso_pc_base[t,c,i] + v.surplus_pc[t,c]
                     end
                     if v.new_conso_pc[t,c,q-1] > v.conso_pc_base[t,c,q]
-                        v.net_surplus[t,c] = v.new_conso_pc[t,c,q-1] - v.conso_pc_base[t,c,q]
+                        v.net_surplus_post[t,c] = v.new_conso_pc[t,c,q-1] - v.conso_pc_base[t,c,q]
                         for j in 1:q-1
                             v.new_conso_pc[t,c,j] = v.conso_pc_base[t,c,q]
                         end
                     else
-                        v.net_surplus[t,c] = 0
+                        v.net_surplus_post[t,c] = 0
                     end
                 end
             end

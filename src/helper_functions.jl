@@ -345,6 +345,10 @@ function save_nice2020_output(m::Model, output_directory::String)
     save(joinpath(country_path, "transfer_over_gdp.csv"),                 getdataframe(m, :revenue_recycle => :transfer_over_gdp))
     save(joinpath(country_path, "transfer_pc.csv"),                    getdataframe(m, :revenue_recycle => :transfer_pc))
     save(joinpath(country_path, "transfer.csv"),                       getdataframe(m, :revenue_recycle => :transfer))
+    save(joinpath(country_path, "net_surplus.csv"),                       getdataframe(m, :quantile_recycle => :net_surplus))
+    save(joinpath(country_path, "net_transfer_pib.csv"),                       getdataframe(m, :quantile_recycle => :net_transfer_pib))
+    save(joinpath(country_path, "net_surplus_per_pib.csv"),                       getdataframe(m, :quantile_recycle => :net_surplus_per_pib))
+
 
     # Save Quantile Output.
     save(joinpath(quantile_path, "co2_tax_distribution.csv"), filter!(:time => x -> x<2121, getdataframe(m, :quantile_recycle => :tax_burden_distr)))
