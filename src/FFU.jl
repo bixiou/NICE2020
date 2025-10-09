@@ -538,7 +538,7 @@ update_param!(nice2020_ffu_su, :policy_scenario, MimiNICE2020.scenario_index[swi
 update_param!(nice2020_ffu_su, :switch_transfers_affect_growth, 1)
 update_param!(nice2020_ffu_su, :switch_consumption_tax, 1)
 update_param!(nice2020_ffu_su, :quantile_recycle, :rate_ninth, 0.01)
-update_param!(nice2020_ffu_su, :quantile_recycle, :rate_tenth, 0.05)
+update_param!(nice2020_ffu_su, :quantile_recycle, :rate_tenth, 0.06)
 update_param!(nice2020_ffu_su, :neteconomy, :rate_pib, 0.01)
 update_param!(nice2020_ffu_su, :quantile_recycle, :inefficiency_rate, 0.1)
 

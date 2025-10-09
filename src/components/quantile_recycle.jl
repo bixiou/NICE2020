@@ -145,7 +145,7 @@
             #Here pooled_revenue and pib_contrib are in 1e6$ and consumtion in thousand $ => we convert everything in thousand $
             v.net_surplus[t,c] = v.tot_tax_cons_country[t,c] - (p.pib_contrib[t,c]*1000)  + (p.recycle_pib[t,c]*1000)
             v.net_transfer_pib[t,c] = (p.recycle_pib[t,c]*1000) - (p.pib_contrib[t,c]*1000) # In thousand USD2017 per year
-            v.net_surplus_per_pib[t,c] = v.net_surplus[t,c] / (p.YGROSS[t,c]*1e6) # Net surplus as fraction of net output
+            v.net_surplus_per_pib[t,c] = v.net_surplus[t,c] / (p.YGROSS[t,c]*1e3) # Net surplus as fraction of net output
             for q in d.quantile
                 v.new_conso_pc[t,c,q] = v.conso_pc_base[t,c,q]
             end
