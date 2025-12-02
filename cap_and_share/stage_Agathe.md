@@ -21,6 +21,10 @@
 
 + voir les commentaires dans revenue_recycle
 
+## NDC.
+- Some NDCs are illogical, e.g. Cameroon defines its BAU without LULUCF but its emissions reductions with LULUCF; Angola numbers don't make sense.
+- Some countries have less stringent NDC in 2035 compared to 2030, e.g. Angola.
+
 ## 0. Installation et exécution
 
 ### Étapes
