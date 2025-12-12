@@ -21,6 +21,10 @@
 
 + voir les commentaires dans revenue_recycle
 
+## NDC.
+- Some NDCs are illogical, e.g. Cameroon defines its BAU without LULUCF but its emissions reductions with LULUCF; Angola numbers don't make sense.
+- Some countries have less stringent NDC in 2035 compared to 2030, e.g. Angola.
+
 ## 0. Installation et exécution
 
 ### Étapes
@@ -49,7 +53,7 @@
 - Trouver dans le code comment le coder.
 - Simuler les prix suivants : de 2025 à 2030, $25/tCO2 pour les LICs et LMICs, $50 pour les UMICs, $75 pour HICs. Au-delà de 2030, faire croître le prix de x% par an. Tester plusieurs x et s'arrêter lorsque le x est tel que la température en 2100 est +2 +/- 0.05 °C.
 - Rapporter ci-dessous la conso EDE mondiale et dans les principaux pays (disons CHN, USA, DEU, IND, COD, RUS) pour les scénarios suivants: FMI, cap and share, BAU, et pour les dates suivantes: 2030, 2050, 2100, net present value 2030-2100.
-- Rajouter une nouvelle section et simuler les prix différenciés proposés par Equal Right (cf. /papers/Equal_Right_prices.pdf).
+- Rajouter une nouvelle section et simuler les prix différenciés proposés par Equal Right (cf. /papers/Equal_Right_prices.xlsx). Pour ce faire, définir les prix en 2025 à partir de la colonne Carbon_charge_rates$I, avec l'augmentation annuelle déterminée par la colonne Global2$D.
 
 - 1bis Stoft: Scénario cap_and_share sauf qu'on met global_recycle_share à 0.1
 
