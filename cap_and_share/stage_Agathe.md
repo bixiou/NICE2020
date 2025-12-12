@@ -61,10 +61,12 @@
 
 On crée deux nouveaux scénarios : IMF et IMF_2. 
 - IMF : taxe carbone différenciée en fonction du niveau de revenu des pays, qui reste constante de 2025 à 2300
-- IMF_2 : même chose mais à partir de 2030, la taxe croit au taux x% par an, avec x calibré de manière à ce que la température en 2100 soit +2°C +/- 0.05
+- IMF_2 : même chose mais à partir de 2030, la taxe croit au taux x% par an, avec x calibré de manière à ce que la température en 2100 soit +2°C +/- 0.05.
 
-Dans data > parameters.jl, on crée les différentes catégories en suivant la classification de la Banque Mondiale. Le Venezuela et l'Ethiopie sont exclus de la classification, on décide grâve à leur PIB/hab de les classer respectivement comme UMIC et LMIC.
+Dans data/parameters.jl, on crée les différentes catégories en suivant la classification de la Banque Mondiale. Le Venezuela et l'Ethiopie sont exclus de la classification, on décide avec leur PIB/hab de les classer respectivement comme UMIC et LMIC.
 Pour le taux de croissance de la taxe, on a testé différentes valeurs, puis fait tourné le modèle pour trouver la température en 2100 jusqu'à atteindre environ 2°C : 2.02°C pour un taux de 3.6%.
+
++ Stoft 
 
 ### Où en est-on ?
 
@@ -83,7 +85,12 @@ On crée également des histogrammes pour comparer les taux de variation de la c
 
 ### Problèmes rencontrés / observations
 
+On crée une section dans FFU (#Year at which consumption_EDE becomes higher than consumption_EDE in the BAU scenario) et une fonction dans helper_functions qui retourne, pour un scénario donné, la première année à laquelle la consommation EDE devient de façon permanente supérieure à la consommation EDE de la même année dans le scénario BAU.
+Dans cap_and_share/output, on crée un year_EDE_higher_than_BAU.csv qui contient, pour chaque pays et au niveau mondial et pour plusieurs scénarios (FFU, Global_cap_share, IMF2 et Stoft), l'année où conso_EDE > conso_EDE_BAU. 
+
 ### Où en est-on ?
+
+Fait
 
 ### Résultat
 
@@ -98,6 +105,27 @@ On crée également des histogrammes pour comparer les taux de variation de la c
 - TODO plus tard: permettre une répartition internationale en fonction du poverty gap
 
 ### Problèmes rencontrés / observations
+
+Dans net_economy, on calcule la contribution de chaque pays dans le "pot commun" = % de son PIB, puis la redistribution que chaque pays reçoit (part égale par habitant).
+Si consumption_tax = 1, la différence entre ce que le pays reçoit et sa contribution se rajoute au PIB net.
+
+Dans quantile_recycle, on calcule la taxe globale sur le 9ème quantile et celle sur le 10e. 
+Puis, on calcule le surplus net = revenue de la taxe sur la consommation*(1-taux d'inefficience) + redistribution du pot - contribution au pot commun.
+On restribue le surplus net d'abord au premier quantile jusqu'à ce que sa consommation par habitant = celle du deuxième quantile. Puis on redistribue au premier et deuxième jusqu'à ce que leur consommation par hab = celle du troisième quantile... et ainsi de suite jusqu'à avoir épuisé tout le surplus. 
+
+Problèmes: définir à quelle étape de la construction de CPC_post on rajoute ce scénario.
+- La taxe est calculée sur la consommation de base, avant toute transformation, mais on l'enlève à la consommation après la fonction d'abatement
+- La fonction d'abatement s'applique sur la consommation de base
+- Faire :
+v.conso_pc_post_tax[t,c,q] = v.conso_pc_post_tax[t,c,q] + p.switch_consumption_tax*(v.new_conso_pc[t,c,q]-v.conso_pc_base[t,c,q])
+pas très logique + vérifier qu'il n'y a pas d'erreur parce que si new_conso_pc pas défini pour les quantiles les plus élevés où le surplus a déjà été épuisé, alors on se retrouve avec 0-conso_pc_base < 0
+
+=> C'est pas logique : 
+(1) On a la consommation de départ qui sert à calculer le montant de la taxe à prélever. 
+(2)Ensuite la consommation "subit" les dommages climatiques et diminue. 
+(3) Puis on enlève la taxe le montant de la taxe. 
+(4) Puis on redistribue le revenu généré par la taxe sur la consommation => rajouter à la conso de l'étape 3
+
 
 ### Où en est-on ?
 
@@ -172,6 +200,10 @@ On crée également des histogrammes pour comparer les taux de variation de la c
 ### Problèmes rencontrés / observations
 
 ### Où en est-on ?
+
+Calcul de la net present value : FAIT
+Fonction créée dans helper_functions qui permet de retourner la valeur présente nette puis dans FFU on calcule la VPN pour tous les scénarios de 2030 à 2100 avec un taux à 3%. 
+On a crée cap_and_share/output/net_present_value_cons_EDE.csv + graph_npv.png grâce au fichier R graph_cons_EDE.r
 
 ### Résultat
 
