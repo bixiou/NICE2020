@@ -55,9 +55,21 @@
 
 ### Problèmes rencontrés / observations
 
+On crée deux nouveaux scénarios : IMF et IMF_2. 
+- IMF : taxe carbone différenciée en fonction du niveau de revenu des pays, qui reste constante de 2025 à 2300
+- IMF_2 : même chose mais à partir de 2030, la taxe croit au taux x% par an, avec x calibré de manière à ce que la température en 2100 soit +2°C +/- 0.05
+
+Dans data > parameters.jl, on crée les différentes catégories en suivant la classification de la Banque Mondiale. Le Venezuela et l'Ethiopie sont exclus de la classification, on décide grâve à leur PIB/hab de les classer respectivement comme UMIC et LMIC.
+Pour le taux de croissance de la taxe, on a testé différentes valeurs, puis fait tourné le modèle pour trouver la température en 2100 jusqu'à atteindre environ 2°C : 2.02°C pour un taux de 3.6%.
+
 ### Où en est-on ?
 
+Fait
+
 ### Résultat
+
+On crée : cap_and_share/output/comparison_output.csv qui permet de comparer la consommation EDE au niveau mondial et de certains pays en 2030, 2050 et 2100 pour l'ensemble des scénarios de FFU. 
+On crée également des histogrammes pour comparer les taux de variation de la consommation EDE des scénarios par rapport au scénario BAU, et par rapport au scénario non_losing, en 2030, 2050 et 2100 au niveau mondial et pour certains pays.
 
 
 ## 2. Year at which undiscounted aggregate EDE turns positive
