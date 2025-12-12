@@ -388,6 +388,7 @@ for t in years_index
 end
 
 years_index_post2030 = findall(y -> y > 2030, years)
+
 # Growth rate of the tax beyond 2030, chosen to reach approx 2°C => target of 2.02°C in 2100
 growth_rate = 0.036
 for t in years_index_post2030
