@@ -19,8 +19,6 @@
 11. Concevoir procédure de décision entre différentes propositions d'écarts à l'allocation de base; rédiger une proposition de traité.
 12. IMACLIM?
 
-TODO: comparer prix FFU vs. CS => différence due à country coverage non ?
-
 + voir les commentaires dans revenue_recycle
 
 ## NDC.
