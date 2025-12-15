@@ -9,17 +9,17 @@
 1bis. Model Cramton & Stoft (midway between grandfathering and equal pc)
 2. Year at which undiscounted aggregate EDE turns positive
 3. Ajouter une redistribution de la conso
-4. Réduire la taille des données de sortie.
-5. Modéliser une transition entre absence de taxe et taxe optimale pour les premières années.
-6. Compute equivalent prices / rights / transfers
-7. Décomposer les gains de bien-être
+4. Modéliser une transition entre absence de taxe et taxe optimale pour les premières années.
+5. Décomposer les gains de bien-être
+6. Réduire la taille des données de sortie.
+7. Compute equivalent prices / rights / transfers
 8. Raffiner la présentation de la distribution des revenus, en utilisant les données par percentile du WID. 
 9. Estimate welfare of Peskzo, Golub & van der Mensbrugghe (2019)
 10. Modéliser en R l'apport de NICE, à savoir la désagrégation en décile-pays et les dégâts par pays.
 11. Concevoir procédure de décision entre différentes propositions d'écarts à l'allocation de base; rédiger une proposition de traité.
 12. IMACLIM?
 
-TODO: différence d'émissions sous cs et ffu
+TODO: comparer prix FFU vs. CS => différence due à country coverage non ?
 
 + voir les commentaires dans revenue_recycle
 
@@ -59,25 +59,19 @@ TODO: différence d'émissions sous cs et ffu
 
 - 1bis Stoft: Scénario cap_and_share sauf qu'on met global_recycle_share à 0.1
 
-### Problèmes rencontrés / observations
+### Résultat
 
 On crée deux nouveaux scénarios : IMF et IMF_2. 
 - IMF : taxe carbone différenciée en fonction du niveau de revenu des pays, qui reste constante de 2025 à 2300
 - IMF_2 : même chose mais à partir de 2030, la taxe croit au taux x% par an, avec x calibré de manière à ce que la température en 2100 soit +2°C +/- 0.05.
 
 Dans data/parameters.jl, on crée les différentes catégories en suivant la classification de la Banque Mondiale. Le Venezuela et l'Ethiopie sont exclus de la classification, on décide avec leur PIB/hab de les classer respectivement comme UMIC et LMIC.
-Pour le taux de croissance de la taxe, on a testé différentes valeurs, puis fait tourné le modèle pour trouver la température en 2100 jusqu'à atteindre environ 2°C : 2.02°C pour un taux de 3.6%.
+Pour le taux de croissance de la taxe, on a testé différentes valeurs, puis fait tourner le modèle pour trouver la température en 2100 jusqu'à atteindre environ 2°C : 2.02°C pour un taux de 3.6%. => ça a été fait manuellement ou à l'aide d'un script ?
 
 + Stoft 
 
-### Où en est-on ?
-
-Fait
-
-### Résultat
-
 On crée : cap_and_share/output/comparison_output.csv qui permet de comparer la consommation EDE au niveau mondial et de certains pays en 2030, 2050 et 2100 pour l'ensemble des scénarios de FFU. 
-On crée également des histogrammes pour comparer les taux de variation de la consommation EDE des scénarios par rapport au scénario BAU, et par rapport au scénario non_losing, en 2030, 2050 et 2100 au niveau mondial et pour certains pays.
+On crée également des histogrammes pour comparer les taux de variation de la consommation EDE des scénarios par rapport au scénario BAU, et par rapport au scénario non_losing, en 2030, 2050 et 2100 au niveau mondial et pour certains pays. => où sont créés et exportés les histogrammes ?
 
 
 ## 2. Year at which undiscounted aggregate EDE turns positive
@@ -85,16 +79,10 @@ On crée également des histogrammes pour comparer les taux de variation de la c
 ### Étapes
 - Créer une fonction qui calcule l'année à partir de laquelle la conso EDE devient supérieure à la valeur BAU (par pays et au niveau mondial), ajouter ça lors de l'export des sorties du modèle.
 
-### Problèmes rencontrés / observations
+### Résultat
 
 On crée une section dans FFU (#Year at which consumption_EDE becomes higher than consumption_EDE in the BAU scenario) et une fonction dans helper_functions qui retourne, pour un scénario donné, la première année à laquelle la consommation EDE devient de façon permanente supérieure à la consommation EDE de la même année dans le scénario BAU.
-Dans cap_and_share/output, on crée un year_EDE_higher_than_BAU.csv qui contient, pour chaque pays et au niveau mondial et pour plusieurs scénarios (FFU, Global_cap_share, IMF2 et Stoft), l'année où conso_EDE > conso_EDE_BAU. 
-
-### Où en est-on ?
-
-Fait
-
-### Résultat
+Dans cap_and_share/output, on crée un year_EDE_higher_than_BAU.csv qui contient, pour chaque pays et au niveau mondial et pour plusieurs scénarios (FFU, Global_cap_share, IMF2 et Stoft), l'année où conso_EDE > conso_EDE_BAU. => c'est quelle année au niveau mondial pour chaque scénario ?
 
 
 ## 3. Ajouter une redistribution de la conso
@@ -108,8 +96,8 @@ Fait
 
 ### Problèmes rencontrés / observations
 
-Dans net_economy, on calcule la contribution de chaque pays dans le "pot commun" = % de son PIB, puis la redistribution que chaque pays reçoit (part égale par habitant).
-Si consumption_tax = 1, la différence entre ce que le pays reçoit et sa contribution se rajoute au PIB net.
+Dans net_economy, on calcule la contribution de chaque pays dans le "pot commun" = 1% de son PIB, puis la redistribution que chaque pays reçoit (part égale par habitant).
+Si consumption_tax = 1, la différence entre ce que le pays reçoit et sa contribution se rajoute au PIB net. => et sinon ?
 
 Dans quantile_recycle, on calcule la taxe globale sur le 9ème quantile et celle sur le 10e. 
 Puis, on calcule le surplus net = revenue de la taxe sur la consommation*(1-taux d'inefficience) + redistribution du pot - contribution au pot commun.
@@ -127,6 +115,7 @@ pas très logique + vérifier qu'il n'y a pas d'erreur parce que si new_conso_pc
 (2)Ensuite la consommation "subit" les dommages climatiques et diminue. 
 (3) Puis on enlève la taxe le montant de la taxe. 
 (4) Puis on redistribue le revenu généré par la taxe sur la consommation => rajouter à la conso de l'étape 3
+=> ça me paraît OK. Ça considère que la taxe est prélevée sur la conso avant dommages, ce qui revient à considérer les dommages comme un coût de réparation.
 
 
 ### Où en est-on ?
@@ -134,56 +123,7 @@ pas très logique + vérifier qu'il n'y a pas d'erreur parce que si new_conso_pc
 ### Résultat
 
 
-## 4. Réduire la taille des données de sortie.
-
-### Étapes
-- Faire un tableur avec la liste des variables, un indicateur disant si elles sont exportées, et si oui quelles années sont exportées.
-- Identifier dans une nouvelle colonne des variables inutiles à exporter, ainsi que des années inutiles au sein de variables utiles.
-- Une fois la proposition de réduction des exports validée, l'implémenter.
-- Potentiellement améliorer le code d'exportation (pour que les chemins de fichiers aient plus de sens).
-
-### Problèmes rencontrés / observations
-
-### Où en est-on ?
-
-### Résultat
-
-
-## 5. Modéliser une transition entre absence de taxe et taxe optimale pour les premières années.
-
-### Étapes
-- Modifier le code qui calcule la taxe optimale pour un budget donné, afin d'avoir une trajectoire croissante linéaire les 5 premières années. Pour l'instant, ce code calcule le niveau initial de la taxe t0 et son taux de croissance optimaux pour atteindre un budget donné. Changer le code pour qu'il calcule le niveau de t5 et le taux de croissance optimaux, avec t1, ..., t4 interpolés linéairement entre t0 = 0 et t5.
-
-### Problèmes rencontrés / observations
-
-### Où en est-on ?
-
-### Résultat
-
-
-## 6. Compute equivalent prices / rights / transfers
-
-### Étapes
-- Compute two types of equivalent prices, rights and transfers:
-    - In the autarchy case with differentiated prices:
-        - Compute the uniform price trajectory p* that achieves the same emission trajectory as in autarchy, and compute emissions by country according to this price trajectory (and equal per capita rights (even though that's an approximation, ideally we should use the rights defined below)).
-        - For each country-year, define/export "welfare-equivalent rights per capita" as r = (abatement+damage cost in cap-and-trade - abatement+damage cost in autarchy + emissions in cap-and-trade)/(p* * population)
-        - Also define/export "emission-equivalent rights per capita" as r = emissions in autarchy / population
-        - Define the "welfare-equivalent transfer p.c." as t = abatement cost p.c. in cap-and-trade (with welfare-equivalent rights) - abatement cost p.c. in autarchy
-        - Define the "emission-equivalent transfer p.c." as t = (emission-equivalent rights per capita - emissions in cap-and-trade) p*
-    - In the cap-and-trade case (for these, be careful that negative values are possible):
-        - Compute the "welfare-almost-equivalent price" as p = a^(-1)(abatement_cost* + (emission* - rights*)p*) where * denotes cap-and-trade values and a^(-1)(x) = p_backstop * (population * x / (YGROSS * theta_1))^((theta_2 - 1)/theta_2) - It is only "almost" equivalent because it doesn't account for the higher climate damages in autarchy (doing so would require optimizing over all country-year prices, it's too computationally intensive)
-        - Compute the "emission-equivalent price" as p = emission^(-1)(right p.c.) where emission^(-1) is given by find_tax_for_country_year! [a faster but less precise alternative is to use p = p_backstop * (1 - right / (YGROSS * sigma))^(theta_2 - 1)]
-    
-
-### Problèmes rencontrés / observations
-
-### Où en est-on ?
-
-### Résultat
-
-
-## 7. Décomposer les gains de bien-être
+## 4. Décomposer les gains de bien-être
 
 ### Étapes
 - Écrire une fonction qui prend deux scénarios, par défaut le cap-and-trade with rights_proposed et le BAU.
@@ -206,6 +146,56 @@ pas très logique + vérifier qu'il n'y a pas d'erreur parce que si new_conso_pc
 Calcul de la net present value : FAIT
 Fonction créée dans helper_functions qui permet de retourner la valeur présente nette puis dans FFU on calcule la VPN pour tous les scénarios de 2030 à 2100 avec un taux à 3%. 
 On a crée cap_and_share/output/net_present_value_cons_EDE.csv + graph_npv.png grâce au fichier R graph_cons_EDE.r
+
+### Résultat
+
+
+## 5. Modéliser une transition entre absence de taxe et taxe optimale pour les premières années.
+
+### Étapes
+- Modifier le code qui calcule la taxe optimale pour un budget donné, afin d'avoir une trajectoire croissante linéaire les 5 premières années. Pour l'instant, ce code calcule le niveau initial de la taxe t0 et son taux de croissance optimaux pour atteindre un budget donné. Changer le code pour qu'il calcule le niveau de t5 et le taux de croissance optimaux, avec t1, ..., t4 interpolés linéairement entre t0 = 0 et t5.
+
+### Problèmes rencontrés / observations
+
+### Où en est-on ?
+
+### Résultat
+
+
+
+
+## 6. Réduire la taille des données de sortie.
+
+### Étapes
+- Faire un tableur avec la liste des variables, un indicateur disant si elles sont exportées, et si oui quelles années sont exportées.
+- Identifier dans une nouvelle colonne des variables inutiles à exporter, ainsi que des années inutiles au sein de variables utiles.
+- Une fois la proposition de réduction des exports validée, l'implémenter.
+- Potentiellement améliorer le code d'exportation (pour que les chemins de fichiers aient plus de sens).
+
+### Problèmes rencontrés / observations
+
+### Où en est-on ?
+
+### Résultat
+
+## 7. Compute equivalent prices / rights / transfers
+
+### Étapes
+- Compute two types of equivalent prices, rights and transfers:
+    - In the autarchy case with differentiated prices:
+        - Compute the uniform price trajectory p* that achieves the same emission trajectory as in autarchy, and compute emissions by country according to this price trajectory (and equal per capita rights (even though that's an approximation, ideally we should use the rights defined below)).
+        - For each country-year, define/export "welfare-equivalent rights per capita" as r = (abatement+damage cost in cap-and-trade - abatement+damage cost in autarchy + p* * emissions in cap-and-trade)/(p* * population) 
+        - Also define/export "emission-equivalent rights per capita" as r = emissions in autarchy / population
+        - Define the "welfare-equivalent transfer p.c." as t = abatement cost p.c. in cap-and-trade (with welfare-equivalent rights) - abatement cost p.c. in autarchy
+        - Define the "emission-equivalent transfer p.c." as t = (emission-equivalent rights per capita - emissions in cap-and-trade) p*
+    - In the cap-and-trade case (for these, be careful that negative values are possible):
+        - Compute the "welfare-almost-equivalent price" as p = a^(-1)(abatement_cost* + (emission* - rights*)p*) where * denotes cap-and-trade values and a^(-1)(x) = p_backstop * (population * x / (YGROSS * theta_1))^((theta_2 - 1)/theta_2) - It is only "almost" equivalent because it doesn't account for the higher climate damages in autarchy (doing so would require optimizing over all country-year prices, it's too computationally intensive)
+        - Compute the "emission-equivalent price" as p = emission^(-1)(right p.c.) where emission^(-1) is given by find_tax_for_country_year! [a faster but less precise alternative is to use p = p_backstop * (1 - right / (YGROSS * sigma))^(theta_2 - 1)]
+    
+
+### Problèmes rencontrés / observations
+
+### Où en est-on ?
 
 ### Résultat
 
