@@ -550,6 +550,7 @@ dir_su=joinpath(@__DIR__, "..", "cap_and_share", "output", "ffu_su")
 #mkpath(dir_su) # => to execute only once to create the directory
 MimiNICE2020.save_nice2020_output(nice2020_ffu_su, joinpath(@__DIR__, "..", "cap_and_share", "output", "ffu_su"))
 
+###########################
 getdataframe(nice2020_ffu_su, :quantile_recycle, :new_conso_pc)
 getdataframe(nice2020_ffu_su, :quantile_recycle, :conso_pc_base)
 getdataframe(nice2020_ffu_su, :neteconomy, :pib_contrib)
@@ -558,8 +559,6 @@ println(getdataframe(nice2020_ffu_su, :quantile_recycle, :net_transfer_pib))
 
 df = filter(row->row.time == 2050, getdataframe(nice2020_ffu_su, :quantile_recycle, :net_transfer_pib))
 df_pos = filter(:net_transfer_pib => x -> x > 0, df)
-
-
 
 df2 = filter(row -> row.time == 2050, getdataframe(nice2020_ffu_su, :quantile_recycle, :net_surplus))
 df_neg = filter(:net_surplus => x -> x < 0, df2)
@@ -573,6 +572,7 @@ println(getdataframe(nice2020_ffu_su, :quantile_recycle=>(:net_transfer_pib, :to
 println(filter(row -> row.time == 2050,getdataframe(nice2020_ffu_su, :quantile_recycle => (:tot_tax_cons_country, :net_transfer_pib))))
 println(getdataframe(nice2020_ffu_su, :quantile_recycle=>(:recycle_pib, :pib_contrib)))
 
+println(getdataframe(nice2020_ffu_su, :quantile_recycle=>(:conso_pc_base,:new_conso_pc)))
 
 ###########################
 #10: CSU: Cap and Share Union : same participating countries as in FFU but with an egalitarian repartition of rights
@@ -619,6 +619,8 @@ MimiNICE2020.save_nice2020_output(nice2020_csu, joinpath(@__DIR__, "..", "cap_an
 ###########################
 #Year at which consumption_EDE becomes higher than consumption_EDE in the BAU scenario :
 ###########################
+
+include("helper_functions.jl")
 
 #Creation of a complete dataframe with all scenarios
 scenarios = [nice2020_ffu, nice2020_global_cap_share, nice2020_IMF_2, nice2020_stoft]
@@ -697,3 +699,24 @@ end
 path_npv = joinpath(@__DIR__, "..", "cap_and_share", "output", "net_present_value_cons_EDE.csv")
 CSV.write(path_npv, df_npv)
 
+
+###########################
+#TEST 
+###########################
+include("helper_functions.jl")
+welfare_gains(nice2020_global_cap_share, bau_model, 2050, :ALB)
+countries_wanted = (:IND, :NGA, :CHN, :MNG, :USA, :FRA, :COD, :RUS)
+
+
+
+
+tot_cons_post_1 = only(filter(row -> row.time == 2050 && row.country == :ALB, getdataframe(nice2020_global_cap_share, :quantile_recycle=>:sum_conso_pc_post_recycle)).sum_conso_pc_post_recycle)
+println(tot_cons_post_1)
+tot_cons_post_2 = only(filter(row -> row.time == 2050 && row.country == :ALB, getdataframe(bau_model, :quantile_recycle=>:sum_conso_pc_post_recycle)).sum_conso_pc_post_recycle)
+println(tot_cons_post_2)
+ede_1 = only(filter(row -> row.time == 2050 && row.country == :ALB, getdataframe(nice2020_global_cap_share, :welfare=>:cons_EDE_country)).cons_EDE_country)
+println(ede_1)
+ede_2 = only(filter(row -> row.time == 2050 && row.country == :ALB, getdataframe(bau_model, :welfare=>:cons_EDE_country)).cons_EDE_country)
+println(ede_2)
+reduction_inequalities = ((ede_1 - tot_cons_post_1) - (ede_2 - tot_cons_post_2)) * (tot_cons_post_2/tot_cons_post_1)
+println(reduction_inequalities)

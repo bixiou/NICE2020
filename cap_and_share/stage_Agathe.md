@@ -66,12 +66,14 @@ On crée deux nouveaux scénarios : IMF et IMF_2.
 - IMF_2 : même chose mais à partir de 2030, la taxe croit au taux x% par an, avec x calibré de manière à ce que la température en 2100 soit +2°C +/- 0.05.
 
 Dans data/parameters.jl, on crée les différentes catégories en suivant la classification de la Banque Mondiale. Le Venezuela et l'Ethiopie sont exclus de la classification, on décide avec leur PIB/hab de les classer respectivement comme UMIC et LMIC.
-Pour le taux de croissance de la taxe, on a testé différentes valeurs, puis fait tourner le modèle pour trouver la température en 2100 jusqu'à atteindre environ 2°C : 2.02°C pour un taux de 3.6%. => ça a été fait manuellement ou à l'aide d'un script ?
+Pour le taux de croissance de la taxe, on a testé différentes valeurs, puis fait tourner le modèle pour trouver la température en 2100 jusqu'à atteindre environ 2°C : 2.02°C pour un taux de 3.6%. => ça a été fait manuellement ou à l'aide d'un script ? => On a fait ça manuellement.
 
 + Stoft 
 
 On crée : cap_and_share/output/comparison_output.csv qui permet de comparer la consommation EDE au niveau mondial et de certains pays en 2030, 2050 et 2100 pour l'ensemble des scénarios de FFU. 
-On crée également des histogrammes pour comparer les taux de variation de la consommation EDE des scénarios par rapport au scénario BAU, et par rapport au scénario non_losing, en 2030, 2050 et 2100 au niveau mondial et pour certains pays. => où sont créés et exportés les histogrammes ?
+
+On crée également des histogrammes pour comparer les taux de variation de la consommation EDE des scénarios par rapport au scénario BAU, et par rapport au scénario non_losing, en 2030, 2050 et 2100 au niveau mondial et pour certains pays. => où sont créés et exportés les histogrammes ? =>
+Les histogrammes sont dans cap_and_share/graphs
 
 
 ## 2. Year at which undiscounted aggregate EDE turns positive
@@ -82,8 +84,12 @@ On crée également des histogrammes pour comparer les taux de variation de la c
 ### Résultat
 
 On crée une section dans FFU (#Year at which consumption_EDE becomes higher than consumption_EDE in the BAU scenario) et une fonction dans helper_functions qui retourne, pour un scénario donné, la première année à laquelle la consommation EDE devient de façon permanente supérieure à la consommation EDE de la même année dans le scénario BAU.
-Dans cap_and_share/output, on crée un year_EDE_higher_than_BAU.csv qui contient, pour chaque pays et au niveau mondial et pour plusieurs scénarios (FFU, Global_cap_share, IMF2 et Stoft), l'année où conso_EDE > conso_EDE_BAU. => c'est quelle année au niveau mondial pour chaque scénario ?
-
+Dans cap_and_share/output, on crée un year_EDE_higher_than_BAU.csv qui contient, pour chaque pays et au niveau mondial et pour plusieurs scénarios (FFU, Global_cap_share, IMF2 et Stoft), l'année où conso_EDE > conso_EDE_BAU. => c'est quelle année au niveau mondial pour chaque scénario ? =>
+Au niveau mondial, l'année à laquelle la consommation sous le scénario correspondant devient de manière permanente supérieure à celle en BAU est: 
+- FFU: 2030
+- Global_cap_share: 2030
+- IMF_2: 2025
+- Stoft: 2030
 
 ## 3. Ajouter une redistribution de la conso
 
@@ -96,8 +102,10 @@ Dans cap_and_share/output, on crée un year_EDE_higher_than_BAU.csv qui contient
 
 ### Problèmes rencontrés / observations
 
+Ce modèle s'applique uniquement si switch_consumption_tax = 1, qui est donc un nouveau paramètre à définir lorsque l'on code un modèle (ex: update_param!(nice2020_ffu_su, :switch_consumption_tax, 1)). Sa valeur par défaut est 0.
+
 Dans net_economy, on calcule la contribution de chaque pays dans le "pot commun" = 1% de son PIB, puis la redistribution que chaque pays reçoit (part égale par habitant).
-Si consumption_tax = 1, la différence entre ce que le pays reçoit et sa contribution se rajoute au PIB net. => et sinon ?
+Si switch_consumption_tax = 1, la différence entre ce que le pays reçoit et sa contribution se rajoute au PIB net. => et sinon ? => il ne se passe rien du tout, comme avant.
 
 Dans quantile_recycle, on calcule la taxe globale sur le 9ème quantile et celle sur le 10e. 
 Puis, on calcule le surplus net = revenue de la taxe sur la consommation*(1-taux d'inefficience) + redistribution du pot - contribution au pot commun.
@@ -142,6 +150,8 @@ pas très logique + vérifier qu'il n'y a pas d'erreur parce que si new_conso_pc
 ### Problèmes rencontrés / observations
 
 ### Où en est-on ?
+
+- dommages évités : LOCAL_DAMFRAC_KW est exprimé en % du PIB net => on ne peut pas le diviser pas la population => on peut le multiplier par le pib_net pour avoir le montant total des dommages dans le pays (et pour une année donnée), puis diviser les dommages par le nombre d'habitants dans le pays pour avoir les dommages par habitants : [ LOCAL_DAMFRAC_KW(time,country) * Y_net(time,country)] / l(time,country)
 
 Calcul de la net present value : FAIT
 Fonction créée dans helper_functions qui permet de retourner la valeur présente nette puis dans FFU on calcule la VPN pour tous les scénarios de 2030 à 2100 avec un taux à 3%. 

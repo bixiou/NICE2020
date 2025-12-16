@@ -501,4 +501,53 @@ function net_present_value(value, start_year, end_year, discount_rate, name_valu
     return npv
 end
 
+
+
 #########################################################################################################################
+#FUNCTION THAT RETURNS DIFFERENT DECOMPOSITION OF WELFARE GAINS BETWEEN TWO SCENARIOS
+#########################################################################################################################
+
+function welfare_gains(scenario1, scenario2, year, c)
+    #1 Avoided damages
+    damages1 =  (only(filter(row -> row.time == year && row.country == c, getdataframe(scenario1, :damages=>:LOCAL_DAMFRAC_KW)).LOCAL_DAMFRAC_KW))* (only(filter(row -> row.time == year && row.country == c, getdataframe(scenario1, :grosseconomy=>:YGROSS)).YGROSS))
+    damages2 = (only(filter(row -> row.time == year && row.country == c, getdataframe(scenario2, :damages=>:LOCAL_DAMFRAC_KW)).LOCAL_DAMFRAC_KW))* (only(filter(row -> row.time == year && row.country == c, getdataframe(scenario2, :grosseconomy=>:YGROSS)).YGROSS))
+    damages1_per_cap = damages1 / only(filter(row -> row.time == year && row.country == c, getdataframe(scenario1, :neteconomy=>:l)).l)
+    damages2_per_cap = damages2 / only(filter(row -> row.time == year && row.country == c, getdataframe(scenario2, :neteconomy=>:l)).l)
+    damages_diff = damages1_per_cap - damages2_per_cap
+    println("Avoided damages: ", damages_diff)
+
+    #2 Transfers
+    transfer1 = only(filter(row -> row.time == year && row.country == c, getdataframe(scenario1, :revenue_recycle=>:transfer_pc)).transfer_pc)
+    transfer2 = only(filter(row -> row.time == year && row.country == c, getdataframe(scenario2, :revenue_recycle=>:transfer_pc)).transfer_pc)
+    transfer_gain = transfer1 - transfer2
+    println("Transfer gain: ", transfer_gain)
+    
+    #3 Growth => comparison of gross consumtion
+    cons1 = (only(filter(row -> row.time == year && row.country == c, getdataframe(scenario1, :grosseconomy=>:YGROSS)).YGROSS) * (1 - only(filter(row -> row.time == year && row.country == c, getdataframe(scenario1, :abatement=>:s)).s)))
+    cons2 = (only(filter(row -> row.time == year && row.country == c, getdataframe(scenario2, :grosseconomy=>:YGROSS)).YGROSS) * (1 - only(filter(row -> row.time == year && row.country == c, getdataframe(scenario2, :abatement=>:s)).s)))
+    growth = cons1 - cons2
+    println("Growth: ", growth)
+    
+    #4 Abatement costs per capita
+    abat_cost1 = (only(filter(row -> row.time == year && row.country == c, getdataframe(scenario1, :abatement=>:ABATECOST)).ABATECOST) / only(filter(row -> row.time == year && row.country == c, getdataframe(scenario1, :abatement=>:l)).l))
+    abat_cost2 = (only(filter(row -> row.time == year && row.country == c, getdataframe(scenario2, :abatement=>:ABATECOST)).ABATECOST) / only(filter(row -> row.time == year && row.country == c, getdataframe(scenario2, :abatement=>:l)).l))
+    abat_cost = abat_cost1 - abat_cost2
+    println("Abatement cost: ", abat_cost)
+    
+    #5 Reduction of Inequalities
+    # First we have to compute the sum of consumption_pc_post_recycle at the national level (before the variable is defined at the quantile level)
+    tot_cons_post_1 = only(filter(row -> row.time == year && row.country == c, getdataframe(scenario1, :quantile_recycle=>:sum_conso_pc_post_recycle)).sum_conso_pc_post_recycle)
+    tot_cons_post_2 = only(filter(row -> row.time == year && row.country == c, getdataframe(scenario2, :quantile_recycle=>:sum_conso_pc_post_recycle)).sum_conso_pc_post_recycle)
+    ede_1 = only(filter(row -> row.time == year && row.country == c, getdataframe(scenario1, :welfare=>:cons_EDE_country)).cons_EDE_country)
+    ede_2 = only(filter(row -> row.time == year && row.country == c, getdataframe(scenario2, :welfare=>:cons_EDE_country)).cons_EDE_country)
+    reduction_inequalities = ((ede_1 - tot_cons_post_1) - (ede_2 - tot_cons_post_2)) * (tot_cons_post_2/tot_cons_post_1)
+    println("Reduction of inequalities: ", reduction_inequalities)
+    
+    #6 Total welfare gains, measured as consumption EDE difference
+    total_welfare_gains = ede_1 - ede_2
+    println("Total welfare gains: ", total_welfare_gains)
+    #7 Residual
+    residual = total_welfare_gains - (- damages_diff + transfer_gain + growth - abat_cost + reduction_inequalities)
+    
+    return (damages_diff, transfer_gain, growth, abat_cost, reduction_inequalities, total_welfare_gains, residual)
+end
