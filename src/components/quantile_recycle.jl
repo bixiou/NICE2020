@@ -231,7 +231,6 @@
 
             v.CPC_post_rwpp[t,rwpp] = sum(p.l[t,country_indices] .* v.CPC_post[t, country_indices]) / sum(p.l[t,country_indices])
             v.gini_cons_rwpp[t,rwpp] = gini(convert(Vector{Real},vec(v.conso_pc_post_recycle[t,country_indices,:])), convert(Vector{Real},vec(temp_pop_quantile[country_indices,:])))*100
-
         end # region loop
 
         v.CPC_post_global[t] = sum(v.sum_conso_pc_post_recycle[t,:] .* p.l[t,:] ./ p.nb_quantile) / temp_pop_global

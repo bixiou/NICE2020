@@ -134,13 +134,13 @@ pas très logique + vérifier qu'il n'y a pas d'erreur parce que si new_conso_pc
 ### Étapes
 - Écrire une fonction qui prend deux scénarios, par défaut le cap-and-trade with rights_proposed et le BAU.
 - Pour le monde et pour chaque pays, pour une année donnée (par défaut 2050), calculer les éléments suivants :
-    - dommages évités: différence de dommage évité par personne (-LOCAL_DAMFRAC_KW/population) entre les deux scénarios (1 - 2)
+    - dommages évités: différence de dommage évité par personne (-LOCAL_DAMFRAC_KW/population) entre les deux scénarios: dommages 2 - dommages 1 
     - transferts directs: différence de transfer_pc
-    - croissance: différence de YGROSS*(1-s)
+    - croissance: différence de YGROSS*(1-s) / population
     - coût d'abattement: différence de ABATECOST/population (va donner qq chose de signe contraire à dommages évités)
     - réduction des inégalités: ((conso_EDE_1 - C_1) - (conso_EDE_2 - C_2))*C_2/C_1
-    - amélioration totale: différence de conso_EDE
-    - résidu: amélioration totale - somme(5 autres)
+    - amélioration totale: différence de conso_EDE /personne
+    - résidu: amélioration totale - somme(5 autres) (du a au moins trois facteurs: la distribution des coûts et dommages entre déciles et l'interaction multiplicative entre couts et dommages)
 - Calculer la Net Present Value de chaque variable x_t qui précède de t0 à t_max au tax de R% (t0, t_max, R sont des paramètres de la fonction avec pour défaut 2025, 2100, 3%): sum_t0^tmax(x_t/(1+R)^(t-t0))
 - Coder une option de calculer R à partir des sorties du modèles: R = rho + η * g, avec rho un paramètre (= 0 par défaut), η est déjà défini, et g: croissance moyenne de la conso EDE entre t0 et t.
 - Exporter un graphique donnant la décomposition au cours du temps pour le monde entier et pour les pays majeurs, avec des stacked barres pour tout sauf amélioration totale, qui est elle en trait plein.
@@ -150,6 +150,8 @@ pas très logique + vérifier qu'il n'y a pas d'erreur parce que si new_conso_pc
 ### Où en est-on ?
 
 - dommages évités : LOCAL_DAMFRAC_KW est exprimé en % du PIB net => on ne peut pas le diviser pas la population => on peut le multiplier par le pib_net pour avoir le montant total des dommages dans le pays (et pour une année donnée), puis diviser les dommages par le nombre d'habitants dans le pays pour avoir les dommages par habitants : [ LOCAL_DAMFRAC_KW(time,country) * Y_net(time,country)] / l(time,country)
+
+=> Plutôt que prendre en argument un seul pays, vu qu'on veut pouvoir calculer ces élements pour un groupe de pays, il faut que l'argument soit un vecteur de pays => on additionne à chaque fois les gains, sauf pour la conso_EDE où on la recalcule via la fonction aggregate_EDE
 
 Calcul de la net present value : FAIT
 Fonction créée dans helper_functions qui permet de retourner la valeur présente nette puis dans FFU on calcule la VPN pour tous les scénarios de 2030 à 2100 avec un taux à 3%. 

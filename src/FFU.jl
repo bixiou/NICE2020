@@ -704,7 +704,7 @@ CSV.write(path_npv, df_npv)
 #TEST 
 ###########################
 include("helper_functions.jl")
-welfare_gains(nice2020_global_cap_share, bau_model, 2050, :ALB)
+welfare_gains(nice2020_global_cap_share, bau_model, 2050, [:ALB])
 countries_wanted = (:IND, :NGA, :CHN, :MNG, :USA, :FRA, :COD, :RUS)
 
 
@@ -720,3 +720,6 @@ ede_2 = only(filter(row -> row.time == 2050 && row.country == :ALB, getdataframe
 println(ede_2)
 reduction_inequalities = ((ede_1 - tot_cons_post_1) - (ede_2 - tot_cons_post_2)) * (tot_cons_post_2/tot_cons_post_1)
 println(reduction_inequalities)
+
+only(filter(row -> row.time == 2050 && row.country == :ALB, getdataframe(nice2020_global_cap_share, :quantile_recycle=>:sum_conso_pc_post_recycle)).sum_conso_pc_post_recycle)*only(filter(row -> row.time == 2050 && row.country == :ALB, getdataframe(nice2020_global_cap_share, :quantile_recycle=>:l)).l)
+only(filter(row -> row.time == 2050 && row.country == :ALB, getdataframe(nice2020_global_cap_share, :welfare, :cons_EDE_country)))
