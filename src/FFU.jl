@@ -654,7 +654,7 @@ CSV.write(path_year, df_merged)
 
 include("helper_functions.jl")
 
-countries_wanted = (:IND, :NGA, :CHN, :MNG, :USA, :FRA, :COD, :RUS)
+countries_wanted = (:IND, :NGA, :CHN, :USA, :FRA, :COD, :RUS)
 years_wanted = (2030, 2050, 2100)
 scenarios = [bau_model, nice2020_global_cap_share, nice2020_ffu, nice2020_IMF, nice2020_IMF_2, nice2020_stoft, nice2020_csu, nice2020_non_losing, nice2020_ffu_su]
 names_scenarios = ["BAU", "Global_Cap_Share", "FFU", "IMF", "IMF_2", "Stoft", "CSU", "Non-losing", "FFU_SU"]
