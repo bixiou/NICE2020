@@ -573,18 +573,18 @@ function welfare_gains(scenario1, scenario2, year, c_list::AbstractVector)
     ede_2 = Base.invokelatest(MimiNICE2020.EDE_aggregated, ede_vec_2, pop_vec_2, η) * sum(pop_vec_2) #1e6
     #print(ede_1,".",ede_2)
 
-    #Now that we have the totals for each component (in MUSD), we can compute the different parts of the decomposition
-    #We want to have values in rate of change => (final value - initial value)/(initial value)
-    damages_avoided = (-(damages1 - damages2)/(damages2)) *100
-    transfer_diff = (transfer1 - transfer2)/(transfer2) *100
-    growth = (cons1 - cons2)/(cons2) *100
-    abat_cost = (abat_cost1 - abat_cost2)/(abat_cost2) *100
-    ineq_adjusted = (ede_1 - tot_cons_post_1) * (tot_cons_post_2 / tot_cons_post_1)
-    ineq_2 = ede_2 - tot_cons_post_2
-    reduction_inequalities = (ineq_adjusted - ineq_2) / ineq_2 *100
-    total_welfare_gains = (ede_1 - ede_2)/(ede_2) *100
+    #Now that we have the totals for each component, we can compute the different parts of the decomposition
+    #By dividing by the total population (in thousands) we obtain values in thousand USD2017 per capita per year (1e6/1e3)
+    damages_avoided = (damages2 - damages1)/sum(pop_vec_1) #we do 2-1 to have the avoided damages => so positive value
+    println(damages2 - damages1)
+    transfer_diff = (transfer1 - transfer2)/sum(pop_vec_1)
+    println(transfer1 - transfer2)
+    growth = (cons1 - cons2)/sum(pop_vec_1)
+    abat_cost = (abat_cost1 - abat_cost2)/sum(pop_vec_1)
+    reduction_inequalities = (((ede_1 - tot_cons_post_1) - (ede_2 - tot_cons_post_2))*(tot_cons_post_2/tot_cons_post_1))/sum(pop_vec_1)
+    total_welfare_gains = (ede_1 - ede_2)/sum(pop_vec_1)
     residual_tot = total_welfare_gains - (damages_avoided + transfer_diff + growth - abat_cost + reduction_inequalities)
-    
+
     return (damages_avoided, transfer_diff, growth, abat_cost, reduction_inequalities, total_welfare_gains, residual_tot)
 end
 
