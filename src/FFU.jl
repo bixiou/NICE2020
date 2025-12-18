@@ -701,25 +701,50 @@ CSV.write(path_npv, df_npv)
 
 
 ###########################
-#TEST 
+#Decomposition of welfare gains
 ###########################
 include("helper_functions.jl")
-welfare_gains(nice2020_global_cap_share, bau_model, 2050, [:ALB])
-countries_wanted = (:IND, :NGA, :CHN, :MNG, :USA, :FRA, :COD, :RUS)
+countries_wanted = [:IND, :NGA, :CHN, :USA, :FRA, :COD, :RUS]
+welfare_year = 2050
+
+welfare_gains(nice2020_global_cap_share, bau_model, welfare_year, [:FRA])
+
+welfare_gains(nice2020_global_cap_share, bau_model, welfare_year, countries_wanted)
+
+#TEST DIFF ede_country_level et EDE_aggregated
+ede_country_level = only(filter(row -> row.time == 2050 && row.country == :FRA, getdataframe(nice2020_global_cap_share, :welfare=>:cons_EDE_country)).cons_EDE_country)
+η = try
+    Mimi.get_param(nice2020_global_cap_share, :welfare, :η)
+catch
+    1.5  # default value
+end
+population_fra = only(filter(row -> row.time == 2050 && row.country == :FRA, getdataframe(nice2020_global_cap_share, :welfare=>:l)).l)
+ede_agg = MimiNICE2020.EDE_aggregated([ede_country_level], [population_fra], η)
+
+println(ede_country_level*population_fra)
+println(population_fra)
+###########################################
+
+welfare_gains_path = joinpath(
+    @__DIR__,
+    "..",
+    "cap_and_share",
+    "output",
+    "welfare_gains_$(welfare_year)_global_cap_share_vs_bau.csv"
+)
+
+welfare_gains_df = write_welfare_gains_csv(
+    nice2020_global_cap_share,
+    bau_model,
+    welfare_year,
+    countries_wanted,
+    welfare_gains_path;
+    scenario1_name = "Global_Cap_Share",
+    scenario2_name = "BAU"
+)
+
+println("Welfare gains components saved to $(welfare_gains_path)")
 
 
 
-
-tot_cons_post_1 = only(filter(row -> row.time == 2050 && row.country == :ALB, getdataframe(nice2020_global_cap_share, :quantile_recycle=>:sum_conso_pc_post_recycle)).sum_conso_pc_post_recycle)
-println(tot_cons_post_1)
-tot_cons_post_2 = only(filter(row -> row.time == 2050 && row.country == :ALB, getdataframe(bau_model, :quantile_recycle=>:sum_conso_pc_post_recycle)).sum_conso_pc_post_recycle)
-println(tot_cons_post_2)
-ede_1 = only(filter(row -> row.time == 2050 && row.country == :ALB, getdataframe(nice2020_global_cap_share, :welfare=>:cons_EDE_country)).cons_EDE_country)
-println(ede_1)
-ede_2 = only(filter(row -> row.time == 2050 && row.country == :ALB, getdataframe(bau_model, :welfare=>:cons_EDE_country)).cons_EDE_country)
-println(ede_2)
-reduction_inequalities = ((ede_1 - tot_cons_post_1) - (ede_2 - tot_cons_post_2)) * (tot_cons_post_2/tot_cons_post_1)
-println(reduction_inequalities)
-
-only(filter(row -> row.time == 2050 && row.country == :ALB, getdataframe(nice2020_global_cap_share, :quantile_recycle=>:sum_conso_pc_post_recycle)).sum_conso_pc_post_recycle)*only(filter(row -> row.time == 2050 && row.country == :ALB, getdataframe(nice2020_global_cap_share, :quantile_recycle=>:l)).l)
-only(filter(row -> row.time == 2050 && row.country == :ALB, getdataframe(nice2020_global_cap_share, :welfare, :cons_EDE_country)))
+only(filter(row -> row.time == 2050 && row.country == :FRA, getdataframe(bau_model, :revenue_recycle=>:transfer)).transfer)/1e6

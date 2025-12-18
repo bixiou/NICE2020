@@ -525,9 +525,11 @@ function welfare_gains(scenario1, scenario2, year, c_list::AbstractVector)
         #1 Avoided damages => national level (1e6 USD2017 per year)
         damages1 =  damages1 + (only(filter(row -> row.time == year && row.country == c, getdataframe(scenario1, :damages=>:LOCAL_DAMFRAC_KW)).LOCAL_DAMFRAC_KW))* (only(filter(row -> row.time == year && row.country == c, getdataframe(scenario1, :grosseconomy=>:YGROSS)).YGROSS))
         damages2 = damages2 + (only(filter(row -> row.time == year && row.country == c, getdataframe(scenario2, :damages=>:LOCAL_DAMFRAC_KW)).LOCAL_DAMFRAC_KW))* (only(filter(row -> row.time == year && row.country == c, getdataframe(scenario2, :grosseconomy=>:YGROSS)).YGROSS))
-        #2 Transfers => national level ($)
+        #2 Transfers => national level ($) => /1e6 => million USD2017 per year
         transfer1 = transfer1 + (only(filter(row -> row.time == year && row.country == c, getdataframe(scenario1, :revenue_recycle=>:transfer)).transfer)/1e6)
+        println(transfer1)
         transfer2 = transfer2 + (only(filter(row -> row.time == year && row.country == c, getdataframe(scenario2, :revenue_recycle=>:transfer)).transfer)/1e6)
+        println(transfer2)
         #3 Growth => comparison of gross consumtion => national level (1e6 USD2017 per year)
         cons1 = cons1 + (only(filter(row -> row.time == year && row.country == c, getdataframe(scenario1, :grosseconomy=>:YGROSS)).YGROSS) * (1 - only(filter(row -> row.time == year && row.country == c, getdataframe(scenario1, :abatement=>:s)).s)))
         cons2 = cons2 + (only(filter(row -> row.time == year && row.country == c, getdataframe(scenario2, :grosseconomy=>:YGROSS)).YGROSS) * (1 - only(filter(row -> row.time == year && row.country == c, getdataframe(scenario2, :abatement=>:s)).s)))
@@ -537,7 +539,7 @@ function welfare_gains(scenario1, scenario2, year, c_list::AbstractVector)
         #5 Reduction of Inequalities (thousand USD2017) / (thousand people)
         tot_cons_post_1 = tot_cons_post_1 + only(filter(row -> row.time == year && row.country == c, getdataframe(scenario1, :quantile_recycle=>:sum_conso_pc_post_recycle)).sum_conso_pc_post_recycle)*only(filter(row -> row.time == year && row.country == c, getdataframe(scenario1, :quantile_recycle=>:l)).l)
         tot_cons_post_2 = tot_cons_post_2 + only(filter(row -> row.time == year && row.country == c, getdataframe(scenario2, :quantile_recycle=>:sum_conso_pc_post_recycle)).sum_conso_pc_post_recycle)*only(filter(row -> row.time == year && row.country == c, getdataframe(scenario2, :quantile_recycle=>:l)).l)
-        println(tot_cons_post_1,".",tot_cons_post_2)
+        #println(tot_cons_post_1,".",tot_cons_post_2)
     end 
     # Consumption EDE agrégée (via EDE_aggregated)
     # 1) Récupérer les DataFrames nécessaires
@@ -550,7 +552,7 @@ function welfare_gains(scenario1, scenario2, year, c_list::AbstractVector)
     # 2) Construire les vecteurs EDE pays et population, dans l'ordre de c_list
     ede_vec_1 = [only(filter(row -> row.time == year && row.country == c, df_ede1)).cons_EDE_country for c in c_list]
     ede_vec_2 = [only(filter(row -> row.time == year && row.country == c, df_ede2)).cons_EDE_country for c in c_list]
-    println(ede_vec_1,".",ede_vec_2)
+    #println(ede_vec_1,".",ede_vec_2)
     pop_vec_1 = [only(filter(row -> row.time == year && row.country == c, df_pop1)).l for c in c_list]
     pop_vec_2 = [only(filter(row -> row.time == year && row.country == c, df_pop2)).l for c in c_list]
 
@@ -567,20 +569,87 @@ function welfare_gains(scenario1, scenario2, year, c_list::AbstractVector)
     # 4) EDE agrégée pour chaque scénario
     #    Evite l'erreur de world-age en appelant via invokelatest,
     #    We convert in 1e6 USD2017 - EDE_aggregated gives values in thousand USD2017 per capita
-    ede_1 = Base.invokelatest(EDE_aggregated, ede_vec_1, pop_vec_1, η) * sum(pop_vec_1) #1e6
-    ede_2 = Base.invokelatest(EDE_aggregated, ede_vec_2, pop_vec_2, η) * sum(pop_vec_2) #1e6
-    print(ede_1,".",ede_2)
+    ede_1 = Base.invokelatest(MimiNICE2020.EDE_aggregated, ede_vec_1, pop_vec_1, η) * sum(pop_vec_1)
+    ede_2 = Base.invokelatest(MimiNICE2020.EDE_aggregated, ede_vec_2, pop_vec_2, η) * sum(pop_vec_2) #1e6
+    #print(ede_1,".",ede_2)
 
-
-    #Now that we have the totals for each component, we can compute the different parts of the decomposition
-    #By dividing by the total population (in thousands) we obtain values in thousand USD2017 per capita per year (1e6/1e3)
-    damages_avoided = (damages2 - damages1)/sum(pop_vec_1) #we do 2-1 to have the avoided damages => so positive value
-    transfer_diff = (transfer1 - transfer2)/sum(pop_vec_1)
-    growth = (cons1 - cons2)/sum(pop_vec_1)
-    abat_cost = (abat_cost1 - abat_cost2)/sum(pop_vec_1)
-    reduction_inequalities = (((ede_1 - tot_cons_post_1) - (ede_2 - tot_cons_post_2))*(tot_cons_post_2/tot_cons_post_1))/sum(pop_vec_1)
-    total_welfare_gains = (ede_1 - ede_2)/sum(pop_vec_1)
+    #Now that we have the totals for each component (in MUSD), we can compute the different parts of the decomposition
+    #We want to have values in rate of change => (final value - initial value)/(initial value)
+    damages_avoided = (-(damages1 - damages2)/(damages2)) *100
+    transfer_diff = (transfer1 - transfer2)/(transfer2) *100
+    growth = (cons1 - cons2)/(cons2) *100
+    abat_cost = (abat_cost1 - abat_cost2)/(abat_cost2) *100
+    ineq_adjusted = (ede_1 - tot_cons_post_1) * (tot_cons_post_2 / tot_cons_post_1)
+    ineq_2 = ede_2 - tot_cons_post_2
+    reduction_inequalities = (ineq_adjusted - ineq_2) / ineq_2 *100
+    total_welfare_gains = (ede_1 - ede_2)/(ede_2) *100
     residual_tot = total_welfare_gains - (damages_avoided + transfer_diff + growth - abat_cost + reduction_inequalities)
     
     return (damages_avoided, transfer_diff, growth, abat_cost, reduction_inequalities, total_welfare_gains, residual_tot)
+end
+
+
+# Build a tidy table of welfare gains components for a list of countries.
+function welfare_gains_table(
+    scenario1,
+    scenario2,
+    year::Int,
+    countries::AbstractVector;
+    scenario1_name::AbstractString = "Scenario1",
+    scenario2_name::AbstractString = "Scenario2"
+)
+    df = DataFrame(
+        Country = String[],
+        Year = Int[],
+        Scenario1 = String[],
+        Scenario2 = String[],
+        damages_avoided = Float64[],
+        transfer_diff = Float64[],
+        growth = Float64[],
+        abat_cost = Float64[],
+        reduction_inequalities = Float64[],
+        total_welfare_gains = Float64[],
+        residual_tot = Float64[]
+    )
+
+    for c in countries
+        damages_avoided, transfer_diff, growth, abat_cost, reduction_inequalities, total_welfare_gains, residual_tot = welfare_gains(scenario1, scenario2, year, [c])
+        push!(df, (
+            Country = string(c),
+            Year = year,
+            Scenario1 = scenario1_name,
+            Scenario2 = scenario2_name,
+            damages_avoided = damages_avoided,
+            transfer_diff = transfer_diff,
+            growth = growth,
+            abat_cost = abat_cost,
+            reduction_inequalities = reduction_inequalities,
+            total_welfare_gains = total_welfare_gains,
+            residual_tot = residual_tot
+        ))
+    end
+
+    return df
+end
+
+# Convenience wrapper to compute and export welfare gains components to CSV.
+function write_welfare_gains_csv(
+    scenario1,
+    scenario2,
+    year::Int,
+    countries::AbstractVector,
+    filepath::AbstractString;
+    scenario1_name::AbstractString = "Scenario1",
+    scenario2_name::AbstractString = "Scenario2"
+)
+    df = welfare_gains_table(
+        scenario1,
+        scenario2,
+        year,
+        countries;
+        scenario1_name = scenario1_name,
+        scenario2_name = scenario2_name
+    )
+    CSV.write(filepath, df)
+    return df
 end
