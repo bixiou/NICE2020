@@ -157,6 +157,20 @@ Calcul de la net present value : FAIT
 Fonction créée dans helper_functions qui permet de retourner la valeur présente nette puis dans FFU on calcule la VPN pour tous les scénarios de 2030 à 2100 avec un taux à 3%. 
 On a crée cap_and_share/output/net_present_value_cons_EDE.csv + graph_npv.png grâce au fichier R graph_cons_EDE.r
 
+
+Dans helper_functions.jl on crée: 
+- welfare_gains(scenario1, scenario2, year, c_list::AbstractVector) qui calcule la décomposition des gains de bien-être totaux de l'ensemble des pays de c_list (1 ou plusieurs pays), les valeurs retournées sont exprimées en % de la consommation EDE du scénario 2. 
+- welfare_gains_table qui permet de créer la table pour tous les pays qu'on veut => donc  boucle pour chaque pays/groupe de pays où on veut avoir la décomposition.
+- write_welfare_gains_csv pour exporter le csv qui se retrouve dans cap_and_share/output
+
+On crée un fichier R dans src => graph_decompo_welfare.r pour créer le/les graphique(s).
+
+/!\TO DO :
+- simplifier les fonctions dans helper_functions pour ne pas prendre les boucles mais faire en vectoriel 
+- dans FFU pour faire la net_present_value => 1er jet de code mais à paufiner parce que très long à tourner
+
+
+
 ### Résultat
 
 

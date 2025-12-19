@@ -704,8 +704,11 @@ CSV.write(path_npv, df_npv)
 #Decomposition of welfare gains
 ###########################
 include("helper_functions.jl")
-countries_wanted = [:IND, :NGA, :CHN, :USA, :FRA, :COD, :RUS]
+countries_wanted = [:IND, :NGA, :CHN, :USA, :COD, :RUS]
 welfare_year = 2050
+
+test = [only(filter(row -> row.time == 2050 && row.country == c, getdataframe(nice2020_global_cap_share, :welfare => :cons_EDE_country))).cons_EDE_country for c in countries_wanted]
+println(test)
 
 welfare_gains(nice2020_global_cap_share, bau_model, welfare_year, [:FRA])
 
@@ -740,11 +743,142 @@ welfare_gains_df = write_welfare_gains_csv(
     countries_wanted,
     welfare_gains_path;
     scenario1_name = "Global_Cap_Share",
-    scenario2_name = "BAU"
+    scenario2_name = "BAU",
+    include_global = true,
+    global_label = "Global",
+    eu_label = "European Union (27)"
 )
 
 println("Welfare gains components saved to $(welfare_gains_path)")
 
+###########################
+# NPV of welfare gains decomposition (2030-2100, discount rate 3%)
+###########################
+
+# List of years for NPV calculation
+years_npv = collect(2030:2100)
+countries_npv = [:IND, :NGA, :CHN, :USA, :COD, :RUS]
+
+# DataFrame to store yearly welfare gains for all countries
+df_yearly_gains = DataFrame(
+    Country = String[],
+    time = Int[],
+    damages_avoided = Float64[],
+    transfer_diff = Float64[],
+    growth = Float64[],
+    abat_cost = Float64[],
+    reduction_inequalities = Float64[],
+    total_welfare_gains = Float64[],
+    residual_tot = Float64[]
+)
+
+# Calculate yearly welfare gains for each country
+for c in countries_npv
+    for y in years_npv
+        damages_avoided, transfer_diff, growth, abat_cost, reduction_inequalities, total_welfare_gains, residual_tot = welfare_gains(nice2020_global_cap_share, bau_model, y, [c])
+        push!(df_yearly_gains, (
+            Country = string(c),
+            time = y,
+            damages_avoided = damages_avoided,
+            transfer_diff = transfer_diff,
+            growth = growth,
+            abat_cost = abat_cost,
+            reduction_inequalities = reduction_inequalities,
+            total_welfare_gains = total_welfare_gains,
+            residual_tot = residual_tot
+        ))
+    end
+end
+
+# Add Global aggregation
+all_countries_model = collect(dim_keys(nice2020_global_cap_share, :country))
+for y in years_npv
+    damages_avoided, transfer_diff, growth, abat_cost, reduction_inequalities, total_welfare_gains, residual_tot = welfare_gains(nice2020_global_cap_share, bau_model, y, all_countries_model)
+    push!(df_yearly_gains, (
+        Country = "Global",
+        time = y,
+        damages_avoided = damages_avoided,
+        transfer_diff = transfer_diff,
+        growth = growth,
+        abat_cost = abat_cost,
+        reduction_inequalities = reduction_inequalities,
+        total_welfare_gains = total_welfare_gains,
+        residual_tot = residual_tot
+    ))
+end
+
+# Add EU27 aggregation
+eu27_countries = Symbol.(["AUT", "BEL", "BGR", "HRV", "CYP", "CZE", "DNK", "EST", "FIN", "FRA", "DEU", "GRC", "HUN", "IRL", "ITA", "LVA", "LTU", "LUX", "MLT", "NLD", "POL", "PRT", "ROU", "SVK", "SVN", "ESP", "SWE"])
+for y in years_npv
+    damages_avoided, transfer_diff, growth, abat_cost, reduction_inequalities, total_welfare_gains, residual_tot = welfare_gains(nice2020_global_cap_share, bau_model, y, eu27_countries)
+    push!(df_yearly_gains, (
+        Country = "European Union (27)",
+        time = y,
+        damages_avoided = damages_avoided,
+        transfer_diff = transfer_diff,
+        growth = growth,
+        abat_cost = abat_cost,
+        reduction_inequalities = reduction_inequalities,
+        total_welfare_gains = total_welfare_gains,
+        residual_tot = residual_tot
+    ))
+end
+
+# Calculate NPV for each country and component
+df_npv_gains = DataFrame(
+    Country = String[],
+    Scenario1 = String[],
+    Scenario2 = String[],
+    damages_avoided_npv = Float64[],
+    transfer_diff_npv = Float64[],
+    growth_npv = Float64[],
+    abat_cost_npv = Float64[],
+    reduction_inequalities_npv = Float64[],
+    total_welfare_gains_npv = Float64[],
+    residual_tot_npv = Float64[]
+)
+
+# Get unique countries (including Global and EU27)
+unique_countries = unique(df_yearly_gains.Country)
+
+for country in unique_countries
+    df_country = filter(row -> row.Country == country, df_yearly_gains)
+    
+    # Calculate NPV for each component
+    npv_damages = net_present_value(df_country, 2030, 2100, 0.03, "damages_avoided")
+    npv_transfer = net_present_value(df_country, 2030, 2100, 0.03, "transfer_diff")
+    npv_growth = net_present_value(df_country, 2030, 2100, 0.03, "growth")
+    npv_abat = net_present_value(df_country, 2030, 2100, 0.03, "abat_cost")
+    npv_ineq = net_present_value(df_country, 2030, 2100, 0.03, "reduction_inequalities")
+    npv_total = net_present_value(df_country, 2030, 2100, 0.03, "total_welfare_gains")
+    npv_residual = net_present_value(df_country, 2030, 2100, 0.03, "residual_tot")
+    
+    push!(df_npv_gains, (
+        Country = country,
+        Scenario1 = "Global_Cap_Share",
+        Scenario2 = "BAU",
+        damages_avoided_npv = npv_damages,
+        transfer_diff_npv = npv_transfer,
+        growth_npv = npv_growth,
+        abat_cost_npv = npv_abat,
+        reduction_inequalities_npv = npv_ineq,
+        total_welfare_gains_npv = npv_total,
+        residual_tot_npv = npv_residual
+    ))
+end
+
+# Save NPV welfare gains to CSV
+npv_gains_path = joinpath(
+    @__DIR__,
+    "..",
+    "cap_and_share",
+    "output",
+    "welfare_gains_npv_2030_2100_global_cap_share_vs_bau.csv"
+)
+
+CSV.write(npv_gains_path, df_npv_gains)
+println("NPV welfare gains components saved to $(npv_gains_path)")
 
 
-only(filter(row -> row.time == 2050 && row.country == :FRA, getdataframe(bau_model, :revenue_recycle=>:transfer)).transfer)/1e6
+###########################
+

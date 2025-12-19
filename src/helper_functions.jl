@@ -583,14 +583,14 @@ function welfare_gains(scenario1, scenario2, year, c_list::AbstractVector)
 
     #Now that we have the totals for each component, we can compute the different parts of the decomposition
     #By dividing by the total population (in thousands) we obtain values in thousand USD2017 per capita per year (1e6/1e3)
-    damages_avoided = (damages2 - damages1)/sum(pop_vec_1) #we do 2-1 to have the avoided damages => so positive value
-    
-    transfer_diff = (transfer1 - transfer2)/sum(pop_vec_1)
-    growth = (cons1 - cons2)/sum(pop_vec_1)
-    abat_cost = (abat_cost1 - abat_cost2)/sum(pop_vec_1)
-    reduction_inequalities = (((ede_1 - tot_cons_post_1) - (ede_2 - tot_cons_post_2))*(tot_cons_post_2/tot_cons_post_1))/sum(pop_vec_1)
-    total_welfare_gains = (ede_1 - ede_2)/sum(pop_vec_1)
-    residual_tot = total_welfare_gains - (damages_avoided + transfer_diff + growth - abat_cost + reduction_inequalities)
+    damages_avoided = (damages2 - damages1)/ede_2 #we do 2-1 to have the avoided damages => so positive value
+    transfer_diff = (transfer1 - transfer2)/ede_2
+    growth = (cons1 - cons2)/ede_2
+    abat_cost = -(abat_cost1 - abat_cost2)/ede_2
+    reduction_inequalities = (((ede_1 - tot_cons_post_1)*(tot_cons_post_2/tot_cons_post_1) - (ede_2 - tot_cons_post_2))/ede_2)
+    #reduction_inequalities = (((ede_1 - tot_cons_post_1)* (1+tot_cons_post_2/tot_cons_post_1) - (ede_2 - tot_cons_post_2)*(1+tot_cons_post_1/tot_cons_post_2))/(2*sum(pop_vec_1))
+    total_welfare_gains = (ede_1 - ede_2)/ede_2
+    residual_tot = total_welfare_gains - (damages_avoided + transfer_diff + growth + abat_cost + reduction_inequalities)
     redis_1 = ede_1 - (damages1 + transfer1 + cons1 - abat_cost1 +(ede_1 - tot_cons_post_1))
     #println("conso brute", cons1, c_list)
     #println("conso_post_recycle", tot_cons_post_1, c_list)
@@ -608,7 +608,10 @@ function welfare_gains_table(
     year::Int,
     countries::AbstractVector;
     scenario1_name::AbstractString = "Scenario1",
-    scenario2_name::AbstractString = "Scenario2"
+    scenario2_name::AbstractString = "Scenario2",
+    include_global::Bool = false,
+    global_label::AbstractString = "Global",
+    eu_label::AbstractString = "European Union (27)"
 )
     df = DataFrame(
         Country = String[],
@@ -641,6 +644,41 @@ function welfare_gains_table(
         ))
     end
 
+    # Optionally add a global aggregation row over all model countries
+    if include_global
+        all_countries = collect(dim_keys(scenario1, :country))
+        damages_avoided, transfer_diff, growth, abat_cost, reduction_inequalities, total_welfare_gains, residual_tot = welfare_gains(scenario1, scenario2, year, all_countries)
+        push!(df, (
+            Country = String(global_label),
+            Year = year,
+            Scenario1 = scenario1_name,
+            Scenario2 = scenario2_name,
+            damages_avoided = damages_avoided,
+            transfer_diff = transfer_diff,
+            growth = growth,
+            abat_cost = abat_cost,
+            reduction_inequalities = reduction_inequalities,
+            total_welfare_gains = total_welfare_gains,
+            residual_tot = residual_tot
+        ))
+    end
+
+    eu27_countries = Symbol.(["AUT", "BEL", "BGR", "HRV", "CYP", "CZE", "DNK", "EST", "FIN", "FRA", "DEU", "GRC", "HUN", "IRL", "ITA", "LVA", "LTU", "LUX", "MLT", "NLD", "POL", "PRT", "ROU", "SVK", "SVN", "ESP", "SWE"])
+    damages_avoided, transfer_diff, growth, abat_cost, reduction_inequalities, total_welfare_gains, residual_tot = welfare_gains(scenario1, scenario2, year, eu27_countries)
+    push!(df, (
+        Country = String(eu_label),
+        Year = year,
+        Scenario1 = scenario1_name,
+        Scenario2 = scenario2_name,
+        damages_avoided = damages_avoided,
+        transfer_diff = transfer_diff,
+        growth = growth,
+        abat_cost = abat_cost,
+        reduction_inequalities = reduction_inequalities,
+        total_welfare_gains = total_welfare_gains,
+        residual_tot = residual_tot
+        ))
+
     return df
 end
 
@@ -652,7 +690,10 @@ function write_welfare_gains_csv(
     countries::AbstractVector,
     filepath::AbstractString;
     scenario1_name::AbstractString = "Scenario1",
-    scenario2_name::AbstractString = "Scenario2"
+    scenario2_name::AbstractString = "Scenario2",
+    include_global::Bool = false,
+    global_label::AbstractString = "Global",
+    eu_label::AbstractString = "European Union (27)"
 )
     df = welfare_gains_table(
         scenario1,
@@ -660,7 +701,10 @@ function write_welfare_gains_csv(
         year,
         countries;
         scenario1_name = scenario1_name,
-        scenario2_name = scenario2_name
+        scenario2_name = scenario2_name,
+        include_global = include_global,
+        global_label = global_label,
+        eu_label = eu_label
     )
     CSV.write(filepath, df)
     return df
