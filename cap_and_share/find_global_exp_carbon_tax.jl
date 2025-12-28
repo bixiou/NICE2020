@@ -23,7 +23,7 @@ println("Test global carbon tax runs")
 # runs the model with this carbon tax trajectory and outputs yearly global temperature and emissions
 function test_global_exp_c_tax(tax_start_value_test, g_rate_test)
 
-    full_co2_tax = exp_tax_trajectory(tax_start_value = tax_start_value_test, g_rate=g_rate_test, year_tax_start=2020, year_tax_end=2200)
+    full_co2_tax = exp_tax_trajectory(tax_start_value = tax_start_value_test, g_rate=g_rate_test, year_tax_start=2020, year_tax_end=2200, ramp_up = 0)
 
     update_param!(nice_v2, :abatement, :global_carbon_tax, full_co2_tax)
 
@@ -93,11 +93,12 @@ temperature, welfare, c_tax_paths = global_c_tax_loop(temperature, welfare, c_ta
 
 ######################################################
 ## Select the carbon tax pathway with 2 criteria:
-# 1. temperature increase below 2°C from 2020 to 2120
+# 1. temperature increase below 2°C from 2020 to 2100
 # 2. highest total welfare from 2020 to the end_date, 
 # with welfare discounted at rate rho
 #####################################################
 
+max_temperature = 2.01
 end_date_welfare = 2100
 rho = 0.015
 
@@ -115,8 +116,8 @@ welfare_disc = welfare ./ discount
 temperature = DataFrame(temperature, Symbol.(c_tax_paths))
 welfare_disc = DataFrame(welfare_disc, Symbol.(c_tax_paths))
 
-# Drop trajectories that lead to temperatures above 2.01°C by 2120
-temperature_constrained = temperature[!, Not(any.(>(1.81), eachcol(temperature)))] 
+# Drop trajectories that lead to temperatures above max_temperature by 2100
+temperature_constrained = temperature[!, Not(any.(>(max_temperature), eachcol(temperature)))] 
 
 # Sum global welfare over 2020-2100 
 tot_welfare_disc = combine(welfare_disc, names(welfare_disc) .=> sum .=> names(welfare_disc))
@@ -143,3 +144,8 @@ save(joinpath(output_directory_test_2deg_global, "welfare.csv"), welfare)
 save(joinpath(output_directory_test_2deg_global, "tot_discounted_welfare_constrained.csv"), tot_welfare_disc)
 save(joinpath(output_directory_test_2deg_global,"uniform_exp_tax_path_welfare.csv"), DataFrame(value=welfare_value_path); header=false)
 =#
+
+
+# Results 1.8°C:
+# 125.0
+# 0.022

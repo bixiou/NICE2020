@@ -1,10 +1,10 @@
 #########################################################
-# This file reproduces runs of "From Global Policies to Phase Out Fossil Fuels To a Sustainable Union"
+# This file reproduces runs for "From Global Policies to Phase Out Fossil Fuels To a Sustainable Union"
 #########################################################
 
 #create your own "path.txt" to find NICE2020
 # path = read("path.txt", String) |> strip  
-#cd("C:/Users/fabre/Documents/www/NICE2020/")  
+cd("C:/Users/fabre/Documents/www/NICE2020/")  
 
 # Activate the project and make sure packages are installed.
 using Pkg
@@ -615,6 +615,135 @@ run(nice2020_csu)
 dir_d=joinpath(@__DIR__, "..", "cap_and_share", "output", "csu")
 #mkpath(dir_d) # => to execute only once to create the directory
 MimiNICE2020.save_nice2020_output(nice2020_csu, joinpath(@__DIR__, "..", "cap_and_share", "output", "csu"))
+
+###########################
+# 11. global_cap_share_2c: Global (all countries) egalitarian carbon pricing with 2°C carbon budget
+###########################
+
+# CARBON TAX PATHWAY 
+global_co2_tax = exp_tax_trajectory(tax_start_value = 184, g_rate = .002, year_tax_start = 2030, year_tax_end = 2200, ramp_up = 0) # 2°C
+# global_co2_tax = exp_tax_trajectory(tax_start_value = 176, g_rate = .0168, year_tax_start = 2030, year_tax_end = 2200, ramp_up = 0) # 1.8°C
+
+nice2020_global_cap_share_2c = MimiNICE2020.create_nice2020()
+
+switch_recycle  = 1 # ON   
+switch_scenario = :All_World  # Choice of scenario by name (:All_World, :All_Except_Oil_Countries, :Optimistic, :Generous_EU, :Africa_Eu)
+update_param!(nice2020_global_cap_share_2c, :switch_custom_transfers, 0)
+switch_transfers_affect_growth           = 1 # Can compute economic data including redistributive effect 
+switch_global_recycling        = 1
+switch_global_pc_recycle        = 1
+global_recycle_share            = 1
+switch_footprint             = 1 # Switch for footprint calculation (1: ON, 0: OFF)
+switch_transfers_affect_growth    = 1 # Can compute economic data including redistributive effect 
+
+switch_custom_transfers = 0        # 
+update_param!(nice2020_global_cap_share_2c, :switch_custom_transfers, switch_custom_transfers)
+
+update_param!(nice2020_global_cap_share_2c, :switch_recycle, switch_recycle)
+update_param!(nice2020_global_cap_share_2c, :switch_global_recycling, switch_global_recycling)
+update_param!(nice2020_global_cap_share_2c, :revenue_recycle, :global_recycle_share,  ones(nb_country) * global_recycle_share ) 
+update_param!(nice2020_global_cap_share_2c, :revenue_recycle, :switch_global_pc_recycle, switch_global_pc_recycle)
+# Set uniform global carbon tax rates and run model.
+update_param!(nice2020_global_cap_share_2c, :abatement, :control_regime, 1) # Switch for emissions control regime  1:"global_carbon_tax", 2:"country_carbon_tax", 3:"country_abatement_rate"
+update_param!(nice2020_global_cap_share_2c, :abatement, :global_carbon_tax, global_co2_tax)
+update_param!(nice2020_global_cap_share_2c, :switch_footprint, switch_footprint)
+update_param!(nice2020_global_cap_share_2c, :switch_recycle, switch_recycle)
+update_param!(nice2020_global_cap_share_2c, :switch_transfers_affect_growth, switch_transfers_affect_growth)
+update_param!(nice2020_global_cap_share_2c, :policy_scenario, MimiNICE2020.scenario_index[switch_scenario])
+# update_param!(nice2020_global_cap_share_2c, :revenue_recycle, :rights_proposed, rights_proposed_mat)
+
+run(nice2020_global_cap_share_2c)
+
+# Save the run (see helper functions for saving function details)
+#MimiNICE2020.save_nice2020_output(nice2020_global_cap_share_2c, output_directory_uniform, revenue_recycling=false)
+MimiNICE2020.save_nice2020_output(nice2020_global_cap_share_2c, joinpath(@__DIR__, "..", "cap_and_share", "output", "global_cap_share_2c"))
+#run(`powershell -c "[console]::beep(1000, 300)"`)
+
+
+###########################
+# 11. global_cap_share_18: Global (all countries) egalitarian carbon pricing with 2°C carbon budget
+###########################
+
+# CARBON TAX PATHWAY 
+global_co2_tax = exp_tax_trajectory(tax_start_value = 176, g_rate = .0168, year_tax_start = 2030, year_tax_end = 2200, ramp_up = 0) # 1.8°C
+
+nice2020_global_cap_share_2c = MimiNICE2020.create_nice2020()
+
+switch_recycle  = 1 # ON   
+switch_scenario = :All_World  # Choice of scenario by name (:All_World, :All_Except_Oil_Countries, :Optimistic, :Generous_EU, :Africa_Eu)
+update_param!(nice2020_global_cap_share_2c, :switch_custom_transfers, 0)
+switch_transfers_affect_growth           = 1 # Can compute economic data including redistributive effect 
+switch_global_recycling        = 1
+switch_global_pc_recycle        = 1
+global_recycle_share            = 1
+switch_footprint             = 1 # Switch for footprint calculation (1: ON, 0: OFF)
+switch_transfers_affect_growth    = 1 # Can compute economic data including redistributive effect 
+
+switch_custom_transfers = 0        # 
+update_param!(nice2020_global_cap_share_2c, :switch_custom_transfers, switch_custom_transfers)
+
+update_param!(nice2020_global_cap_share_2c, :switch_recycle, switch_recycle)
+update_param!(nice2020_global_cap_share_2c, :switch_global_recycling, switch_global_recycling)
+update_param!(nice2020_global_cap_share_2c, :revenue_recycle, :global_recycle_share,  ones(nb_country) * global_recycle_share ) 
+update_param!(nice2020_global_cap_share_2c, :revenue_recycle, :switch_global_pc_recycle, switch_global_pc_recycle)
+# Set uniform global carbon tax rates and run model.
+update_param!(nice2020_global_cap_share_2c, :abatement, :control_regime, 1) # Switch for emissions control regime  1:"global_carbon_tax", 2:"country_carbon_tax", 3:"country_abatement_rate"
+update_param!(nice2020_global_cap_share_2c, :abatement, :global_carbon_tax, global_co2_tax)
+update_param!(nice2020_global_cap_share_2c, :switch_footprint, switch_footprint)
+update_param!(nice2020_global_cap_share_2c, :switch_recycle, switch_recycle)
+update_param!(nice2020_global_cap_share_2c, :switch_transfers_affect_growth, switch_transfers_affect_growth)
+update_param!(nice2020_global_cap_share_2c, :policy_scenario, MimiNICE2020.scenario_index[switch_scenario])
+# update_param!(nice2020_global_cap_share_2c, :revenue_recycle, :rights_proposed, rights_proposed_mat)
+
+run(nice2020_global_cap_share_2c)
+
+# Save the run (see helper functions for saving function details)
+#MimiNICE2020.save_nice2020_output(nice2020_global_cap_share_2c, output_directory_uniform, revenue_recycling=false)
+MimiNICE2020.save_nice2020_output(nice2020_global_cap_share_2c, joinpath(@__DIR__, "..", "cap_and_share", "output", "global_cap_share_18"))
+#run(`powershell -c "[console]::beep(1000, 300)"`)
+
+###########################
+# 12. global_cap_share_15: Global (all countries) egalitarian carbon pricing with 1.5°C carbon budget
+###########################
+
+# CARBON TAX PATHWAY 
+global_co2_tax = exp_tax_trajectory(tax_start_value = 408, g_rate = .0088, year_tax_start = 2030, year_tax_end = 2200, ramp_up = 5)
+
+nice2020_global_cap_share_15 = MimiNICE2020.create_nice2020()
+
+switch_recycle  = 1 # ON   
+switch_scenario = :All_World  # Choice of scenario by name (:All_World, :All_Except_Oil_Countries, :Optimistic, :Generous_EU, :Africa_Eu)
+update_param!(nice2020_global_cap_share_15, :switch_custom_transfers, 0)
+switch_transfers_affect_growth           = 1 # Can compute economic data including redistributive effect 
+switch_global_recycling        = 1
+switch_global_pc_recycle        = 1
+global_recycle_share            = 1
+switch_footprint             = 1 # Switch for footprint calculation (1: ON, 0: OFF)
+switch_transfers_affect_growth    = 1 # Can compute economic data including redistributive effect 
+
+switch_custom_transfers = 0        # 
+update_param!(nice2020_global_cap_share_15, :switch_custom_transfers, switch_custom_transfers)
+
+update_param!(nice2020_global_cap_share_15, :switch_recycle, switch_recycle)
+update_param!(nice2020_global_cap_share_15, :switch_global_recycling, switch_global_recycling)
+update_param!(nice2020_global_cap_share_15, :revenue_recycle, :global_recycle_share,  ones(nb_country) * global_recycle_share ) 
+update_param!(nice2020_global_cap_share_15, :revenue_recycle, :switch_global_pc_recycle, switch_global_pc_recycle)
+# Set uniform global carbon tax rates and run model.
+update_param!(nice2020_global_cap_share_15, :abatement, :control_regime, 1) # Switch for emissions control regime  1:"global_carbon_tax", 2:"country_carbon_tax", 3:"country_abatement_rate"
+update_param!(nice2020_global_cap_share_15, :abatement, :global_carbon_tax, global_co2_tax)
+update_param!(nice2020_global_cap_share_15, :switch_footprint, switch_footprint)
+update_param!(nice2020_global_cap_share_15, :switch_recycle, switch_recycle)
+update_param!(nice2020_global_cap_share_15, :switch_transfers_affect_growth, switch_transfers_affect_growth)
+update_param!(nice2020_global_cap_share_15, :policy_scenario, MimiNICE2020.scenario_index[switch_scenario])
+# update_param!(nice2020_global_cap_share_15, :revenue_recycle, :rights_proposed, rights_proposed_mat)
+
+run(nice2020_global_cap_share_15)
+
+# Save the run (see helper functions for saving function details)
+#MimiNICE2020.save_nice2020_output(nice2020_global_cap_share_15, output_directory_uniform, revenue_recycling=false)
+MimiNICE2020.save_nice2020_output(nice2020_global_cap_share_15, joinpath(@__DIR__, "..", "cap_and_share", "output", "global_cap_share_15"))
+#run(`powershell -c "[console]::beep(1000, 300)"`)
+
 
 ###########################
 #Year at which consumption_EDE becomes higher than consumption_EDE in the BAU scenario :

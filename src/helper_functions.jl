@@ -76,18 +76,24 @@ end
 #       year_tax_end:       Last year in which to compute the tax
 #       year_tax_step:      Step in years between two values (defaults to 1)
 #       year_model_end:     End of the model, if lower than year_tax_end the last tax value is repeated (defaults to 2300)
+#       ramp_up:            Number of periods the tax is linearly ramped up
 #
 # Note:
 #
 #       All arguments defined as keyword arguments instead of positional arguments
 #----------------------------------------------------------------------------------------------------------------------
 
-function exp_tax_trajectory(;tax_start_value::Real, g_rate::Real, year_tax_start::Int64, year_tax_end::Int64, year_step::Int64=1, year_model_end::Int64=2300)
+function exp_tax_trajectory(;tax_start_value::Real, g_rate::Real, year_tax_start::Int64, year_tax_end::Int64, year_step::Int64=1, year_model_end::Int64=2300, ramp_up = 0)
 
     tax_values = [tax_start_value * (1+g_rate) ^ (t-(year_tax_start+1) )  for t in year_tax_start+1:year_step:year_tax_end]
+    if ramp_up > 0
+        first_years = [tax_start_value * t/ramp_up  for t in 0:year_step:ramp_up]
+    else
+        first_years = [0]
+    end
+    pre_tax = zeros(max(0, tax_start_year - ramp_up - 2020))
 
-
-    full_tax_path = [0; tax_values; fill(tax_values[end], year_model_end- year_tax_end)]
+    full_tax_path = [pre_tax; first_years; tax_values; fill(tax_values[end], year_model_end - year_tax_end)]
 
     return full_tax_path
 end

@@ -14,7 +14,10 @@ using Mimi, MimiFAIRv2, DataFrames, CSVFiles
 # --- Tax and budget start parameters ---
 const tax_start_year        = 2030     # tax start year (2025, 2030…)
 const evaluation_end_year   = 2100    # the end of the year for budgeting and well-being
-const emission_budget_limit = 4   # budget max GtCO2 from tax_start_year to evaluation_end_year
+const emission_budget_limit = 1000   # budget max GtCO2 from tax_start_year to evaluation_end_year
+const temp_limit            = 2.00
+const use_budget            = false
+const ramp_up               = 5     # Number of periods the tax is linearly ramped up
 rho = 0.015                       # discount rate
 
 # budgets_ndc
@@ -28,7 +31,7 @@ rho = 0.015                       # discount rate
 # ——————————————————————————————————————————————————————————————
 include(joinpath(@__DIR__, "..", "data", "parameters.jl"))
 
-const scenario_name     = :KOR     # Choice of scenario by name (:All_World, :All_Except_Oil_Countries, :Optimistic, :Generous_EU, :Partnership, :Union)
+const scenario_name     = :All_World     # Choice of scenario by name (:All_World, :All_Except_Oil_Countries, :Optimistic, :Generous_EU, :Partnership, :Union) :KOR
 const policy_scenario   = scenario_index[scenario_name]
 const participation_vec = club_country[policy_scenario, :]
 
@@ -44,10 +47,10 @@ println("Test global carbon tax runs")
 # Runs the model with this carbon tax trajectory and outputs yearly emissions and welfare
 function test_global_exp_c_tax(tax_start_value_test, g_rate_test)
     # we pass tax_start_year instead of 2020
-    full_co2_tax = exp_tax_trajectory(tax_start_value = tax_start_value_test, g_rate = g_rate_test, year_tax_start = tax_start_year, year_tax_end = 2200)
+    full_co2_tax = exp_tax_trajectory(tax_start_value = tax_start_value_test, g_rate = g_rate_test, year_tax_start = tax_start_year, year_tax_end = 2200, ramp_up = ramp_up)[1:length(dim_keys(nice_v2, :time))]
     # ---  add zeros before tax_start_year to always have nb_steps elements
-    n_pre = tax_start_year - 2020
-    full_co2_tax = vcat(zeros(n_pre), full_co2_tax)[1:length(dim_keys(nice_v2, :time))]
+    # n_pre = tax_start_year - 2020
+    # full_co2_tax = vcat(zeros(n_pre), full_co2_tax)[1:length(dim_keys(nice_v2, :time))]
     # ---------------------------------------------------------
 
     update_param!(nice_v2, :abatement, :global_carbon_tax, full_co2_tax)
@@ -56,11 +59,12 @@ function test_global_exp_c_tax(tax_start_value_test, g_rate_test)
     # — Country-by-country aggregation on selected club only —
     emissions_matrix = nice_v2[:emissions, :E_gtco2]        # (time × country)
     welfare_matrix   = nice_v2[:welfare,   :welfare_country]# (time × country)
+    temperature      = nice_v2[:temperature, :T]
 
     emissions = emissions_matrix * participation_vec
     welfare   = welfare_matrix   * participation_vec
 
-    return emissions, welfare
+    return emissions, welfare, temperature
 end
 
 # Load NICE2020 source code.
@@ -106,14 +110,14 @@ for zoom in 1:n_zoom
 
     for (i, A) in enumerate(A_vals), (j, B) in enumerate(B_vals)
         # simulation
-        emissions, welfare = test_global_exp_c_tax(A, B)
+        emissions, welfare, temperature = test_global_exp_c_tax(A, B)
 
         # we restrict to the years [tax_start_year, evaluation_end_year]
         emis_zoom = emissions[mask]
         wel_zoom  = welfare[mask] ./ discount
 
-        # carbon budget constraint
-        if sum(emis_zoom) <= emission_budget_limit
+        # carbon budget constraint or temperature ceiling
+        if ((use_budget & (sum(emis_zoom) <= emission_budget_limit)) | (!use_budget & (max(temperature) < temp_limit))) # temperature[evaluation_end_year - 2020 + 1]
             welfare_grid[i, j] = sum(wel_zoom)
         end
         # sinon reste -Inf
@@ -144,7 +148,7 @@ for zoom in 1:n_zoom
 end
 
 # --- Checking total emissions for the optimum path ---
-emissions_opt, welfare_opt = test_global_exp_c_tax(best_params[1], best_params[2])
+emissions_opt, welfare_opt, temperature_opt = test_global_exp_c_tax(best_params[1], best_params[2])
 
 # We keep only the period [tax_start_year, evaluation_end_year]
 emis_budget = emissions_opt[mask]
@@ -162,16 +166,23 @@ save(joinpath("data","uniform_exp_tax_path_params.csv"),
      DataFrame(path=collect(best_params)); header=false)
 
 # # Save selected carbon tax pathway to CSV
-tax_path = parse.(Float64, split(tax_path[1], '_'))
-save(joinpath("data","uniform_exp_tax_path_params.csv"),
-     DataFrame(path=tax_path); header=false)
+# tax_path = parse.(Float64, split(tax_path[1], '_'))
+# save(joinpath("data","uniform_exp_tax_path_params.csv"),
+#      DataFrame(path=tax_path); header=false)
 
 # Save emissions trajectory
 # save(joinpath("data","emissions_ndc_CHN.csv"), DataFrame(emissions=emissions_opt, year=collect(2020:2300)); header=false)
 
 # Extract corresponding welfare value
-welfare_value_path = tot_welfare_disc[tot_welfare_disc.value .== maximum(tot_welfare_disc.value), :value]
+# welfare_value_path = tot_welfare_disc[tot_welfare_disc.value .== maximum(tot_welfare_disc.value), :value]
 
 emissions_matrix = test_global_exp_c_tax(232, .0416)
-save(joinpath("data","emissions_ndc_WEU_all.csv"), DataFrame(emissions_matrix, :auto); header=false)
-em, wel = test_global_exp_c_tax(232, .0416)
+# save(joinpath("data","emissions_ndc_WEU_all.csv"), DataFrame(emissions_matrix, :auto); header=false)
+em, wel, temp = test_global_exp_c_tax(232, .0416)
+
+# World max 1.50°C in 2100, ramp up 2025-30: 408, .0088; carbon budget: 183
+# World max 1.80°C in 2100, ramp up 2030-30: 176, .0168; carbon budget: 855
+# World max 2.00°C in 2100, ramp up 2030-30: 184, .002 ; carbon budget: 1349
+# World max 1.80°C in 2100, ramp up 2025-30: 216, .0088; carbon budget: 769
+# World max 2.00°C in 2100, ramp up 2025-30: 192, 0   ; carbon budget:  1205
+# TODO! display carbon budget when !use_budget and temp_max, temp 2100 when use_budget
