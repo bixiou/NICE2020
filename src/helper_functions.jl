@@ -91,7 +91,7 @@ function exp_tax_trajectory(;tax_start_value::Real, g_rate::Real, year_tax_start
     else
         first_years = [0]
     end
-    pre_tax = zeros(max(0, tax_start_year - ramp_up - 2020))
+    pre_tax = zeros(max(0, year_tax_start - ramp_up - 2020))
 
     full_tax_path = [pre_tax; first_years; tax_values; fill(tax_values[end], year_model_end - year_tax_end)]
 

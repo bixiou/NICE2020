@@ -129,7 +129,20 @@ pas très logique + vérifier qu'il n'y a pas d'erreur parce que si new_conso_pc
 ### Résultat
 
 
-## 4. Décomposer les gains de bien-être
+## 4. Modéliser une transition entre absence de taxe et taxe optimale pour les premières années.
+
+### Étapes
+- Modifier le code qui calcule la taxe optimale pour un budget donné, afin d'avoir une trajectoire croissante linéaire les 5 premières années. Pour l'instant, ce code calcule le niveau initial de la taxe t0 et son taux de croissance optimaux pour atteindre un budget donné. Changer le code pour qu'il calcule le niveau de t5 et le taux de croissance optimaux, avec t1, ..., t4 interpolés linéairement entre t0 = 0 et t5.
+TODO: finir ça, e.g. pourquoi la température n'est pas plus hautes (max 1.74) dans global_cap_share_18_rampup? pourquoi c'est toujours les mêmes trajectoires de taxe qui reviennent? + essayer un critère de transition plus smooth, e.g. maximisation du bien-être tout court (plutôt que parmi les trajectoires exponentielles) , cf. find_global_exp_carbon_tax_buget_zoom.jl
+
+### Problèmes rencontrés / observations
+
+### Où en est-on ?
+
+### Résultat
+
+
+## 5. Décomposer les gains de bien-être
 
 ### Étapes
 - Écrire une fonction qui prend deux scénarios, par défaut le cap-and-trade with rights_proposed et le BAU.
@@ -170,18 +183,6 @@ On crée un fichier R dans src => graph_decompo_welfare.r pour créer le/les gra
 - dans FFU pour faire la net_present_value => 1er jet de code mais à paufiner parce que très long à tourner
 
 
-
-### Résultat
-
-
-## 5. Modéliser une transition entre absence de taxe et taxe optimale pour les premières années.
-
-### Étapes
-- Modifier le code qui calcule la taxe optimale pour un budget donné, afin d'avoir une trajectoire croissante linéaire les 5 premières années. Pour l'instant, ce code calcule le niveau initial de la taxe t0 et son taux de croissance optimaux pour atteindre un budget donné. Changer le code pour qu'il calcule le niveau de t5 et le taux de croissance optimaux, avec t1, ..., t4 interpolés linéairement entre t0 = 0 et t5.
-
-### Problèmes rencontrés / observations
-
-### Où en est-on ?
 
 ### Résultat
 

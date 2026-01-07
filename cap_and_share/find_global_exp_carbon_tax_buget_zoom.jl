@@ -117,7 +117,7 @@ for zoom in 1:n_zoom
         wel_zoom  = welfare[mask] ./ discount
 
         # carbon budget constraint or temperature ceiling
-        if ((use_budget & (sum(emis_zoom) <= emission_budget_limit)) | (!use_budget & (max(temperature) < temp_limit))) # temperature[evaluation_end_year - 2020 + 1]
+        if ((use_budget & (sum(emis_zoom) <= emission_budget_limit)) | (!use_budget & (maximum(temperature) < temp_limit))) # temperature[evaluation_end_year - 2020 + 1]
             welfare_grid[i, j] = sum(wel_zoom)
         end
         # sinon reste -Inf
@@ -183,6 +183,6 @@ em, wel, temp = test_global_exp_c_tax(232, .0416)
 # World max 1.50°C in 2100, ramp up 2025-30: 408, .0088; carbon budget: 183
 # World max 1.80°C in 2100, ramp up 2030-30: 176, .0168; carbon budget: 855
 # World max 2.00°C in 2100, ramp up 2030-30: 184, .002 ; carbon budget: 1349
-# World max 1.80°C in 2100, ramp up 2025-30: 216, .0088; carbon budget: 769
-# World max 2.00°C in 2100, ramp up 2025-30: 192, 0   ; carbon budget:  1205
+# World max 1.80°C in 2100, ramp up 2025-30: 216, .0128; carbon budget: 600
+# World max 2.00°C in 2100, ramp up 2025-30: 184, 0.0088   ; carbon budget:  950
 # TODO! display carbon budget when !use_budget and temp_max, temp 2100 when use_budget

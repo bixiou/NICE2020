@@ -746,6 +746,49 @@ MimiNICE2020.save_nice2020_output(nice2020_global_cap_share_15, joinpath(@__DIR_
 
 
 ###########################
+# 13. global_cap_share_18_rampup: Global (all countries) egalitarian carbon pricing with 2°C carbon budget
+###########################
+
+# CARBON TAX PATHWAY 
+global_co2_tax = exp_tax_trajectory(tax_start_value = 216, g_rate = .0128, year_tax_start = 2030, year_tax_end = 2200, ramp_up = 5) # 1.8°C 
+
+global_cap_share_18_rampup = MimiNICE2020.create_nice2020()
+
+switch_recycle  = 1 # ON   
+switch_scenario = :All_World  # Choice of scenario by name (:All_World, :All_Except_Oil_Countries, :Optimistic, :Generous_EU, :Africa_Eu)
+update_param!(global_cap_share_18_rampup, :switch_custom_transfers, 0)
+switch_transfers_affect_growth           = 1 # Can compute economic data including redistributive effect 
+switch_global_recycling        = 1
+switch_global_pc_recycle        = 1
+global_recycle_share            = 1
+switch_footprint             = 1 # Switch for footprint calculation (1: ON, 0: OFF)
+switch_transfers_affect_growth    = 1 # Can compute economic data including redistributive effect 
+
+switch_custom_transfers = 0        # 
+update_param!(global_cap_share_18_rampup, :switch_custom_transfers, switch_custom_transfers)
+
+update_param!(global_cap_share_18_rampup, :switch_recycle, switch_recycle)
+update_param!(global_cap_share_18_rampup, :switch_global_recycling, switch_global_recycling)
+update_param!(global_cap_share_18_rampup, :revenue_recycle, :global_recycle_share,  ones(nb_country) * global_recycle_share ) 
+update_param!(global_cap_share_18_rampup, :revenue_recycle, :switch_global_pc_recycle, switch_global_pc_recycle)
+# Set uniform global carbon tax rates and run model.
+update_param!(global_cap_share_18_rampup, :abatement, :control_regime, 1) # Switch for emissions control regime  1:"global_carbon_tax", 2:"country_carbon_tax", 3:"country_abatement_rate"
+update_param!(global_cap_share_18_rampup, :abatement, :global_carbon_tax, global_co2_tax)
+update_param!(global_cap_share_18_rampup, :switch_footprint, switch_footprint)
+update_param!(global_cap_share_18_rampup, :switch_recycle, switch_recycle)
+update_param!(global_cap_share_18_rampup, :switch_transfers_affect_growth, switch_transfers_affect_growth)
+update_param!(global_cap_share_18_rampup, :policy_scenario, MimiNICE2020.scenario_index[switch_scenario])
+# update_param!(global_cap_share_18_rampup, :revenue_recycle, :rights_proposed, rights_proposed_mat)
+
+run(global_cap_share_18_rampup)
+
+# Save the run (see helper functions for saving function details)
+#MimiNICE2020.save_nice2020_output(global_cap_share_18_rampup, output_directory_uniform, revenue_recycling=false)
+MimiNICE2020.save_nice2020_output(global_cap_share_18_rampup, joinpath(@__DIR__, "..", "cap_and_share", "output", "global_cap_share_18_rampup"))
+#run(`powershell -c "[console]::beep(1000, 300)"`)
+
+
+###########################
 #Year at which consumption_EDE becomes higher than consumption_EDE in the BAU scenario :
 ###########################
 
