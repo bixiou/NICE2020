@@ -1,0 +1,24 @@
+# LaTeX
+*.toc
+*.aux
+*.log
+*.synctex.gz
+*.RData
+*.Rhistory
+*.Rproj
+*path.txt
+# macOS
+.DS_Store
+**/.DS_Store
+
+*Manifest.toml
+Manifest.toml
+
+*chemin.txt
+
+.Rproj.user
+
+*/build/*
+*Adrien's/
+*deprecated/*
+*.csv
