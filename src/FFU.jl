@@ -4,7 +4,7 @@
 
 #create your own "path.txt" to find NICE2020
 # path = read("path.txt", String) |> strip  
-cd("C:/Users/fabre/Documents/www/NICE2020/")  
+cd("/Users/constance/Documents/stage/NICE2020")  
 
 # Activate the project and make sure packages are installed.
 using Pkg
@@ -1053,4 +1053,295 @@ println("NPV welfare gains components saved to $(npv_gains_path)")
 
 
 ###########################
+# AUTARCHY: country i acts independently, rest of world coordinates -- ex with China
+###########################
+
+include("nice2020_module.jl") 
+include("helper_functions.jl")
+
+country_i_name = "CHN"  # other countries: "USA", "IND", "EUE" (will have to create that), "RUS", "COG", "NGA"
+country_i_idx = findfirst(==(Symbol(country_i_name)), dim_keys(base_model, :country))
+
+# 1. parameters based on scenario n5: global_cap_share
+years_ref = collect(dim_keys(base_model, :time))
+p_star_path = zeros(Float64, nb_steps)
+df_tax_n5 = CSV.read(joinpath(@__DIR__, "..", "cap_and_share", "data", "output", "calibrated_global_cs.csv"), DataFrame)
+df_tax_n5.time = Int.(df_tax_n5.time)
+df_tax_n5.global_tax = Float64.(df_tax_n5.global_tax)
+tax_dict_n5 = Dict(row.time => row.global_tax for row in eachrow(df_tax_n5))
+for (i, y) in enumerate(years_ref)
+    p_star_path[i] = get(tax_dict_n5, y, 0.0)
+end
+
+# i now have the global price path
+
+# 2. compute omega_i the emission weight of country i (invariant across pi_i values), which will allow me to compute the autarchy price path for country i and rest of world for any pi_i value:
+# p^* = omega_i p_i + (1 - omega_i) p_{-i}, with p_i = pi_i p^*
+emissions_18_df = getdataframe(nice2020_global_cap_share, :emissions => :E_gtco2)
+unique_years = sort(unique(emissions_18_df.time))
+omega_i = zeros(Float64, nb_steps)
+for (t_idx, year) in enumerate(unique_years)
+    row_i = filter(row -> row.time == year && row.country == Symbol(country_i_name), emissions_18_df)
+    row_global = filter(row -> row.time == year, emissions_18_df)
+    e_i = only(row_i).E_gtco2
+    E_global = sum(row_global.E_gtco2)
+    omega_i[t_idx] = e_i / E_global
+end
+
+switch_recycle = 1
+switch_global_recycling = 1
+switch_global_pc_recycle = 1
+switch_scenario = :All_World
+switch_transfers_affect_growth = 1
+switch_footprint = 1
+
+# 3. loop over pi_i values to get different autarchy paths for country i
+for pi_i in range(0.0, 1.0, length=11) 
+    # p^* = omega_i p_i + (1 - omega_i) p_{-i}, with p_i = pi_i p^*
+    # => p_{-i} = p^* (1 - omega_i pi_i)/(1 - omega_i)
+    p_minus_i_path = zeros(Float64, nb_steps)
+    for t in 1:nb_steps
+        p_minus_i_path[t] = p_star_path[t] * (1 - omega_i[t] * pi_i) / (1 - omega_i[t])
+    end
+
+    direct_country_tax_autarchy = zeros(Float64, nb_steps, nb_country)
+    for t in 1:nb_steps
+        for c in 1:nb_country
+            if c == country_i_idx
+                direct_country_tax_autarchy[t, c] = pi_i * p_star_path[t]
+            else
+                direct_country_tax_autarchy[t, c] = p_minus_i_path[t]
+            end
+        end
+    end
+
+    nice2020_autarchy = MimiNICE2020.create_nice2020()
+    update_param!(nice2020_autarchy, :switch_custom_transfers, 0)
+    update_param!(nice2020_autarchy, :switch_recycle, switch_recycle)
+    update_param!(nice2020_autarchy, :switch_global_recycling, switch_global_recycling)
+    update_param!(nice2020_autarchy, :revenue_recycle, :global_recycle_share, ones(nb_country) * global_recycle_share)
+    update_param!(nice2020_autarchy, :revenue_recycle, :switch_global_pc_recycle, switch_global_pc_recycle)
+    update_param!(nice2020_autarchy, :switch_footprint, switch_footprint)
+    update_param!(nice2020_autarchy, :abatement, :control_regime, 4)
+    update_param!(nice2020_autarchy, :abatement, :direct_country_tax, direct_country_tax_autarchy)
+    update_param!(nice2020_autarchy, :switch_transfers_affect_growth, switch_transfers_affect_growth)
+    update_param!(nice2020_autarchy, :policy_scenario, MimiNICE2020.scenario_index[switch_scenario])
+
+    run(nice2020_autarchy)
+
+    pi_i_str = replace(string(round(pi_i, digits=2)), "." => "p")
+    output_dir_autarchy = joinpath(@__DIR__, "..", "cap_and_share", "output", country_i_name, "autarchy_$(pi_i_str)")
+    MimiNICE2020.save_nice2020_output(nice2020_autarchy, output_dir_autarchy)
+    println("Autarchy pi_i=$(round(pi_i, digits=2)) saved to: $output_dir_autarchy")
+end
+############################
+
+############################
+# UNIFORM PRICE with varying emission rights -- ex with China
+############################
+
+# again, start from scenario n5 (global_cap_share)
+# vary the ratio: (rights_share_i) / (population_share_i) for country i
+# global emissions cap stays the same so the rest of world's rights compensate any variation of country i's rights
+
+include("nice2020_module.jl")
+
+country_i_name = "CHN"  # country i
+country_i_idx = findfirst(==(Symbol(country_i_name)), dim_keys(base_model, :country))
+
+# 1. population shares from the model (invariant across ratio values)
+pop_df = getdataframe(nice2020_global_cap_share, :grosseconomy => :l)
+unique_years_pop = sort(unique(pop_df.time))
+
+global_pop = zeros(Float64, nb_steps)
+country_i_pop = zeros(Float64, nb_steps)
+for (t_idx, year) in enumerate(unique_years_pop)
+    row_global = filter(row -> row.time == year, pop_df)
+    row_i = filter(row -> row.time == year && row.country == Symbol(country_i_name), pop_df)
+    global_pop[t_idx] = sum(row_global.l)
+    country_i_pop[t_idx] = only(row_i).l
+end
+
+pop_share_i = country_i_pop ./ global_pop
+
+# 2. total global emission rights (invariant across ratio values)
+gcs_emissions_df = getdataframe(nice2020_global_cap_share, :emissions => :E_gtco2)
+
+global_rights = zeros(Float64, nb_steps)
+for (t_idx, year) in enumerate(unique_years_pop)
+    row_gcs = filter(row -> row.time == year, gcs_emissions_df)
+    global_rights[t_idx] = sum(row_gcs.E_gtco2)
+end
+
+switch_global_recycling = 1
+switch_global_pc_recycle = 1
+switch_scenario = :All_World
+switch_transfers_affect_growth = 1
+switch_footprint = 1
+global_recycle_share = 1
+
+# 3. now I loop over ratio values to get different paths for country i's rights (ratio = 1 means same rights as in global_cap_share, ratio < 1 means less rights, ratio > 1 means more rights)
+for ratio in 0.5:0.5:4.0  # can change the scale and granularity
+    # rights_share_i = ratio × pop_share_i
+    # country_i_rights = rights_share_i × global_rights
+    rights_share_i = ratio .* pop_share_i
+    country_i_rights_new = rights_share_i .* global_rights
+
+    # remaining global rights and redistribute proportionally to other countries
+    rights_mat_varying = zeros(Float64, nb_steps, nb_country)
+    for t in 1:nb_steps
+        rights_mat_varying[t, country_i_idx] = country_i_rights_new[t]
+        remaining_rights = global_rights[t] - country_i_rights_new[t]
+        row_gcs_t = filter(row -> row.time == unique_years_pop[min(t, length(unique_years_pop))], gcs_emissions_df)
+        emissions_by_country = Dict(row.country => row.E_gtco2 for row in eachrow(row_gcs_t))
+        other_emissions = 0.0
+        for c in dim_keys(base_model, :country)
+            if c != Symbol(country_i_name)
+                other_emissions += get(emissions_by_country, c, 0.0)
+            end
+        end
+        for (c_idx, c) in enumerate(dim_keys(base_model, :country))
+            if c_idx != country_i_idx
+                if other_emissions > 0
+                    country_emissions = get(emissions_by_country, c, 0.0)
+                    rights_mat_varying[t, c_idx] = (country_emissions / other_emissions) * remaining_rights
+                else
+                    rights_mat_varying[t, c_idx] = remaining_rights / (nb_country - 1)
+                end
+            end
+        end
+    end
+
+    nice2020_uniform_varying = MimiNICE2020.create_nice2020()
+    update_param!(nice2020_uniform_varying, :switch_custom_transfers, 0)
+    update_param!(nice2020_uniform_varying, :switch_recycle, 1)
+    update_param!(nice2020_uniform_varying, :switch_global_recycling, switch_global_recycling)
+    update_param!(nice2020_uniform_varying, :revenue_recycle, :global_recycle_share, ones(nb_country) * global_recycle_share)
+    update_param!(nice2020_uniform_varying, :revenue_recycle, :switch_global_pc_recycle, switch_global_pc_recycle)
+    update_param!(nice2020_uniform_varying, :switch_footprint, switch_footprint)
+    update_param!(nice2020_uniform_varying, :abatement, :control_regime, 5)
+    update_param!(nice2020_uniform_varying, :abatement, :rights_mat, rights_mat_varying)
+    update_param!(nice2020_uniform_varying, :switch_transfers_affect_growth, switch_transfers_affect_growth)
+    update_param!(nice2020_uniform_varying, :policy_scenario, MimiNICE2020.scenario_index[switch_scenario])
+
+    run(nice2020_uniform_varying)
+
+    ratio_str = replace(string(round(ratio, digits=2)), "." => "p")
+    output_dir_uniform_varying = joinpath(@__DIR__, "..", "cap_and_share", "output", country_i_name, "uniform_varying_rights_ratio_$(ratio_str)")
+    MimiNICE2020.save_nice2020_output(nice2020_uniform_varying, output_dir_uniform_varying)
+    println("Uniform varying rights ratio=$(round(ratio, digits=2)) saved to: $output_dir_uniform_varying")
+end
+############################
+
+############################
+# HEATMAP: EDE difference for China at 2030 and 2050
+# X axis: p_i,0 = pi_i × p*_0
+# Y axis: rho_i = rights share / population share
+# Color: EDE_uniform(rho_i) - EDE_autarchy(pi_i)
+#        Positive = uniform better, negative = autarchy better
+############################
+
+using Plots, CSV, DataFrames
+
+output_base = joinpath(@__DIR__, "..", "cap_and_share", "output")
+country = "CHN"
+heatmap_years = [2030, 2050]
+
+function find_output_dirs(base, prefix)
+    dirs = String[]
+    for (root, subdirs, _) in walkdir(base)
+        for d in subdirs
+            if startswith(d, prefix)
+                push!(dirs, joinpath(root, d))
+            end
+        end
+    end
+    sort(dirs)
+end
+
+function parse_decimal_value(dir_name, sep)
+    token = split(basename(dir_name), sep)[end]
+    token = replace(token, "p" => ".")
+    return parse(Float64, token)
+end
+
+function read_ede_year(dir, country, year)
+    path = joinpath(dir, "country_output", "consumption_EDE.csv")
+    if !isfile(path)
+        @warn "File not found: $path"
+        return NaN
+    end
+        df = CSV.read(path, DataFrame)
+    row = filter(row -> string(row.country) == country && row.time == year, df)
+    if isempty(row)
+        @warn "No EDE row for $country in $path at year $year"
+            return NaN
+        end
+    return only(row).cons_EDE_country
+end
+
+function read_p_star0()
+    path = joinpath(@__DIR__, "..", "cap_and_share", "data", "output", "calibrated_global_cs.csv")
+    if !isfile(path)
+        @warn "Cannot find calibrated global price file: $path"
+        return 1.0
+    end
+    df = CSV.read(path, DataFrame)
+    df.time = Int.(df.time)
+    df.global_tax = Float64.(df.global_tax)
+    row = filter(row -> row.time == 2020, df)
+    if isempty(row)
+        @warn "No 2020 price in calibrated global price file"
+        return 1.0
+    end
+    return only(row).global_tax
+end
+ 
+# 1. Collect autarchy folders and pi_i values
+full_autarchy_dirs = find_output_dirs(joinpath(output_base, country), "autarchy_")
+pi_info = sort([(parse_decimal_value(d, "autarchy_"), d) for d in full_autarchy_dirs], by = first)
+pi_i_vals = [info[1] for info in pi_info]
+autarchy_dirs = [info[2] for info in pi_info]
+
+# 2. Collect uniform folders and ratio values
+full_uniform_dirs = find_output_dirs(output_base, "uniform_varying_rights_ratio_")
+ratio_info = sort([(parse_decimal_value(d, "_ratio_"), d) for d in full_uniform_dirs], by = first)
+ratio_vals = [info[1] for info in ratio_info]
+uniform_dirs = [info[2] for info in ratio_info]
+
+p_star0 = read_p_star0()
+p_i0_vals = pi_i_vals .* p_star0
+
+for year in heatmap_years
+    autarchy_ede = [read_ede_year(d, country, year) for d in autarchy_dirs]
+    uniform_ede = [read_ede_year(d, country, year) for d in uniform_dirs]
+
+    valid_values = filter(!isnan, vcat(autarchy_ede, uniform_ede))
+    if isempty(valid_values)
+        @error "No valid EDE data for $country at year $year"
+        continue
+    end
+
+    ede_diff = [uniform_ede[i] - autarchy_ede[j] for i in 1:length(ratio_vals), j in 1:length(pi_i_vals)]
+valid_vals = filter(!isnan, vec(ede_diff))
+maxval = maximum(abs.(valid_vals))
+
+p = heatmap(
+        p_i0_vals, ratio_vals, ede_diff,
+        xlabel = "pi_i (p_i = pi_i × p*_0)",
+        ylabel = "rho_i (rights share / population share)",
+        title = "CHN: ΔEDE uniform - autarchy in $year",
+        color = cgrad(:RdBu, rev = false),
+        clims = (-maxval, maxval),
+    colorbar_title = "ΔEDE",
+        xticks = (p_i0_vals, string.(round.(p_i0_vals, digits = 3))),
+        yticks = (ratio_vals, string.(round.(ratio_vals, digits = 2))),
+        size = (800, 520),
+        margin = 8Plots.mm,
+    )
+    contour!(p_i0_vals, ratio_vals, ede_diff, levels = [0.0], color = :black, linewidth = 2, label = "")
+
+out_path = joinpath(output_base, country, "$(country)_EDE_heatmap_$(year).png")
+savefig(p, out_path)
+end
 

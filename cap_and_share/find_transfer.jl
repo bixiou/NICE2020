@@ -26,7 +26,6 @@ df_rights_long[!, :time] = parse.(Int, replace.(df_rights_long.year_str, "rights
 select!(df_rights_long, Not(:year_str))
 rename!(df_rights_long, Dict("code"=>"country"))
 
-
 # GDP per country
 df_gdp = joinpath(@__DIR__, "..", "results", "uniform_tax_example", "no_revenue_recycling", "country_output", "gross_output.csv")
 df_gdp = CSV.read(df_gdp, DataFrame)
