@@ -186,7 +186,7 @@ TODO: faire tourner code de Marie et vérifier qu'on a la même chose que ce qu'
 
 
 ## Questions 
-- Does NICE model the feedback effect of transfers on GDP? => No.
+- Does NICE model the feedback effect of transfers on GDP? => No, it didn't.
 - Is there an important reason for modelling the carbon tax as a tax on consumption rather than production?
 
 
