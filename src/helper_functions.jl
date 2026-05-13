@@ -366,6 +366,152 @@ function save_nice2020_output(m::Model, output_directory::String)
 
 end
 
+#######################################################################################################################
+# CREATE RESULT DIRECTORIES AND SAVE REDUCED MODEL OUTPUT
+#######################################################################################################################
+
+"""
+this function generates the 3 main output files:
+1. all_countries_summary.csv: panel data with snapshots + npv/mean rows
+2. global_output.csv: climate and global economic metrics
+3. quantiles_output.csv: consumption distribution
+"""
+
+using Mimi
+using DataFrames
+using CSV
+using Statistics
+
+function save_nice2020_reduced_output(m::Model, output_directory::String)
+    mkpath(output_directory)
+
+    # config
+    eu27_codes = [:AUT, :BEL, :BGR, :CYP, :CZE, :DEU, :DNK, :ESP, :EST, :FIN, 
+                  :FRA, :GRC, :HRV, :HUN, :IRL, :ITA, :LTU, :LUX, :LVA, 
+                  :MLT, :NLD, :POL, :PRT, :ROU, :SVK, :SVN, :SWE]
+    key_countries = [:USA, :CHN, :IND, :RUS, :NGA, :COG, :FRA]
+    snapshots = [2030, 2040, 2050, 2080]
+    
+    # variable sets
+    indicators = Dict(
+        "consumption_ede"           => (:welfare, :cons_EDE_country, true),
+        "co2_emissions"             => (:emissions, :E_gtco2, false),
+        "country_carbon_tax"        => (:abatement, :country_carbon_tax, true),
+        "gross_output"              => (:grosseconomy, :YGROSS, true),
+        "mu"                        => (:abatement, :μ, false),
+        "abatement_cost_share"      => (:abatement, :ABATEFRAC, false),
+        "local_temp_anomaly"        => (:damages, :local_temp_anomaly, false),
+        "local_damage_cost_kw"      => (:damages, :LOCAL_DAMFRAC_KW, false),
+        "transfer"                  => (:revenue_recycle, :transfer, true),
+        "net_output_per_capita"     => (:neteconomy, :Y_pc, true),
+        "population"                => (:grosseconomy, :l, false)
+    )
+    # only few key variables for the ultra-wide annual file
+    essential_vars = ["consumption_ede", "co2_emissions", "country_carbon_tax"]
+
+    # --- 1. country data extraction & regional aggregation ---
+    df_panel = DataFrame()
+    for (name, (comp, var, is_mon)) in indicators
+        temp = getdataframe(m, comp, var)
+        if :value in propertynames(temp) rename!(temp, :value => name)
+        elseif Symbol(var) in propertynames(temp) rename!(temp, Symbol(var) => name)
+        end
+        if isempty(df_panel) df_panel = temp else df_panel = innerjoin(df_panel, temp, on=[:country, :time]) end
+    end
+
+    function get_region_agg(df, codes, name)
+        sub = filter(r -> r.country in codes, df)
+        agg = combine(groupby(sub, :time)) do dd
+            res = DataFrame(time = dd.time[1])
+            for n in keys(indicators)
+                res[!, n] .= (n in ["mu", "country_carbon_tax", "local_temp_anomaly"] ? mean(dd[!, n]) : sum(dd[!, n]))
+            end
+            return res
+        end
+        agg[!, :country] .= Symbol(name)
+        return agg
+    end
+
+    df_eu27 = get_region_agg(df_panel, eu27_codes, "union")
+    outside_codes = filter(c -> !(c in eu27_codes), unique(df_panel.country))
+    df_full = !isempty(outside_codes) ? vcat(df_panel, df_eu27, get_region_agg(df_panel, outside_codes, "outside_union")) : vcat(df_panel, df_eu27)
+
+    # --- FILE 1: country_output.csv (all countries, snapshots + npv, wide) ---
+    df_stats = combine(groupby(df_full, :country)) do dd
+        res = DataFrame(country = dd.country[1])
+        for n in keys(indicators)
+            if indicators[n][3]
+                res[!, string(n, "_npv")] .= round(net_present_value(dd, 2025, 2100, 0.015, n), sigdigits=3)
+            end
+            res[!, string(n, "_mean")] .= round(mean(filter(r -> 2025 <= r.time <= 2100, dd)[!, n]), sigdigits=3)
+        end
+        return res
+    end
+    df_snaps_long = stack(df_full, collect(keys(indicators)), [:country, :time])
+    filter!(r -> r.time in snapshots, df_snaps_long)
+    df_snaps_long[!, :col_name] = [string(r.variable, "_", r.time) for r in eachrow(df_snaps_long)]
+    df_country_wide = innerjoin(df_stats, unstack(df_snaps_long, :country, :col_name, :value), on=:country)
+    CSV.write(joinpath(output_directory, "country_output.csv"), df_country_wide)
+
+    # --- FILE 2: selected_country_output.csv (7 countries, annual, wide) ---
+    df_selected = filter(r -> r.country in key_countries || r.country in [:union, :outside_union], df_full)
+    filter!(r -> 2020 <= r.time <= 2100, df_selected)
+    df_selected_long = stack(df_selected, essential_vars, [:country, :time])
+    df_selected_long[!, :col_name] = [string(r.variable, "_", r.time) for r in eachrow(df_selected_long)]
+    CSV.write(joinpath(output_directory, "selected_country_output.csv"), unstack(df_selected_long, :country, :col_name, :value))
+
+    # --- QUANTILES ---
+    vars_q = Dict("conso" => (:quantile_recycle, :conso_pc_post_recycle), "tax" => (:quantile_recycle, :tax_burden_distr))
+    df_q_panel = DataFrame()
+    for (name, (comp, var)) in vars_q
+        temp = getdataframe(m, comp, var)
+        if :value in propertynames(temp) rename!(temp, :value => name) else rename!(temp, Symbol(var) => name) end
+        if isempty(df_q_panel) df_q_panel = temp else df_q_panel = innerjoin(df_q_panel, temp, on=[:country, :time, :quantile]) end
+    end
+
+    # --- FILE 3: all_quantiles_summary.csv (snapshots + npv, wide) ---
+    df_q_stats = combine(groupby(df_q_panel, [:country, :quantile])) do dd
+        res = DataFrame(country = dd.country[1], quantile = dd.quantile[1])
+        for n in keys(vars_q) res[!, string(n, "_npv")] .= round(net_present_value(dd, 2025, 2100, 0.015, n), sigdigits=3) end
+        return res
+    end
+    df_q_snaps = filter(r -> r.time in snapshots, df_q_panel)
+    df_q_snaps_long = stack(df_q_snaps, collect(keys(vars_q)), [:country, :time, :quantile])
+    df_q_snaps_long[!, :col_name] = [string(r.variable, "_", r.time) for r in eachrow(df_q_snaps_long)]
+    CSV.write(joinpath(output_directory, "all_quantiles_summary.csv"), innerjoin(df_q_stats, unstack(df_q_snaps_long, [:country, :quantile], :col_name, :value), on=[:country, :quantile]))
+
+    # --- FILE 4: selected_quantiles_annual.csv (7 countries, annual, wide) ---
+    df_q_key = filter(r -> r.country in key_countries && 2020 <= r.time <= 2100, df_q_panel)
+    df_q_key_long = stack(df_q_key, collect(keys(vars_q)), [:country, :time, :quantile])
+    df_q_key_long[!, :col_name] = [string(r.variable, "_", r.time) for r in eachrow(df_q_key_long)]
+    CSV.write(joinpath(output_directory, "selected_quantiles_annual.csv"), unstack(df_q_key_long, [:country, :quantile], :col_name, :value))
+
+    # --- FILE 5: global_output.csv (long format, years in rows) ---
+    g_temp = getdataframe(m, :temperature, :T)
+    if :value in propertynames(g_temp)
+        rename!(g_temp, :value => "temp")
+    elseif :T in propertynames(g_temp)
+        rename!(g_temp, :T => "temp")
+    end
+
+    g_co2 = getdataframe(m, :emissions, :E_Global_gtco2)
+    if :value in propertynames(g_co2)
+        rename!(g_co2, :value => "e_gtco2_club")
+    elseif :E_Global_gtco2 in propertynames(g_co2)
+        rename!(g_co2, :E_Global_gtco2 => "e_gtco2_club")
+    end
+
+    g_tax = getdataframe(m, :revenue_recycle, :total_tax_revenue)
+    if :value in propertynames(g_tax)
+        rename!(g_tax, :value => "total_tax_revenue")
+    elseif :total_tax_revenue in propertynames(g_tax)
+        rename!(g_tax, :total_tax_revenue => "total_tax_revenue")
+    end
+
+    global_final = innerjoin(g_temp, g_co2, g_tax, on=:time)
+    CSV.write(joinpath(output_directory, "global_output.csv"), global_final)
+end
+
 #########################################################################################################################
 # FUNCTION TO RETRIEVE OUTPUT VALUES AND BUILD A SUMMARY CSV
 #########################################################################################################################
