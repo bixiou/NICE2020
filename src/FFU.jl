@@ -4,7 +4,7 @@
 
 #create your own "path.txt" to find NICE2020
 # path = read("path.txt", String) |> strip  
-cd("/Users/constance/Documents/stage/NICE2020")  
+cd("/Users/theop/Desktop/NICE2020")  
 
 # Activate the project and make sure packages are installed.
 using Pkg
@@ -281,6 +281,10 @@ run(nice2020_global_cap_share)
 #MimiNICE2020.save_nice2020_output(nice2020_global_cap_share, output_directory_uniform, revenue_recycling=false)
 MimiNICE2020.save_nice2020_output(nice2020_global_cap_share, joinpath(@__DIR__, "..", "cap_and_share", "output", "global_cap_share"))
 #run(`powershell -c "[console]::beep(1000, 300)"`)
+include("helper_functions.jl")
+
+
+MimiNICE2020.save_nice2020_reduced_output(nice2020_global_cap_share, joinpath(@__DIR__, "..", "cap_and_share", "output", "global_cap_share_reduced"))
 
 ###########################
 # 6. IMF: IMF proposal - $25/t LIC & LMIC, $50 UMIC, $75 HIC starting from 2025 (2025-2300)
@@ -1079,14 +1083,14 @@ emissions_lookup = Dict((row.time, row.country) => row.E_gtco2 for row in eachro
 global_rights = [sum(filter(r -> r.time == y, gcs_emissions_df).E_gtco2) for y in unique_years]
 global_pop_total = [sum(filter(r -> r.time == y, pop_df).l) for y in unique_years]
 
-const EU28_LIST = [
+const EU27_LIST = [
     :AUT, :BEL, :BGR, :HRV, :CYP, :CZE, :DNK, :EST, :FIN, :FRA, 
     :DEU, :GRC, :HUN, :IRL, :ITA, :LVA, :LTU, :LUX, :MLT, :NLD, 
     :POL, :PRT, :ROU, :SVK, :SVN, :ESP, :SWE, :GBR
 ]
 
 # countries to process
-target_countries = ["USA", "COG", "CHN", "IND", "EUE", "RUS", "NGA"]
+target_countries = ["USA", "COG", "CHN", "IND", "EU27", "RUS", "NGA"]
 
 println("=== Running autarchy scenario ===")
 
@@ -1094,8 +1098,8 @@ for country_name in target_countries
     # this is to handle the case of EUE which is not a country in the model but a group of countries
     # I will compute the average price path weighted by emissions of the countries in the EU28 list
     # for the output i will sum the consumption_EDE and emissions of these countries to get the EUE consumption_EDE and emissions
-    is_eue = (country_name == "EUE")
-    target_symbols = is_eue ? EU28_LIST : [Symbol(country_name)]
+    is_eue = (country_name == "EU27")
+    target_symbols = is_eue ? EU27_LIST : [Symbol(country_name)]
     target_indices = findall(x -> x in target_symbols, dim_keys(base_model, :country))
 
     # omega_i (emissions weight) to get the autarchy price path for country i and rest of world for any pi_i value:
@@ -1110,10 +1114,10 @@ for country_name in target_countries
         folder = joinpath(@__DIR__, "..", "cap_and_share", "output", country_name, "autarchy_$pi_str")
         
         # --- skip if already in folder ---
-        # if isdir(folder) && isfile(joinpath(folder, "consumption_EDE.csv"))
-            # println("   ⏩ Skipping Autarchy for $country_name at pi=$pi_i (Already exists)")
-            # continue
-        # end
+        if isdir(folder) && isfile(joinpath(folder, "consumption_EDE.csv"))
+            println("   ⏩ Skipping Autarchy for $country_name at pi=$pi_i (Already exists)")
+            continue
+        end
 
         println("   🚀 Running Autarchy: $country_name | pi=$pi_i")
         denom = 1.0 .- omega_i
@@ -1139,6 +1143,7 @@ for country_name in target_countries
         run(nice2020_autarchy)
 
         # here i reduce the output so as to only get consumption_EDE for country i, emissions for country i and the carbon tax paid by country i and other countries
+        # i still need to use the initial saving function because i need specific dataframes from the model output, but i will only save the relevant dataframes in the output folder and not the whole model output to save space
         # creating the folder
         pi_i_str = replace(string(round(pi_i, digits=2)), "." => "p")
         output_folder = joinpath(@__DIR__, "..", "cap_and_share", "output", country_name, "autarchy_$(pi_i_str)")
@@ -1151,7 +1156,7 @@ for country_name in target_countries
         if is_eue
             df_res_ede[!, :cons_EDE_country] = Float64.(df_res_ede.cons_EDE_country)
             df_save_ede = combine(groupby(df_res_ede, :time), :cons_EDE_country => mean => :cons_EDE_country)
-            df_save_ede[!, :country] .= :EUE
+            df_save_ede[!, :country] .= "EU27"
         else
             df_save_ede = df_res_ede
         end
@@ -1164,7 +1169,7 @@ for country_name in target_countries
         if is_eue
             df_res_em[!, :E_gtco2] = Float64.(df_res_em.E_gtco2)
             df_save_em = combine(groupby(df_res_em, :time), :E_gtco2 => sum => :E_gtco2)
-            df_save_em[!, :country] .= :EUE
+            df_save_em[!, :country] .= "EU27"
         else
             df_save_em = df_res_em
         end
@@ -1177,7 +1182,7 @@ for country_name in target_countries
         if is_eue
             df_res_tax[!, :country_carbon_tax] = Float64.(df_res_tax.country_carbon_tax)
             df_save_tax = combine(groupby(df_res_tax, :time), :country_carbon_tax => mean => :country_carbon_tax)
-            df_save_tax[!, :country] .= :EUE
+            df_save_tax[!, :country] .= "EU27"
         else
             df_save_tax = df_res_tax
         end
@@ -1191,14 +1196,14 @@ end
 println("\n=== Running uniform price scenario ===")
 
 # again, start from scenario 5 (global_cap_share)
-# vary the ratio: (rights_share_i) / (population_share_i) for country i
+# vary the ratio : (rights_share_i) / (population_share_i) for country i
 # global emissions cap stays the same so the rest of world's rights compensate any variation of country i's rights
 
 for country_name in target_countries
     println("\n📍 Running for $country_name")
     
-    is_eue = (country_name == "EUE")
-    target_symbols = is_eue ? EU28_LIST : [Symbol(country_name)]
+    is_eue = (country_name == "EU27")
+    target_symbols = is_eue ? EU27_LIST : [Symbol(country_name)]
     target_indices = findall(x -> x in target_symbols, dim_keys(base_model, :country))
 
     # population shares
@@ -1210,11 +1215,11 @@ for country_name in target_countries
         rat_str = replace(string(round(ratio, digits=2)), "." => "p")
         folder = joinpath(@__DIR__, "..", "cap_and_share", "output", country_name, "uniform_ratio_$rat_str")
         
-        # skip if he folder already exists
-        # if isdir(folder) && isfile(joinpath(folder, "consumption_EDE.csv"))
-            # println("   ⏩ Skip : $country_name | ratio $ratio (already exists)")
-            # continue
-        # end
+        # skip if the folder already exists
+        if isdir(folder) && isfile(joinpath(folder, "consumption_EDE.csv"))
+            println("   ⏩ Skip : $country_name | ratio $ratio (already exists)")
+            continue
+        end
 
         println("   🚀 Start : $country_name | ratio $ratio")
         
@@ -1280,7 +1285,7 @@ for country_name in target_countries
         if is_eue
             df_res_ede[!, :cons_EDE_country] = Float64.(df_res_ede.cons_EDE_country)
             df_save_ede = combine(groupby(df_res_ede, :time), :cons_EDE_country => mean => :cons_EDE_country)
-            df_save_ede[!, :country] .= :EUE
+            df_save_ede[!, :country] .= "EU27"
         else
             df_save_ede = df_res_ede
         end
@@ -1292,7 +1297,7 @@ for country_name in target_countries
         if is_eue
             df_res_em[!, :E_gtco2] = Float64.(df_res_em.E_gtco2)
             df_save_em = combine(groupby(df_res_em, :time), :E_gtco2 => sum => :E_gtco2)
-            df_save_em[!, :country] .= :EUE
+            df_save_em[!, :country] .= "EU27"
         else
             df_save_em = df_res_em
         end
@@ -1304,7 +1309,7 @@ for country_name in target_countries
         if is_eue
             df_res_tax[!, :country_carbon_tax] = Float64.(df_res_tax.country_carbon_tax)
             df_save_tax = combine(groupby(df_res_tax, :time), :country_carbon_tax => mean => :country_carbon_tax)
-            df_save_tax[!, :country] .= :EUE
+            df_save_tax[!, :country] .= "EU27"
         else
             df_save_tax = df_res_tax
         end
@@ -1318,7 +1323,7 @@ for country_name in target_countries
 end
 
 #### now the heatmap
-using Plots, CSV, DataFrames, Plots.Measures, Statistics
+using Plots, CSV, DataFrames, Plots.Measures, Statistics, LaTeXStrings
 
 # --- 1. SETUP ---
 output_base = joinpath(@__DIR__, "..", "cap_and_share", "output")
@@ -1362,8 +1367,11 @@ end
 
 function read_ede_series(dir, country)
     path = joinpath(dir, "consumption_EDE.csv")
-    if !isfile(path) return nothing end
+    if !isfile(path) 
+        return nothing 
+    end
     df = CSV.read(path, DataFrame)
+    # CSV reads Symbols as Strings, so just compare as strings
     return filter(row -> string(row.country) == country, df)
 end
 
@@ -1403,6 +1411,16 @@ function calculate_relative_npv(series_uniform, series_autarchy, years, rate)
 end
 
 p_star0 = read_p_star0()
+
+theme(:vibrant) # Ou :scientific pour un look plus sobre
+default(
+    fontfamily = "Computer Modern", # Police académique standard
+    titlefontsize = 12,
+    guidefontsize = 10,
+    tickfontsize = 8,
+    legendfontsize = 9,
+    dpi = 300 # Haute résolution pour l'export
+)
 
 # --- LOOP ---
 for country in target_countries
@@ -1450,27 +1468,44 @@ for country in target_countries
     
     lim = maximum(abs.(valid_res))
 
+    my_cgrad = cgrad([:blue, :white, :red], [0, 0.5, 1])
+
     p = heatmap(pi_vals, ratio_vals, results,
-        xlabel = "Price Factor π_i (p_i = π_i * p*₀)",
-        ylabel = "Rights Ratio (ρ_i)",
-        title = "$country: EDE variation from uniform price to autarchy scenario (2030-2100)",
-        color = cgrad(:RdBu, rev = false),
+        xlabel = L"Price Factor \pi_i (p_i = \pi_i \times p_0^*)",
+        ylabel = L"Rights Ratio (\rho_i)",
+        title = "$country : Variation de l'EDE (2030-2100)\nUniforme vs Autarcie",
+        colorbar_title = L"Gain cumulé (%)",
+        titlealign = :left,
+        color = my_cgrad,
         clims = (-lim, lim),
-        colorbar_title = "Discounted Cumulative % Gain",
-        bottom_margin = 22mm,
-        size = (800, 550)
+        right_margin = 12mm,  # Espace pour le titre de la colorbar
+        left_margin = 8mm,
+        bottom_margin = 15mm,
+        top_margin = 8mm,
+        size = (900, 600),
+        frame = :box, # Cadre complet autour du graph
+        grid = false  # On enlève la grille pour une heatmap
     )
 
-    # Calculate center position for the footnote
-    x_center = (minimum(pi_vals) + maximum(pi_vals)) / 2
-    y_bottom = minimum(ratio_vals) - 0.28 * (maximum(ratio_vals) - minimum(ratio_vals))
-    
-    note_text = "Note: 2030 Global Price (p*₀) = $(round(p_star0, digits=2)) USD"
-    annotate!(p, [(x_center, y_bottom, text(note_text, 7, :black, :center))])
-    
-    contour!(p, pi_vals, ratio_vals, results, levels = [0.0], color = :black, lw=2)
+    # 1. Ajout de la courbe de niveau 0 (la "frontière")
+    # On la rend plus élégante : tirets épais
+    contour!(p, pi_vals, ratio_vals, results, 
+        levels = [0.0], 
+        color = :black, 
+        lw = 1.5, 
+        linestyle = :dash,
+        label = "Seuil d'indifférence" # Apparaîtra si tu actives la légende
+    )
 
-    save_path = joinpath(country_path, "NPV_Relative_Heatmap_$(country).png")
+    # 2. Amélioration de la note de bas de page
+    # Au lieu d'utiliser des coordonnées DATA, on utilise des coordonnées RELATIVES (ann)
+    # ou un titre de bas de page (plot_title)
+    note_text = "Note : Prix mondial 2030 (p_0^*) = $(round(p_star0, digits=2)) USD/tCO₂"
+    annotate!(p, [(0.5, -0.3, text(note_text, 8, :gray30, :center, :rel))])
+
+    # 3. Optionnel : Ajout d'un point ou d'une étoile sur un point d'intérêt
+    # scatter!(p, [1.0], [1.0], marker=:star, ms=8, label="Benchmark", color=:yellow)
+
+    save_path = joinpath(country_path, "Heatmap_$(country)_Pro.png")
     savefig(p, save_path)
-    println("      ✅ Heatmap saved to: $save_path")
 end
