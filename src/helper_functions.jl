@@ -432,7 +432,7 @@ function save_nice2020_reduced_output(m::Model, output_directory::String)
         return agg
     end
 
-    df_eu27 = get_region_agg(df_panel, eu27_codes, "union")
+    df_eu27 = get_region_agg(df_panel, eu27_codes, "EU27")
     outside_codes = filter(c -> !(c in eu27_codes), unique(df_panel.country))
     df_full = !isempty(outside_codes) ? vcat(df_panel, df_eu27, get_region_agg(df_panel, outside_codes, "outside_union")) : vcat(df_panel, df_eu27)
 
@@ -454,7 +454,7 @@ function save_nice2020_reduced_output(m::Model, output_directory::String)
     CSV.write(joinpath(output_directory, "country_output.csv"), df_country_wide)
 
     # --- FILE 2: selected_country_output.csv (7 countries, annual, wide) ---
-    df_selected = filter(r -> r.country in key_countries || r.country in [:union, :outside_union], df_full)
+    df_selected = filter(r -> r.country in key_countries || r.country in [:EU27, :outside_union], df_full)
     filter!(r -> 2020 <= r.time <= 2100, df_selected)
     df_selected_long = stack(df_selected, essential_vars, [:country, :time])
     df_selected_long[!, :col_name] = [string(r.variable, "_", r.time) for r in eachrow(df_selected_long)]
