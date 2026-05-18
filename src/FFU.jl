@@ -277,6 +277,8 @@ update_param!(nice2020_global_cap_share, :policy_scenario, MimiNICE2020.scenario
 
 run(nice2020_global_cap_share)
 
+MimiNICE2020.save_nice2020_reduced_output(nice2020_global_cap_share, joinpath(@__DIR__, "..", "cap_and_share", "output", "global_cap_share_reduced"))
+
 # Save the run (see helper functions for saving function details)
 #MimiNICE2020.save_nice2020_output(nice2020_global_cap_share, output_directory_uniform, revenue_recycling=false)
 MimiNICE2020.save_nice2020_output(nice2020_global_cap_share, joinpath(@__DIR__, "..", "cap_and_share", "output", "global_cap_share"))
@@ -1079,23 +1081,23 @@ emissions_lookup = Dict((row.time, row.country) => row.E_gtco2 for row in eachro
 global_rights = [sum(filter(r -> r.time == y, gcs_emissions_df).E_gtco2) for y in unique_years]
 global_pop_total = [sum(filter(r -> r.time == y, pop_df).l) for y in unique_years]
 
-const EU28_LIST = [
-    :AUT, :BEL, :BGR, :HRV, :CYP, :CZE, :DNK, :EST, :FIN, :FRA, 
-    :DEU, :GRC, :HUN, :IRL, :ITA, :LVA, :LTU, :LUX, :MLT, :NLD, 
-    :POL, :PRT, :ROU, :SVK, :SVN, :ESP, :SWE, :GBR
-]
+switch_recycle  = 1   
+switch_scenario = :All_World
+switch_transfers_affect_growth           = 1
+switch_global_recycling        = 1
+switch_global_pc_recycle        = 1
+global_recycle_share            = 1
+switch_footprint             = 1
+switch_custom_transfers = 0
 
 # countries to process
-target_countries = ["USA", "COG", "CHN", "IND", "EUE", "RUS", "NGA"]
+target_countries = ["USA", "COG", "CHN", "IND", "EU28", "RUS", "NGA"]
 
 println("=== Running autarchy scenario ===")
 
 for country_name in target_countries
-    # this is to handle the case of EUE which is not a country in the model but a group of countries
-    # I will compute the average price path weighted by emissions of the countries in the EU28 list
-    # for the output i will sum the consumption_EDE and emissions of these countries to get the EUE consumption_EDE and emissions
-    is_eue = (country_name == "EUE")
-    target_symbols = is_eue ? EU28_LIST : [Symbol(country_name)]
+    is_eu28 = (country_name == "EU28")
+    target_symbols = is_eu28 ? EU28_LIST : [Symbol(country_name)]
     target_indices = findall(x -> x in target_symbols, dim_keys(base_model, :country))
 
     # omega_i (emissions weight) to get the autarchy price path for country i and rest of world for any pi_i value:
@@ -1138,50 +1140,20 @@ for country_name in target_countries
 
         run(nice2020_autarchy)
 
-        # here i reduce the output so as to only get consumption_EDE for country i, emissions for country i and the carbon tax paid by country i and other countries
-        # creating the folder
-        pi_i_str = replace(string(round(pi_i, digits=2)), "." => "p")
-        output_folder = joinpath(@__DIR__, "..", "cap_and_share", "output", country_name, "autarchy_$(pi_i_str)")
-        mkpath(output_folder)
+        # Use the new reduced output format that includes NPV and pre-aggregated EU28 data
+        save_nice2020_reduced_output(nice2020_autarchy, folder)
 
-        # extracting EDE
-        df_ede = getdataframe(nice2020_autarchy, :welfare, :cons_EDE_country)
-        df_res_ede = filter(row -> row.country in target_symbols, df_ede)
-        # this allows me to deal with EU countries by summing their consumption_EDE weighted by their population to get the EUE consumption_EDE
-        if is_eue
-            df_res_ede[!, :cons_EDE_country] = Float64.(df_res_ede.cons_EDE_country)
-            df_save_ede = combine(groupby(df_res_ede, :time), :cons_EDE_country => mean => :cons_EDE_country)
-            df_save_ede[!, :country] .= :EUE
-        else
-            df_save_ede = df_res_ede
-        end
-        CSV.write(joinpath(output_folder, "consumption_EDE.csv"), df_save_ede)
+        df_ede_full = CSV.read(joinpath(folder, "example_countries_highres.csv"), DataFrame)
+        df_ede = filter(row -> row.country == country_name, df_ede_full)
+        df_emissions_full = CSV.read(joinpath(folder, "example_countries_highres.csv"), DataFrame)
+        df_emissions = filter(row -> row.country == country_name, df_emissions_full)
+        df_tax_full = CSV.read(joinpath(folder, "example_countries_highres.csv"), DataFrame)
+        df_tax = filter(row -> row.country == country_name, df_tax_full)
 
-        # extracting emissions
-        df_emissions = getdataframe(nice2020_autarchy, :emissions, :E_gtco2)
-        df_res_em = filter(row -> row.country in target_symbols, df_emissions)
-        
-        if is_eue
-            df_res_em[!, :E_gtco2] = Float64.(df_res_em.E_gtco2)
-            df_save_em = combine(groupby(df_res_em, :time), :E_gtco2 => sum => :E_gtco2)
-            df_save_em[!, :country] .= :EUE
-        else
-            df_save_em = df_res_em
-        end
-        CSV.write(joinpath(output_folder, "emissions.csv"), df_save_em)
-
-        # extracting carbon tax
-        df_tax = getdataframe(nice2020_autarchy, :abatement, :country_carbon_tax)
-        df_res_tax = filter(row -> row.country in target_symbols, df_tax)
-        
-        if is_eue
-            df_res_tax[!, :country_carbon_tax] = Float64.(df_res_tax.country_carbon_tax)
-            df_save_tax = combine(groupby(df_res_tax, :time), :country_carbon_tax => mean => :country_carbon_tax)
-            df_save_tax[!, :country] .= :EUE
-        else
-            df_save_tax = df_res_tax
-        end
-        CSV.write(joinpath(output_folder, "country_carbon_tax.csv"), df_save_tax)
+        # Save the filtered data (now includes NPV columns from the reduced output)
+        CSV.write(joinpath(folder, "consumption_EDE.csv"), df_ede)
+        CSV.write(joinpath(folder, "emissions.csv"), df_emissions)
+        CSV.write(joinpath(folder, "country_carbon_tax.csv"), df_tax)
 
         nice2020_autarchy = nothing
         GC.gc()
@@ -1196,9 +1168,8 @@ println("\n=== Running uniform price scenario ===")
 
 for country_name in target_countries
     println("\n📍 Running for $country_name")
-    
-    is_eue = (country_name == "EUE")
-    target_symbols = is_eue ? EU28_LIST : [Symbol(country_name)]
+    is_eu28 = (country_name == "EU28")
+    target_symbols = is_eu28 ? EU28_LIST : [Symbol(country_name)]
     target_indices = findall(x -> x in target_symbols, dim_keys(base_model, :country))
 
     # population shares
@@ -1274,43 +1245,19 @@ for country_name in target_countries
         print("      💾 Saving results...")
         mkpath(folder)
 
-        # extracting cons EDE
-        df_ede = getdataframe(nice2020_uniform_varying, :welfare, :cons_EDE_country)
-        df_res_ede = filter(row -> row.country in target_symbols, df_ede)
-        if is_eue
-            df_res_ede[!, :cons_EDE_country] = Float64.(df_res_ede.cons_EDE_country)
-            df_save_ede = combine(groupby(df_res_ede, :time), :cons_EDE_country => mean => :cons_EDE_country)
-            df_save_ede[!, :country] .= :EUE
-        else
-            df_save_ede = df_res_ede
-        end
-        CSV.write(joinpath(folder, "consumption_EDE.csv"), df_save_ede)
+        # Use the new reduced output format that includes NPV and pre-aggregated EU28 data
+        save_nice2020_reduced_output(nice2020_uniform_varying, folder)
 
-        # extracting emissions
-        df_emissions = getdataframe(nice2020_uniform_varying, :emissions, :E_gtco2)
-        df_res_em = filter(row -> row.country in target_symbols, df_emissions)
-        if is_eue
-            df_res_em[!, :E_gtco2] = Float64.(df_res_em.E_gtco2)
-            df_save_em = combine(groupby(df_res_em, :time), :E_gtco2 => sum => :E_gtco2)
-            df_save_em[!, :country] .= :EUE
-        else
-            df_save_em = df_res_em
-        end
-        CSV.write(joinpath(folder, "emissions.csv"), df_save_em)
+        df_ede_full = CSV.read(joinpath(folder, "example_countries_highres.csv"), DataFrame)
+        df_ede = filter(row -> row.country == country_name, df_ede_full)
+        df_emissions_full = CSV.read(joinpath(folder, "example_countries_highres.csv"), DataFrame)
+        df_emissions = filter(row -> row.country == country_name, df_emissions_full)
+        df_tax_full = CSV.read(joinpath(folder, "example_countries_highres.csv"), DataFrame)
+        df_tax = filter(row -> row.country == country_name, df_tax_full)
 
-        # extracting carbon tax
-        df_tax = getdataframe(nice2020_uniform_varying, :abatement, :country_carbon_tax)
-        df_res_tax = filter(row -> row.country in target_symbols, df_tax)
-        if is_eue
-            df_res_tax[!, :country_carbon_tax] = Float64.(df_res_tax.country_carbon_tax)
-            df_save_tax = combine(groupby(df_res_tax, :time), :country_carbon_tax => mean => :country_carbon_tax)
-            df_save_tax[!, :country] .= :EUE
-        else
-            df_save_tax = df_res_tax
-        end
-        CSV.write(joinpath(folder, "carbon_tax.csv"), df_save_tax)
-        
-        println(" OK.")
+        CSV.write(joinpath(folder, "consumption_EDE.csv"), df_ede)
+        CSV.write(joinpath(folder, "emissions.csv"), df_emissions)
+        CSV.write(joinpath(folder, "carbon_tax.csv"), df_tax)
 
         nice2020_uniform_varying = nothing
         GC.gc()
