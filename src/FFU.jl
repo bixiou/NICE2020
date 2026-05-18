@@ -4,7 +4,7 @@
 
 #create your own "path.txt" to find NICE2020
 # path = read("path.txt", String) |> strip  
-cd("/Users/constance/Documents/stage/NICE2020")  
+cd("/Users/theop/Desktop/NICE2020")  
 
 # Activate the project and make sure packages are installed.
 using Pkg
@@ -284,6 +284,9 @@ MimiNICE2020.save_nice2020_reduced_output(nice2020_global_cap_share, joinpath(@_
 MimiNICE2020.save_nice2020_output(nice2020_global_cap_share, joinpath(@__DIR__, "..", "cap_and_share", "output", "global_cap_share"))
 #run(`powershell -c "[console]::beep(1000, 300)"`)
 include("helper_functions.jl")
+
+
+MimiNICE2020.save_nice2020_reduced_output(nice2020_global_cap_share, joinpath(@__DIR__, "..", "cap_and_share", "output", "global_cap_share_reduced"))
 
 ###########################
 # 6. IMF: IMF proposal - $25/t LIC & LMIC, $50 UMIC, $75 HIC starting from 2025 (2025-2300)
@@ -1424,11 +1427,15 @@ for country in target_countries
     
     lim = maximum(abs.(valid_res))
 
+    my_cgrad = cgrad([:blue, :white, :red], [0, 0.5, 1])
+
     p = heatmap(pi_vals, ratio_vals, results,
-        xlabel = "Price Factor π_i (p_i = π_i * p*₀)",
-        ylabel = "Rights Ratio (ρ_i)",
-        title = "$country: EDE variation from uniform price to autarchy scenario (2030-2100)",
-        color = cgrad(:RdBu, rev = false),
+        xlabel = L"Price Factor \pi_i (p_i = \pi_i \times p_0^*)",
+        ylabel = L"Rights Ratio (\rho_i)",
+        title = "$country : Variation de l'EDE (2030-2100)\nUniforme vs Autarcie",
+        colorbar_title = L"Gain cumulé (%)",
+        titlealign = :left,
+        color = my_cgrad,
         clims = (-lim, lim),
         colorbar_title = "Discounted Cumulative % Gain",
         right_margin = 12mm,
