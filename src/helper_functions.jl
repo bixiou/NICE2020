@@ -370,146 +370,175 @@ end
 # CREATE RESULT DIRECTORIES AND SAVE REDUCED MODEL OUTPUT
 #######################################################################################################################
 
-"""
-this function generates the 3 main output files:
-1. all_countries_summary.csv: panel data with snapshots + npv/mean rows
-2. global_output.csv: climate and global economic metrics
-3. quantiles_output.csv: consumption distribution
-"""
-
-using Mimi
-using DataFrames
-using CSV
-using Statistics
-
 function save_nice2020_reduced_output(m::Model, output_directory::String)
     mkpath(output_directory)
 
-    # config
-    eu27_codes = [:AUT, :BEL, :BGR, :CYP, :CZE, :DEU, :DNK, :ESP, :EST, :FIN, 
-                  :FRA, :GRC, :HRV, :HUN, :IRL, :ITA, :LTU, :LUX, :LVA, 
+    # ------ config ------
+    eu27_codes = [:AUT, :BEL, :BGR, :CYP, :CZE, :DEU, :DNK, :ESP, :EST, :FIN,
+                  :FRA, :GRC, :HRV, :HUN, :IRL, :ITA, :LTU, :LUX, :LVA,
                   :MLT, :NLD, :POL, :PRT, :ROU, :SVK, :SVN, :SWE]
     key_countries = [:USA, :CHN, :IND, :RUS, :NGA, :COG, :FRA]
-    snapshots = [2030, 2040, 2050, 2080]
-    
-    # variable sets
+    snapshots     = [2030, 2040, 2050, 2080]
+
+    # each indicator is:  name => (component, variable, is_monetary, aggregation_fn)
+    # is_monetary controls whether an NPV is computed, aggregation_fn is used when collapsing countries into a regional aggregate (EU27 case)
     indicators = Dict(
-        "consumption_ede"           => (:welfare, :cons_EDE_country, true),
-        "co2_emissions"             => (:emissions, :E_gtco2, false),
-        "country_carbon_tax"        => (:abatement, :country_carbon_tax, true),
-        "gross_output"              => (:grosseconomy, :YGROSS, true),
-        "mu"                        => (:abatement, :μ, false),
-        "abatement_cost_share"      => (:abatement, :ABATEFRAC, false),
-        "local_temp_anomaly"        => (:damages, :local_temp_anomaly, false),
-        "local_damage_cost_kw"      => (:damages, :LOCAL_DAMFRAC_KW, false),
-        "transfer"                  => (:revenue_recycle, :transfer, true),
-        "net_output_per_capita"     => (:neteconomy, :Y_pc, true),
-        "population"                => (:grosseconomy, :l, false)
+        "consumption_ede"       => (:welfare,        :cons_EDE_country,  true,  sum),
+        "co2_emissions"         => (:emissions,       :E_gtco2,           false, sum),
+        "country_carbon_tax"    => (:abatement,       :country_carbon_tax, true, mean),
+        "gross_output"          => (:grosseconomy,    :YGROSS,            true,  sum),
+        "mu"                    => (:abatement,       :μ,                 false, mean),
+        "abatement_cost_share"  => (:abatement,       :ABATEFRAC,         false, mean),
+        "local_temp_anomaly"    => (:damages,         :local_temp_anomaly, false, mean),
+        "local_damage_cost_kw"  => (:damages,         :LOCAL_DAMFRAC_KW,  false, mean),
+        "transfer"              => (:revenue_recycle, :transfer,          true,  sum),
+        "net_output_per_capita" => (:neteconomy,      :Y_pc,              true,  mean),
+        "population"            => (:grosseconomy,    :l,                 false, sum),
     )
-    # only few key variables for the ultra-wide annual file
+
+    # only these three variables go into the annual wide file
     essential_vars = ["consumption_ede", "co2_emissions", "country_carbon_tax"]
 
-    # --- 1. country data extraction & regional aggregation ---
-    df_panel = DataFrame()
-    for (name, (comp, var, is_mon)) in indicators
-        temp = getdataframe(m, comp, var)
-        if :value in propertynames(temp) rename!(temp, :value => name)
-        elseif Symbol(var) in propertynames(temp) rename!(temp, Symbol(var) => name)
-        end
-        if isempty(df_panel) df_panel = temp else df_panel = innerjoin(df_panel, temp, on=[:country, :time]) end
+    # we pull each variable from its Mimi component and join everything into one DataFrame on (country, time)
+    # we rename to normalise the value column name regardless of whether Mimi returned it as :value or under the original variable symbol
+    function extract_var(name, comp, var)
+        df = getdataframe(m, comp, var)
+        # Mimi sometimes returns :value, sometimes the original symbol
+        value_col = :value in propertynames(df) ? :value : Symbol(var)
+        return rename(df, value_col => Symbol(name))
     end
 
-    function get_region_agg(df, codes, name)
+    df_panel = reduce(
+        (acc, kv) -> innerjoin(acc, extract_var(kv[1], kv[2][1], kv[2][2]), on=[:country, :time]),
+        pairs(indicators);
+        init = begin
+            first_kv = first(pairs(indicators))
+            extract_var(first_kv[1], first_kv[2][1], first_kv[2][2])
+        end
+    )
+
+    # regional aggregation
+    function aggregate_region(df, codes, region_name)
         sub = filter(r -> r.country in codes, df)
         agg = combine(groupby(sub, :time)) do dd
-            res = DataFrame(time = dd.time[1])
-            for n in keys(indicators)
-                res[!, n] .= (n in ["mu", "country_carbon_tax", "local_temp_anomaly"] ? mean(dd[!, n]) : sum(dd[!, n]))
+            row = Dict{Symbol, Any}(:time => dd.time[1], :country => Symbol(region_name))
+            for (name, (_, _, _, agg_fn)) in indicators
+                row[Symbol(name)] = agg_fn(dd[!, name])
             end
-            return res
+            return DataFrame(row)
         end
-        agg[!, :country] .= Symbol(name)
         return agg
     end
 
-    df_eu27 = get_region_agg(df_panel, eu27_codes, "EU27")
-    outside_codes = filter(c -> !(c in eu27_codes), unique(df_panel.country))
-    df_full = !isempty(outside_codes) ? vcat(df_panel, df_eu27, get_region_agg(df_panel, outside_codes, "outside_union")) : vcat(df_panel, df_eu27)
+    df_eu27        = aggregate_region(df_panel, eu27_codes,                    "EU27")
+    outside_codes  = filter(c -> !(c in eu27_codes), unique(df_panel.country))
+    df_outside     = aggregate_region(df_panel, outside_codes,                 "outside_union")
+    df_full        = vcat(df_panel, df_eu27, df_outside)
 
-    # --- FILE 1: country_output.csv (all countries, snapshots + npv, wide) ---
+    # ─────────────────────────────────────────────────────────────────────────
+    # FILE 1: country_output.csv
+    # wide format: one row per country, columns = NPV / mean / snapshot values
+    # ─────────────────────────────────────────────────────────────────────────
     df_stats = combine(groupby(df_full, :country)) do dd
-        res = DataFrame(country = dd.country[1])
-        for n in keys(indicators)
-            if indicators[n][3]
-                res[!, string(n, "_npv")] .= round(net_present_value(dd, 2025, 2100, 0.015, n), sigdigits=3)
+        row = Dict{Symbol, Any}(:country => dd.country[1])
+        for (name, (_, _, is_mon, _)) in indicators
+            dd_window = filter(r -> 2025 <= r.time <= 2100, dd)
+            if is_mon
+                row[Symbol(name, "_npv")] = round(net_present_value(dd, 2025, 2100, 0.015, name), sigdigits=3)
             end
-            res[!, string(n, "_mean")] .= round(mean(filter(r -> 2025 <= r.time <= 2100, dd)[!, n]), sigdigits=3)
+            row[Symbol(name, "_mean")] = round(mean(dd_window[!, name]), sigdigits=3)
         end
-        return res
+        return DataFrame(row)
     end
-    df_snaps_long = stack(df_full, collect(keys(indicators)), [:country, :time])
-    filter!(r -> r.time in snapshots, df_snaps_long)
+
+    df_snaps = filter(r -> r.time in snapshots, df_full)
+    df_snaps_long = stack(df_snaps, collect(keys(indicators)), [:country, :time])
     df_snaps_long[!, :col_name] = [string(r.variable, "_", r.time) for r in eachrow(df_snaps_long)]
-    df_country_wide = innerjoin(df_stats, unstack(df_snaps_long, :country, :col_name, :value), on=:country)
+    df_country_wide = innerjoin(df_stats,
+                                unstack(df_snaps_long, :country, :col_name, :value),
+                                on = :country)
     CSV.write(joinpath(output_directory, "country_output.csv"), df_country_wide)
 
-    # --- FILE 2: selected_country_output.csv (7 countries, annual, wide) ---
-    df_selected = filter(r -> r.country in key_countries || r.country in [:EU27, :outside_union], df_full)
-    filter!(r -> 2020 <= r.time <= 2100, df_selected)
-    df_selected_long = stack(df_selected, essential_vars, [:country, :time])
-    df_selected_long[!, :col_name] = [string(r.variable, "_", r.time) for r in eachrow(df_selected_long)]
-    CSV.write(joinpath(output_directory, "selected_country_output.csv"), unstack(df_selected_long, :country, :col_name, :value))
+    # ─────────────────────────────────────────────────────────────────────────
+    # FILE 2: selected_country_output.csv
+    # annual wide format for the 7 key countries + EU27 + outside_union
+    # only the three essential variables are kept to limit file size
+    # ─────────────────────────────────────────────────────────────────────────
+    df_sel = filter(r -> (r.country in key_countries || r.country in [:EU27, :outside_union])
+                         && 2020 <= r.time <= 2100, df_full)
+    df_sel_long = stack(df_sel, essential_vars, [:country, :time])
+    df_sel_long[!, :col_name] = [string(r.variable, "_", r.time) for r in eachrow(df_sel_long)]
+    CSV.write(joinpath(output_directory, "selected_country_output.csv"),
+              unstack(df_sel_long, :country, :col_name, :value))
 
-    # --- QUANTILES ---
-    vars_q = Dict("conso" => (:quantile_recycle, :conso_pc_post_recycle), "tax" => (:quantile_recycle, :tax_burden_distr))
-    df_q_panel = DataFrame()
-    for (name, (comp, var)) in vars_q
-        temp = getdataframe(m, comp, var)
-        if :value in propertynames(temp) rename!(temp, :value => name) else rename!(temp, Symbol(var) => name) end
-        if isempty(df_q_panel) df_q_panel = temp else df_q_panel = innerjoin(df_q_panel, temp, on=[:country, :time, :quantile]) end
+    # quantile data
+    quant_vars = Dict(
+        "conso" => (:quantile_recycle, :conso_pc_post_recycle),
+        "tax"   => (:quantile_recycle, :tax_burden_distr),
+    )
+
+    df_q = reduce(
+        (acc, kv) -> innerjoin(acc, begin
+            df = getdataframe(m, kv[2][1], kv[2][2])
+            vc = :value in propertynames(df) ? :value : Symbol(kv[2][2])
+            rename(df, vc => Symbol(kv[1]))
+        end, on=[:country, :time, :quantile]),
+        pairs(quant_vars);
+        init = begin
+            fkv = first(pairs(quant_vars))
+            df  = getdataframe(m, fkv[2][1], fkv[2][2])
+            vc  = :value in propertynames(df) ? :value : Symbol(fkv[2][2])
+            rename(df, vc => Symbol(fkv[1]))
+        end
+    )
+
+    # ─────────────────────────────────────────────────────────────────────────
+    # FILE 3: all_quantiles_summary.csv
+    # wide format: NPV per (country, quantile) pair, plus snapshot columns
+    # ─────────────────────────────────────────────────────────────────────────
+    df_q_stats = combine(groupby(df_q, [:country, :quantile])) do dd
+        row = Dict{Symbol,Any}(:country => dd.country[1], :quantile => dd.quantile[1])
+        for name in keys(quant_vars)
+            row[Symbol(name, "_npv")] = round(net_present_value(dd, 2025, 2100, 0.015, name), sigdigits=3)
+        end
+        return DataFrame(row)
     end
 
-    # --- FILE 3: all_quantiles_summary.csv (snapshots + npv, wide) ---
-    df_q_stats = combine(groupby(df_q_panel, [:country, :quantile])) do dd
-        res = DataFrame(country = dd.country[1], quantile = dd.quantile[1])
-        for n in keys(vars_q) res[!, string(n, "_npv")] .= round(net_present_value(dd, 2025, 2100, 0.015, n), sigdigits=3) end
-        return res
-    end
-    df_q_snaps = filter(r -> r.time in snapshots, df_q_panel)
-    df_q_snaps_long = stack(df_q_snaps, collect(keys(vars_q)), [:country, :time, :quantile])
+    df_q_snaps = filter(r -> r.time in snapshots, df_q)
+    df_q_snaps_long = stack(df_q_snaps, collect(keys(quant_vars)), [:country, :time, :quantile])
     df_q_snaps_long[!, :col_name] = [string(r.variable, "_", r.time) for r in eachrow(df_q_snaps_long)]
-    CSV.write(joinpath(output_directory, "all_quantiles_summary.csv"), innerjoin(df_q_stats, unstack(df_q_snaps_long, [:country, :quantile], :col_name, :value), on=[:country, :quantile]))
+    CSV.write(joinpath(output_directory, "all_quantiles_summary.csv"),
+              innerjoin(df_q_stats,
+                        unstack(df_q_snaps_long, [:country, :quantile], :col_name, :value),
+                        on = [:country, :quantile]))
 
-    # --- FILE 4: selected_quantiles_annual.csv (7 countries, annual, wide) ---
-    df_q_key = filter(r -> r.country in key_countries && 2020 <= r.time <= 2100, df_q_panel)
-    df_q_key_long = stack(df_q_key, collect(keys(vars_q)), [:country, :time, :quantile])
+    # ─────────────────────────────────────────────────────────────────────────
+    # FILE 4: selected_quantiles_annual.csv
+    # annual wide format for key countries only
+    # ─────────────────────────────────────────────────────────────────────────
+    df_q_key = filter(r -> r.country in key_countries && 2020 <= r.time <= 2100, df_q)
+    df_q_key_long = stack(df_q_key, collect(keys(quant_vars)), [:country, :time, :quantile])
     df_q_key_long[!, :col_name] = [string(r.variable, "_", r.time) for r in eachrow(df_q_key_long)]
-    CSV.write(joinpath(output_directory, "selected_quantiles_annual.csv"), unstack(df_q_key_long, [:country, :quantile], :col_name, :value))
+    CSV.write(joinpath(output_directory, "selected_quantiles_annual.csv"),
+              unstack(df_q_key_long, [:country, :quantile], :col_name, :value))
 
-    # --- FILE 5: global_output.csv (long format, years in rows) ---
-    g_temp = getdataframe(m, :temperature, :T)
-    if :value in propertynames(g_temp)
-        rename!(g_temp, :value => "temp")
-    elseif :T in propertynames(g_temp)
-        rename!(g_temp, :T => "temp")
+    # ─────────────────────────────────────────────────────────────────────────
+    # FILE 5: global_output.csv
+    # 3 global time series (temperature, total CO₂, total tax revenue)
+    # ─────────────────────────────────────────────────────────────────────────
+    function get_global_var(comp, var, col_name)
+        df = getdataframe(m, comp, var)
+        vc = :value in propertynames(df) ? :value : Symbol(var)
+        return rename(df, vc => Symbol(col_name))
     end
 
-    g_co2 = getdataframe(m, :emissions, :E_Global_gtco2)
-    if :value in propertynames(g_co2)
-        rename!(g_co2, :value => "e_gtco2_club")
-    elseif :E_Global_gtco2 in propertynames(g_co2)
-        rename!(g_co2, :E_Global_gtco2 => "e_gtco2_club")
-    end
-
-    g_tax = getdataframe(m, :revenue_recycle, :total_tax_revenue)
-    if :value in propertynames(g_tax)
-        rename!(g_tax, :value => "total_tax_revenue")
-    elseif :total_tax_revenue in propertynames(g_tax)
-        rename!(g_tax, :total_tax_revenue => "total_tax_revenue")
-    end
-
-    global_final = innerjoin(g_temp, g_co2, g_tax, on=:time)
-    CSV.write(joinpath(output_directory, "global_output.csv"), global_final)
+    global_df = innerjoin(
+        get_global_var(:temperature,    :T,                  "temp"),
+        get_global_var(:emissions,      :E_Global_gtco2,     "e_gtco2_club"),
+        get_global_var(:revenue_recycle, :total_tax_revenue, "total_tax_revenue"),
+        on = :time
+    )
+    CSV.write(joinpath(output_directory, "global_output.csv"), global_df)
 end
 
 #########################################################################################################################
