@@ -4,7 +4,7 @@
 
 #create your own "path.txt" to find NICE2020
 # path = read("path.txt", String) |> strip  
-cd("/Users/theop/Desktop/NICE2020")  
+cd("/Users/constance/Documents/stage/NICE2020")  
 
 # Activate the project and make sure packages are installed.
 using Pkg
@@ -285,8 +285,6 @@ MimiNICE2020.save_nice2020_output(nice2020_global_cap_share, joinpath(@__DIR__, 
 #run(`powershell -c "[console]::beep(1000, 300)"`)
 include("helper_functions.jl")
 
-
-MimiNICE2020.save_nice2020_reduced_output(nice2020_global_cap_share, joinpath(@__DIR__, "..", "cap_and_share", "output", "global_cap_share_reduced"))
 
 ###########################
 # 6. IMF: IMF proposal - $25/t LIC & LMIC, $50 UMIC, $75 HIC starting from 2025 (2025-2300)
@@ -1067,7 +1065,7 @@ using Statistics, Plots, CSV, DataFrames, Plots.Measures, LaTeXStrings
 
 include("helper_functions.jl")
 
-# both scenarios and the heatmap use the same discount rate and NPV window
+# both scenarios and the heatmap use the same discount rate and NPV window (stopping at 2100 because theoretically, NPV becomes 0 after that)
 const DISCOUNT_RATE = 0.03
 const YEARS_NPV     = 2030:2100
 const OUTPUT_BASE   = joinpath(@__DIR__, "..", "cap_and_share", "output")
@@ -1118,8 +1116,9 @@ switch_global_pc_recycle       = 1
 global_recycle_share           = 1
 switch_footprint               = 1
 
-target_countries = ["USA", "COG", "CHN", "IND", "EU27", "RUS", "NGA"]
+target_countries = ["USA", "COG", "CHN", "IND", "EU27", "RUS", "NGA", "TUR"]
 eu27_countries   = Symbol.(split("AUT BEL BGR HRV CYP CZE DNK EST FIN FRA DEU GRC HUN IRL ITA LVA LTU LUX MLT NLD POL PRT ROU SVK SVN ESP SWE"))
+invisible_countries = ["BRA", "MEX", "DEU", "FRA"] # we compute the values but don't make a plot
 
 function apply_common_params!(m)
     update_param!(m, :switch_custom_transfers,          0)
@@ -1167,7 +1166,7 @@ end
 # ═════════════════════════════════════════════════════════════════════════════
 println("=== Running autarchy scenarios ===")
 
-for country_name in target_countries
+for country_name in [target_countries; invisible_countries]
     is_eu27        = (country_name == "EU27")
     target_symbols = is_eu27 ? eu27_countries : [Symbol(country_name)]
     target_indices = findall(x -> x in target_symbols, dim_keys(base_model, :country))
@@ -1222,7 +1221,7 @@ end
 # ═════════════════════════════════════════════════════════════════════════════
 println("\n=== Running uniform-price scenarios ===")
 
-for country_name in target_countries
+for country_name in [target_countries; invisible_countries]
     println("\n📍 Country: $country_name")
     is_eu27        = (country_name == "EU27")
     target_symbols = is_eu27 ? eu27_countries : [Symbol(country_name)]
@@ -1232,7 +1231,7 @@ for country_name in target_countries
     target_group_pop = [sum(get(pop_lookup, (y, s), 0.0) for s in target_symbols) for y in unique_years]
     pop_share_target = target_group_pop ./ global_pop_total
 
-    for ratio in 0.5:0.4:4.5
+    for ratio in 0:0.5:4.5
         rat_str = replace(string(round(ratio, digits=2)), "." => "p")
         folder  = joinpath(OUTPUT_BASE, country_name, "uniform_ratio_$rat_str")
 
@@ -1296,6 +1295,9 @@ end
 # ((NPV_uniform - NPV_autarchy) / NPV_autarchy) × 100  over YEARS_NPV
 # Positive values mean the uniform scenario is better for country i; negative values mean autarchy is.
 # ═════════════════════════════════════════════════════════════════════════════
+using Plots
+using LaTeXStrings
+using Measures
 
 theme(:vibrant)
 default(
@@ -1365,15 +1367,15 @@ for country in target_countries
     autarchy_dirs = [p[2] for p in autarchy_pairs]
     uniform_dirs  = [p[2] for p in uniform_pairs]
 
-    a_dicts = [read_ede_dict(d) for d in autarchy_dirs]
-    u_dicts = [read_ede_dict(d) for d in uniform_dirs]
+    a_dicts = [read_ede_df(d) for d in autarchy_dirs]
+    u_dicts = [read_ede_df(d) for d in uniform_dirs]
 
     # create an NPV matrix: rows = rho (rights ratio), columns = pi (price factor)
     results = [
         begin
             d_u, d_a = u_dicts[i], a_dicts[j]
             (isnothing(d_u) || isnothing(d_a)) ? NaN :
-                relative_npv(d_u, d_a, YEARS_NPV, DISCOUNT_RATE)
+                relative_npv(d_u, d_a, start_y,end_y, DISCOUNT_RATE)
         end
         for i in eachindex(uniform_dirs), j in eachindex(autarchy_dirs)
     ]
@@ -1384,8 +1386,8 @@ for country in target_countries
         continue
     end
 
-    lim = maximum(abs.(valid))
-    my_cgrad = cgrad([:blue, :white, :red], [0, 0.5, 1])
+    lim_globale = 6.0
+    my_cgrad = cgrad(:RdBu)
 
     p = heatmap(pi_vals, ratio_vals, results;
         xlabel         = L"Price factor $\pi_i$  ($p_i = \pi_i \times p_0^*$)",
@@ -1394,7 +1396,9 @@ for country in target_countries
         colorbar_title = "Discounted cumulative gain (%)",
         titlealign     = :left,
         color          = my_cgrad,
-        clims          = (-lim, lim),
+        clims          = (-lim_globale, lim_globale),
+        xticks = collect(0.0:0.2:2.0),
+        yticks = collect(0.0:0.5:4.5),
         right_margin   = 12mm,
         left_margin    = 8mm,
         bottom_margin  = 15mm,
@@ -1412,8 +1416,8 @@ for country in target_countries
         label     = "Indifference",
     )
 
-    annotate!(p, [(0.5, -0.3,
-        text("Note: p₀* (2030) = $(round(p_star0, digits=2)) USD/tCO₂", 8, :gray30, :center, :rel)
+    annotate!(p, [(1, -3,
+    text("Note: p0* (2030) = $(round(p_star0, digits=2)) USD/tCO2", 8, :gray30, :center, :rel)
     )])
 
     savefig(p, joinpath(country_path, "NPV_Relative_Heatmap_$(country).png"))

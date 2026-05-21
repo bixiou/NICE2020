@@ -374,10 +374,16 @@ function save_nice2020_reduced_output(m::Model, output_directory::String)
     mkpath(output_directory)
 
     # ------ config ------
+    η = try
+        Mimi.get_param(m, :welfare, :η)
+    catch
+        try Mimi.get_shared_param(m, :η) catch; 1.5 end
+    end
+
     eu27_codes = [:AUT, :BEL, :BGR, :CYP, :CZE, :DEU, :DNK, :ESP, :EST, :FIN,
                   :FRA, :GRC, :HRV, :HUN, :IRL, :ITA, :LTU, :LUX, :LVA,
                   :MLT, :NLD, :POL, :PRT, :ROU, :SVK, :SVN, :SWE]
-    key_countries = [:USA, :CHN, :IND, :RUS, :NGA, :COG, :FRA]
+    key_countries = [:USA, :CHN, :IND, :RUS, :NGA, :COG, :FRA, :TUR, :BRA, :MEX, :DEU]
     snapshots     = [2030, 2040, 2050, 2080]
 
     # each indicator is:  name => (component, variable, is_monetary, aggregation_fn)
@@ -410,7 +416,7 @@ function save_nice2020_reduced_output(m::Model, output_directory::String)
 
     df_panel = reduce(
         (acc, kv) -> innerjoin(acc, extract_var(kv[1], kv[2][1], kv[2][2]), on=[:country, :time]),
-        pairs(indicators);
+        Iterators.drop(pairs(indicators), 1);
         init = begin
             first_kv = first(pairs(indicators))
             extract_var(first_kv[1], first_kv[2][1], first_kv[2][2])
@@ -422,8 +428,18 @@ function save_nice2020_reduced_output(m::Model, output_directory::String)
         sub = filter(r -> r.country in codes, df)
         agg = combine(groupby(sub, :time)) do dd
             row = Dict{Symbol, Any}(:time => dd.time[1], :country => Symbol(region_name))
+            pop_vec = dd[!, "population"]
             for (name, (_, _, _, agg_fn)) in indicators
+                if name == "consumption_ede" && sum(pop_vec) > 0
+                    row[Symbol(name)] = Base.invokelatest(
+                        MimiNICE2020.EDE_aggregated,
+                        collect(Float64, dd[!, name]),
+                        collect(Float64, pop_vec),
+                        η
+                    )
+                else
                 row[Symbol(name)] = agg_fn(dd[!, name])
+                end
             end
             return DataFrame(row)
         end
@@ -483,7 +499,7 @@ function save_nice2020_reduced_output(m::Model, output_directory::String)
             vc = :value in propertynames(df) ? :value : Symbol(kv[2][2])
             rename(df, vc => Symbol(kv[1]))
         end, on=[:country, :time, :quantile]),
-        pairs(quant_vars);
+        Iterators.drop(pairs(quant_vars), 1);
         init = begin
             fkv = first(pairs(quant_vars))
             df  = getdataframe(m, fkv[2][1], fkv[2][2])
