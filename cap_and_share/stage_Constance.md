@@ -5,10 +5,10 @@
 1. Pour les principaux pays, tracer la variation d'EDE (par rapport à l'autarcie) en fonction du prix d'autarcie x droits dans le cas uniforme, dans le cas Hotelling, dans différents scénarios de participation
 2. Mettre à jour l'allocation de droits (non-losing = proposed) pour l'UE et la Chine.
 3. Modéliser une transition entre absence de taxe et taxe optimale pour les premières années.
-4. Modéliser la Sustainable Union, Global Justice trajectory, Equal Right
-5. Améliorer l'algo d'allocation; trouver des réformes telles que welfare gains decomposition soit > 0 pour les principaux pays, notamment avec participation partielle
-6. Nettoyer code, documenter changements, vérifier que la version par défaut donne les mêmes résultats que Marie, réduire la taille des données de sortie
-7. Optimiser le prix carbone sans la contrainte qu'il est exponentiel.
+4. Optimiser le prix carbone sans la contrainte qu'il est exponentiel.
+5. Modéliser la Sustainable Union, Global Justice trajectory, Equal Right
+6. Améliorer l'algo d'allocation; trouver des réformes telles que welfare gains decomposition soit > 0 pour les principaux pays, notamment avec participation partielle
+7. Nettoyer code, documenter changements, vérifier que la version par défaut donne les mêmes résultats que Marie, réduire la taille des données de sortie
 8. Étendre les NDCs et les utiliser comme baseline
 9. Proposer procédure de vote dans le traité
 10. Raffiner la présentation de la distribution des revenus, en utilisant les données par percentile du WID. 
@@ -93,7 +93,7 @@ L'idée est de faire démarrer le prix carbone mondial progressivement. Vérifie
 ### Résultat
 
 
-## 4. Modéliser propositions existantes
+## 4. Optimiser la trajectoire de prix
 ### Étapes
 
 ### Problèmes rencontrés / observations
@@ -103,7 +103,7 @@ L'idée est de faire démarrer le prix carbone mondial progressivement. Vérifie
 ### Résultat
 
 
-## 5. Algorithme d'allocation et réformes profitant à chaque pays
+## 5. Modéliser propositions existantes
 ### Étapes
 
 ### Problèmes rencontrés / observations
@@ -113,7 +113,7 @@ L'idée est de faire démarrer le prix carbone mondial progressivement. Vérifie
 ### Résultat
 
 
-## 6. Nettoyer, documenter, vérifier
+## 6. Algorithme d'allocation et réformes profitant à chaque pays
 ### Étapes
 
 ### Problèmes rencontrés / observations
@@ -123,7 +123,7 @@ L'idée est de faire démarrer le prix carbone mondial progressivement. Vérifie
 ### Résultat
 
 
-## 7. Optimiser la trajectoire de prix
+## 7. Nettoyer, documenter, vérifier
 ### Étapes
 
 ### Problèmes rencontrés / observations
