@@ -74,15 +74,17 @@
                 v.country_carbon_tax[t,c] =  p.pbacktime[t] * v.μ[t,c]^(p.θ2 - 1.0)
             
             elseif (p.control_regime==4) # manually added tax for each country x year
-                v.country_carbon_tax[t,c] = p.direct_country_tax[t,c] 
-                v.μ[t,c] = min(max(
-                  (v.country_carbon_tax[t,c] / p.pbacktime[t])^(1/(p.θ2-1)),
-                  0.0), 1.0)    
+                v.country_carbon_tax[t,c] = p.direct_country_tax[t,c]
+                ratio = max(v.country_carbon_tax[t,c], 0.0) / p.pbacktime[t]
+                v.μ[t,c] = min(max(ratio^(1/(p.θ2-1)), 0.0), 1.0)
 
+            # when maximum(rights_mat[t,:]) = 0 (global cap has been fully met from year ~2050 onward), the policy is treated
+            # as inactive and μ=0 for everyone — consistent with a world that has already decarbonized
             elseif (p.control_regime==5) # manually added emissions for each country x year
-                v.μ[t,c] = min(max(
-                  1 - p.rights_mat[t,c] / (p.σ[t,c] * p.YGROSS[t,c]),
-                  0.0), 1.0) * p.club_country[p.policy_scenario,c] * (maximum(p.rights_mat[t,:]) > -1)
+                baseline_e = p.σ[t,c] * p.YGROSS[t,c]
+                global_cap_active = maximum(p.rights_mat[t,:]) > 0.0
+                mu_raw = (baseline_e > 0.0 && global_cap_active) ? 1.0 - p.rights_mat[t,c] / baseline_e : 0.0
+                v.μ[t,c] = min(max(mu_raw, 0.0), 1.0) * p.club_country[p.policy_scenario,c]
                 v.country_carbon_tax[t,c] =  p.pbacktime[t] * v.μ[t,c]^(p.θ2 - 1.0)
 
             end

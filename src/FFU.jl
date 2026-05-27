@@ -1116,9 +1116,13 @@ switch_global_pc_recycle       = 1
 global_recycle_share           = 1
 switch_footprint               = 1
 
-target_countries = ["USA", "COG", "CHN", "IND", "EU27", "RUS", "NGA", "TUR"]
+target_countries = ["USA", "COD", "CHN", "IND", "EU27", "RUS", "NGA", "TUR"]
 eu27_countries   = Symbol.(split("AUT BEL BGR HRV CYP CZE DNK EST FIN FRA DEU GRC HUN IRL ITA LVA LTU LUX MLT NLD POL PRT ROU SVK SVN ESP SWE"))
 invisible_countries = ["BRA", "MEX", "DEU", "FRA"] # we compute the values but don't make a plot
+
+# creating appropriate scales for each scenario
+pi_vals    = [0.0, 0.05, 0.1, 0.2, 0.5, 1.0, 2.0, 5.0, 10.0, 20.0] 
+ratio_vals = [0.0, 0.05, 0.1, 0.2, 0.5, 1.0, 2.0, 5.0, 10.0, 20.0]
 
 function apply_common_params!(m)
     update_param!(m, :switch_custom_transfers,          0)
@@ -1164,7 +1168,9 @@ end
 # identity  p* = ω_i p_i + (1 − ω_i) p_{-i}, where ω_i is country i's
 # share of global emissions
 # ═════════════════════════════════════════════════════════════════════════════
-println("=== Running autarchy scenarios ===")
+
+# i'm creating a parallel grid matrix to track where the 0 bound for carbon tax is actually used
+is_bounded_dict = Dict{String, Matrix{Bool}}()
 
 for country_name in [target_countries; invisible_countries]
     is_eu27        = (country_name == "EU27")
@@ -1178,20 +1184,31 @@ for country_name in [target_countries; invisible_countries]
         for y in unique_years
     ]
 
-    for pi_i in 0.0:0.2:2.0
-        pi_str = replace(string(round(pi_i, digits=2)), "." => "p")
+    is_bounded_matrix = zeros(Bool, length(ratio_vals), length(pi_vals))
+
+    for (j, pi_i) in enumerate(pi_vals)        pi_str = replace(string(round(pi_i, digits=2)), "." => "p")
         folder = joinpath(OUTPUT_BASE, country_name, "autarchy_$pi_str")
 
-        # uncomment this to skip runs that already produced output:
-        # isdir(folder) && isfile(joinpath(folder, "consumption_EDE.csv")) && continue
-
-        println("   🚀 Autarchy: $country_name | π=$pi_i")
+        println("   Autarchy: $country_name | π=$pi_i")
 
         # p_{-i} such that the global price identity holds at every t
         denom         = 1.0 .- omega_i
-        p_minus_i     = ifelse.(denom .> 1e-10,
+        p_minus_i_raw     = ifelse.(denom .> 1e-10,
                             p_star_path .* (1.0 .- omega_i .* pi_i) ./ denom,
-                            0.0)
+                            0.0) # raw because it might want to assign a negative value to the rest of the world
+        
+        # track if the raw math wanted a negative value
+        is_impossible = any(p_minus_i_raw .< 0.0)
+        
+        for i in eachindex(ratio_vals)
+            is_bounded_matrix[i, j] = is_impossible
+        end
+
+        # force the tax to a minimum of 0 so the model can actually run successfully
+        p_minus_i = max.(0.0, p_minus_i_raw)
+
+        # uncomment this to skip runs that already produced output:
+        isdir(folder) && isfile(joinpath(folder, "consumption_EDE.csv")) && continue
 
         # build the full (T × N) tax matrix: π_i × p* for country i, p_{-i} elsewhere
         tax_mat = [c in target_indices ? pi_i * p_star_path[t] : p_minus_i[t]
@@ -1202,12 +1219,18 @@ for country_name in [target_countries; invisible_countries]
         update_param!(m, :abatement, :control_regime,      4)
         update_param!(m, :abatement, :direct_country_tax,  tax_mat)
 
-        run(m)
-        save_nice2020_reduced_output(m, folder)
-        save_country_series!(folder, country_name)
+        try
+            @time run(m)
+            save_nice2020_reduced_output(m, folder)
+            save_country_series!(folder, country_name)
+        catch e
+            println("The model crashed for $country_name for π=$pi_i")
+        end
 
         m = nothing; GC.gc()
     end
+
+    is_bounded_dict[country_name] = is_bounded_matrix
 end
 
 
@@ -1219,10 +1242,8 @@ end
 # share, then redistribute the remaining rights to other countries in
 # proportion to their baseline emissions.
 # ═════════════════════════════════════════════════════════════════════════════
-println("\n=== Running uniform-price scenarios ===")
 
 for country_name in [target_countries; invisible_countries]
-    println("\n📍 Country: $country_name")
     is_eu27        = (country_name == "EU27")
     target_symbols = is_eu27 ? eu27_countries : [Symbol(country_name)]
     target_indices = findall(x -> x in target_symbols, dim_keys(base_model, :country))
@@ -1231,14 +1252,14 @@ for country_name in [target_countries; invisible_countries]
     target_group_pop = [sum(get(pop_lookup, (y, s), 0.0) for s in target_symbols) for y in unique_years]
     pop_share_target = target_group_pop ./ global_pop_total
 
-    for ratio in 0:0.5:4.5
+    for ratio in ratio_vals
         rat_str = replace(string(round(ratio, digits=2)), "." => "p")
         folder  = joinpath(OUTPUT_BASE, country_name, "uniform_ratio_$rat_str")
 
         # uncomment this to skip already-completed runs:
         # isdir(folder) && isfile(joinpath(folder, "consumption_EDE.csv")) && continue
 
-        println("   🚀 Uniform: $country_name | ρ=$ratio")
+        println("   Uniform: $country_name | ρ=$ratio")
 
         # country i's total rights = ρ × pop_share × global_cap
         target_rights_total = (ratio .* pop_share_target) .* global_rights
@@ -1295,19 +1316,18 @@ end
 # ((NPV_uniform - NPV_autarchy) / NPV_autarchy) × 100  over YEARS_NPV
 # Positive values mean the uniform scenario is better for country i; negative values mean autarchy is.
 # ═════════════════════════════════════════════════════════════════════════════
-using Plots
-using LaTeXStrings
-using Measures
 
 theme(:vibrant)
 default(
-    fontfamily   = "Computer Modern",
     titlefontsize = 12,
     guidefontsize = 10,
     tickfontsize  = 8,
     legendfontsize = 9,
     dpi           = 300
 )
+
+const pi_plot_vals    = [0.05, 0.1, 0.2, 0.5, 1.0, 2.0, 5.0, 10.0]
+const ratio_plot_vals = [0.05, 0.1, 0.2, 0.5, 1.0, 2.0, 5.0, 10.0, 20.0]
 
 # reference price level printed as a footnote on every heatmap
 function read_p_star0()
@@ -1355,20 +1375,32 @@ p_star0 = read_p_star0()
 start_y, end_y = first(YEARS_NPV), last(YEARS_NPV)
 
 for country in target_countries
-    println("\n📊 Heatmap: $country")
+    println("\n Heatmap: $country")
     country_path = joinpath(OUTPUT_BASE, country)
 
     # we collect and sort scenario directories by their pi/ratio value
     autarchy_pairs = sort([(parse_folder_value(d, "autarchy_"),     d) for d in find_output_dirs(country_path, "autarchy_")])
     uniform_pairs  = sort([(parse_folder_value(d, "uniform_ratio_"), d) for d in find_output_dirs(country_path, "uniform_ratio_")])
 
-    pi_vals      = [p[1] for p in autarchy_pairs]
-    ratio_vals   = [p[1] for p in uniform_pairs]
-    autarchy_dirs = [p[2] for p in autarchy_pairs]
-    uniform_dirs  = [p[2] for p in uniform_pairs]
+    # these contain the exact manual log values used; drop zero entries (log scale can't handle 0)
+    pi_vals      = [p[1] for p in autarchy_pairs  if p[1] > 0.0]
+    ratio_vals   = [p[1] for p in uniform_pairs   if p[1] > 0.0]
+    autarchy_dirs = [p[2] for p in autarchy_pairs if p[1] > 0.0]
+    uniform_dirs  = [p[2] for p in uniform_pairs  if p[1] > 0.0]
 
     a_dicts = [read_ede_df(d) for d in autarchy_dirs]
     u_dicts = [read_ede_df(d) for d in uniform_dirs]
+
+    # recalculate omega_i to flag the impossible rest-of-world carbon taxes
+    is_eu27        = (country == "EU27")
+    target_symbols = is_eu27 ? eu27_countries : [Symbol(country)]
+    
+    omega_i = [
+        sum(get(emissions_lookup, (y, s), 0.0) for s in target_symbols) /
+        sum(get(emissions_lookup, (y, s), 0.0) for s in dim_keys(base_model, :country))
+        for y in unique_years
+    ]
+    denom = 1.0 .- omega_i
 
     # create an NPV matrix: rows = rho (rights ratio), columns = pi (price factor)
     results = [
@@ -1390,23 +1422,63 @@ for country in target_countries
     my_cgrad = cgrad(:RdBu)
 
     p = heatmap(pi_vals, ratio_vals, results;
-        xlabel         = L"Price factor $\pi_i$  ($p_i = \pi_i \times p_0^*$)",
-        ylabel         = L"Rights ratio $\rho_i$",
-        title          = "$country: Cumulative EDE gain ($(first(YEARS_NPV))–$(last(YEARS_NPV)))\nUniform price vs Autarchy",
+        xlabel         = "\n" * L"Autarky: Price factor $\pi_i$  ($p_i = \pi_i \cdot p^*$)" * "\n\n Note: p* (2030) = $(round(p_star0, digits=2)) USD/tCO2",
+        ylabel         = L"Uniform price: Rights ratio $\rho_i$ ($r_i=\rho_i\cdot E$)",
         colorbar_title = "Discounted cumulative gain (%)",
-        titlealign     = :left,
+        titlealign     = :center,
         color          = my_cgrad,
         clims          = (-lim_globale, lim_globale),
-        xticks = collect(0.0:0.2:2.0),
-        yticks = collect(0.0:0.5:4.5),
+        xscale         = :log10,
+        yscale         = :log10,
+        xticks         = (pi_vals, string.(pi_vals)),
+        yticks         = (ratio_vals, string.(ratio_vals)),
         right_margin   = 12mm,
         left_margin    = 8mm,
-        bottom_margin  = 15mm,
+        bottom_margin  = 30mm,
         top_margin     = 8mm,
         size           = (900, 600),
         frame          = :box,
-        grid           = false,
+        grid           = true,
     )
+
+    # out-of-bounds flags (when carbon tax/rights are supposed to be negative in the rest of the world to satisfy the global price identity)
+    hatch_x = Float64[]
+    hatch_y = Float64[]
+
+    pop_share_2030 = sum(get(pop_lookup, (2030, s), 0.0) for s in target_symbols) / 
+                     sum(get(pop_lookup, (2030, s), 0.0) for s in dim_keys(base_model, :country))
+
+    for j in eachindex(pi_vals)
+        pi_i = pi_vals[j]
+        p_minus_i_raw = ifelse.(denom .> 1e-10, p_star_path .* (1.0 .- omega_i .* pi_i) ./ denom, 0.0)
+        impossible_tax = any(p_minus_i_raw .< 0.0)
+
+        for i in eachindex(ratio_vals)
+            rho_i = ratio_vals[i]
+            impossible_rights = (rho_i * pop_share_2030) >= 1.0
+            if impossible_tax || impossible_rights
+                push!(hatch_x, pi_vals[j])
+                push!(hatch_y, ratio_vals[i])
+            end
+        end
+    end
+
+    if !isempty(hatch_x)
+        scatter!(p, hatch_x, hatch_y;
+            markershape        = :x,
+            markersize         = 5,
+            markercolor        = :grey,
+            markeralpha        = 0.6,
+            markerstrokecolor  = :black,
+            markerstrokewidth  = 1,
+            label              = "Infeasible policy (RoW price or rights < 0)",
+        )
+    else
+        scatter!(p, Float64[], Float64[];
+            markershape        = :x,
+            label              = "",
+        )
+    end
 
     contour!(p, pi_vals, ratio_vals, results;
         levels    = [0.0],
@@ -1415,10 +1487,6 @@ for country in target_countries
         linestyle = :dash,
         label     = "Indifference",
     )
-
-    annotate!(p, [(1, -3,
-    text("Note: p0* (2030) = $(round(p_star0, digits=2)) USD/tCO2", 8, :gray30, :center, :rel)
-    )])
 
     savefig(p, joinpath(country_path, "NPV_Relative_Heatmap_$(country).png"))
 end

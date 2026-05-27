@@ -383,7 +383,7 @@ function save_nice2020_reduced_output(m::Model, output_directory::String)
     eu27_codes = [:AUT, :BEL, :BGR, :CYP, :CZE, :DEU, :DNK, :ESP, :EST, :FIN,
                   :FRA, :GRC, :HRV, :HUN, :IRL, :ITA, :LTU, :LUX, :LVA,
                   :MLT, :NLD, :POL, :PRT, :ROU, :SVK, :SVN, :SWE]
-    key_countries = [:USA, :CHN, :IND, :RUS, :NGA, :COG, :FRA, :TUR, :BRA, :MEX, :DEU]
+    key_countries = [:USA, :CHN, :IND, :RUS, :NGA, :COD, :FRA, :TUR, :BRA, :MEX, :DEU]
     snapshots     = [2030, 2040, 2050, 2080]
 
     # each indicator is:  name => (component, variable, is_monetary, aggregation_fn)

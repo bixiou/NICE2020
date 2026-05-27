@@ -49,7 +49,8 @@ using Pkg
 Pkg.activate(joinpath(@__DIR__, ".."))
 Pkg.instantiate()
 
-using CSV, DataFrames
+using CSV, DataFrames, JSON, CSVFiles
+
 
 # ── French name → ISO3 for EU-27 ──────────────────────────────────────────────
 const FR_TO_ISO3 = Dict(
@@ -294,3 +295,4 @@ sort!(df_combined, [:country, :time])
 out_path = joinpath(@__DIR__, "data", "input", "ndc_trajectories.csv")
 CSV.write(out_path, df_combined)
 println("\nWritten: $out_path  ($(nrow(df_combined)) rows, $(length(unique(df_combined.country))) countries)")
+
