@@ -30,8 +30,16 @@
 
         # Define an equation for YGROSS
         for c in d.country
-            v.YGROSS[t,c] = p.tfp[t,c] * v.K[t,c]^p.share * p.l[t,c]^(1-p.share)
+        # modified the function to avoid a negative capital value
+            K_safe = max(v.K[t,c], 0.0)
+    
+            v.YGROSS[t,c] = p.tfp[t,c] * (K_safe^p.share) * (p.l[t,c]^(1.0 - p.share))
         end
+
+        # original function
+        # for c in d.country
+            # v.YGROSS[t,c] = p.tfp[t,c] * v.K[t,c]^p.share * p.l[t,c]^(1-p.share)
+        # end
 
 	# Define an equation for global YGROSS
 	# Note: YGROSS in million (1e6) 2017 USD -> divide by 1e6 to get trillion (1e12) dollars

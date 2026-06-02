@@ -46,10 +46,21 @@ end
 Calculate CRRA utility of consumption given inequality aversion parameter η.
 """
 function utility(consumption::Real, η::Real)
-    if η == 1
-        utility = log(consumption)
+    if consumption > 1e-6
+        if η == 1
+            utility = log(consumption)
+        else
+            utility = consumption^(1 - η) / (1 - η)
+        end
     else
-        utility = consumption^(1 - η) / (1 - η)
+        # if consumption is really too low because of massive transfers (see autarky scenario with negative tax rates) 
+        if η == 1
+            utility = log(1e-6) + (consumption - 1e-6) / 1e-6
+        else
+            # Valeur plancher très basse pour signaler l'impossibilité économique
+            # tout en évitant les puissances sur nombre négatif
+            utility = (1e-6)^(1 - η) / (1 - η) - 1e10 * abs(consumption)
+        end
     end
 
     return utility

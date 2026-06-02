@@ -1120,9 +1120,10 @@ target_countries = ["USA", "COD", "CHN", "IND", "EU27", "RUS", "NGA", "TUR"]
 eu27_countries   = Symbol.(split("AUT BEL BGR HRV CYP CZE DNK EST FIN FRA DEU GRC HUN IRL ITA LVA LTU LUX MLT NLD POL PRT ROU SVK SVN ESP SWE"))
 invisible_countries = ["BRA", "MEX", "DEU", "FRA"] # we compute the values but don't make a plot
 
-# creating appropriate scales for each scenario
-pi_vals    = [0.0, 0.05, 0.1, 0.2, 0.5, 1.0, 2.0, 5.0, 10.0, 20.0] 
-ratio_vals = [0.0, 0.05, 0.1, 0.2, 0.5, 1.0, 2.0, 5.0, 10.0, 20.0]
+# creating scales
+pi_vals    = [0.05, 0.08, 0.1, 0.15, 0.2, 0.3, 0.5, 0.8, 1.0, 1.5, 2.0, 3.0, 5.0, 10.0, 20.0]
+ratio_vals = [0.05, 0.08, 0.1, 0.15, 0.2, 0.3, 0.5, 0.8, 1.0, 1.5, 2.0, 3.0, 5.0, 10.0, 20.0]
+
 
 function apply_common_params!(m)
     update_param!(m, :switch_custom_transfers,          0)
@@ -1155,13 +1156,27 @@ end
 function save_country_series!(folder, country_name)
     df_selected = CSV.read(joinpath(folder, "selected_country_output.csv"), DataFrame)
     CSV.write(joinpath(folder, "consumption_EDE.csv"),    wide_to_long(df_selected, country_name, "consumption_ede"))
-    CSV.write(joinpath(folder, "emissions.csv"),           wide_to_long(df_selected, country_name, "co2_emissions"))
+    
+    # fixing a bug (accumulated residual values amount to a very small number in 2093) so values smaller than 1e-10 are set to 0
+    df_ems = wide_to_long(df_selected, country_name, "co2_emissions")
+    df_ems[!, :co2_emissions] = map(x -> abs(x) < 1e-10 ? 0.0 : x, df_ems[!, :co2_emissions])
+    CSV.write(joinpath(folder, "emissions.csv"), df_ems)
+    
     CSV.write(joinpath(folder, "country_carbon_tax.csv"), wide_to_long(df_selected, country_name, "country_carbon_tax"))
 end
 
+# Clean up existing emissions.csv files by applying epsilon threshold on-the-fly
+function cleanup_emissions_csv!(path::String; epsilon=1e-10)
+    !isfile(path) && return
+    df = CSV.read(path, DataFrame)
+    if "co2_emissions" in names(df)
+        df[!, :co2_emissions] = map(x -> abs(x) < epsilon ? 0.0 : x, df[!, :co2_emissions])
+        CSV.write(path, df)
+    end
+end
 
 # ═════════════════════════════════════════════════════════════════════════════
-# SCENARIO 1 — AUTARCHY
+# SCENARIO 1 — AUTARKY
 #
 # For each country i and each price factor π_i, we set that country's carbon
 # tax to π_i × p*, then back out the rest-of-world price p_{-i} from the
@@ -1185,6 +1200,7 @@ for country_name in [target_countries; invisible_countries]
     ]
 
     is_bounded_matrix = zeros(Bool, length(ratio_vals), length(pi_vals))
+    is_crashed_matrix = zeros(Bool, length(ratio_vals), length(pi_vals))
 
     for (j, pi_i) in enumerate(pi_vals)        pi_str = replace(string(round(pi_i, digits=2)), "." => "p")
         folder = joinpath(OUTPUT_BASE, country_name, "autarchy_$pi_str")
@@ -1193,22 +1209,19 @@ for country_name in [target_countries; invisible_countries]
 
         # p_{-i} such that the global price identity holds at every t
         denom         = 1.0 .- omega_i
-        p_minus_i_raw     = ifelse.(denom .> 1e-10,
+        p_minus_i     = ifelse.(denom .> 1e-10,
                             p_star_path .* (1.0 .- omega_i .* pi_i) ./ denom,
                             0.0) # raw because it might want to assign a negative value to the rest of the world
         
-        # track if the raw math wanted a negative value
-        is_impossible = any(p_minus_i_raw .< 0.0)
+        # track if the RoW tax is negative
+        is_negative_tax = any(p_minus_i .< 0.0)
         
         for i in eachindex(ratio_vals)
-            is_bounded_matrix[i, j] = is_impossible
+            is_bounded_matrix[i, j] = is_negative_tax
         end
 
-        # force the tax to a minimum of 0 so the model can actually run successfully
-        p_minus_i = max.(0.0, p_minus_i_raw)
-
         # uncomment this to skip runs that already produced output:
-        isdir(folder) && isfile(joinpath(folder, "consumption_EDE.csv")) && continue
+        # isdir(folder) && isfile(joinpath(folder, "consumption_EDE.csv")) && continue
 
         # build the full (T × N) tax matrix: π_i × p* for country i, p_{-i} elsewhere
         tax_mat = [c in target_indices ? pi_i * p_star_path[t] : p_minus_i[t]
@@ -1216,6 +1229,7 @@ for country_name in [target_countries; invisible_countries]
 
         m = MimiNICE2020.create_nice2020()
         apply_common_params!(m)
+        update_param!(m, :switch_global_recycling, 0)
         update_param!(m, :abatement, :control_regime,      4)
         update_param!(m, :abatement, :direct_country_tax,  tax_mat)
 
@@ -1223,11 +1237,21 @@ for country_name in [target_countries; invisible_countries]
             @time run(m)
             save_nice2020_reduced_output(m, folder)
             save_country_series!(folder, country_name)
-        catch e
-            println("The model crashed for $country_name for π=$pi_i")
+        catch e # catch other kind of errors
+            println("\n" * "#"^50)
+            println("Nouveau crash identifié pour $country_name à π = $pi_i :")
+            println("Type d'erreur : ", typeof(e))
+            
+            # Affiche la stacktrace complète dans le terminal
+            Base.showerror(stdout, e, catch_backtrace())
+            println("\n" * "#"^50 * "\n")
+            
+            # Arrêt immédiat pour figer l'écran et lire l'erreur
+            error("Arrêt débuggage.")
         end
 
-        m = nothing; GC.gc()
+        m = nothing
+
     end
 
     is_bounded_dict[country_name] = is_bounded_matrix
@@ -1271,6 +1295,8 @@ for country_name in [target_countries; invisible_countries]
             target_group_pop[t] == 0 && continue
             y = unique_years[t]
 
+            y > 2100 && break
+
             # distribute country i's total rights among its members by population
             for idx in target_indices
                 s = dim_keys(base_model, :country)[idx]
@@ -1279,7 +1305,7 @@ for country_name in [target_countries; invisible_countries]
             end
 
             # give remaining rights to all other countries, weighted by their baseline emissions
-            rem_rights = global_rights[t] - target_rights_total[t]
+            rem_rights = max(0.0, global_rights[t] - target_rights_total[t])
             other_ems  = sum(get(emissions_lookup, (y, s), 0.0)
                              for s in dim_keys(base_model, :country)
                              if !(s in target_symbols))
@@ -1296,15 +1322,18 @@ for country_name in [target_countries; invisible_countries]
 
         m = MimiNICE2020.create_nice2020()
         apply_common_params!(m)
-        update_param!(m, :abatement, :control_regime, 5)
-        update_param!(m, :abatement, :rights_mat,     rights_mat)
+        update_param!(m, :abatement, :control_regime,      1)
+        update_param!(m, :abatement, :global_carbon_tax,   p_star_path)
+        update_param!(m, :switch_custom_transfers,         1)
+        update_param!(m, :revenue_recycle, :rights_proposed, rights_mat)
 
         @time run(m)
         mkpath(folder)
         save_nice2020_reduced_output(m, folder)
         save_country_series!(folder, country_name)
 
-        m = nothing; GC.gc()
+        m = nothing
+
     end
 end
 
@@ -1325,9 +1354,6 @@ default(
     legendfontsize = 9,
     dpi           = 300
 )
-
-const pi_plot_vals    = [0.05, 0.1, 0.2, 0.5, 1.0, 2.0, 5.0, 10.0]
-const ratio_plot_vals = [0.05, 0.1, 0.2, 0.5, 1.0, 2.0, 5.0, 10.0, 20.0]
 
 # reference price level printed as a footnote on every heatmap
 function read_p_star0()
@@ -1352,7 +1378,7 @@ function parse_folder_value(dir_name, sep)
 end
 
 # load consumption_EDE.csv from a scenario folder as a plain DataFrame
-# we normalise the value column to :consumption_ede so the previously defined net_present_value function can work
+# we normalise the value column to :consumption_ede so the relative_npv function can work
 function read_ede_df(dir)
     path = joinpath(dir, "consumption_EDE.csv")
     !isfile(path) && return nothing
@@ -1369,6 +1395,22 @@ function relative_npv(df_u, df_a, start_y, end_y, rate)
     npv_a = net_present_value(df_a, start_y, end_y, rate, "consumption_ede")
     npv_a == 0 && return NaN
     return (npv_u - npv_a) / npv_a * 100
+end
+
+
+# Clean up numerical artifacts in all existing emissions.csv files before heatmap generation
+for country in target_countries
+    country_path = joinpath(OUTPUT_BASE, country)
+    
+    # Autarchy scenarios
+    for d in find_output_dirs(country_path, "autarchy_")
+        cleanup_emissions_csv!(joinpath(d, "emissions.csv"))
+    end
+    
+    # Uniform price scenarios
+    for d in find_output_dirs(country_path, "uniform_ratio_")
+        cleanup_emissions_csv!(joinpath(d, "emissions.csv"))
+    end
 end
 
 p_star0 = read_p_star0()
@@ -1394,13 +1436,24 @@ for country in target_countries
     # recalculate omega_i to flag the impossible rest-of-world carbon taxes
     is_eu27        = (country == "EU27")
     target_symbols = is_eu27 ? eu27_countries : [Symbol(country)]
-    
+
+    # restrict the years used to detect negative RoW prices/rights to <= 2100
+    years_for_hatch = filter(y -> y <= 2100, unique_years)
+
     omega_i = [
         sum(get(emissions_lookup, (y, s), 0.0) for s in target_symbols) /
         sum(get(emissions_lookup, (y, s), 0.0) for s in dim_keys(base_model, :country))
-        for y in unique_years
+        for y in years_for_hatch
     ]
     denom = 1.0 .- omega_i
+
+    # population share of target country (needed to check when RoW rights go negative)
+    target_group_pop_hm = [sum(get(pop_lookup, (y, s), 0.0) for s in target_symbols) for y in years_for_hatch]
+    
+    # Get the indices for the years <= 2100 to slice the 281-element array down to 81 elements
+    hatch_indices = findall(y -> y <= 2100, unique_years)
+    
+    pop_share_target_hm = target_group_pop_hm ./ global_pop_total[hatch_indices]
 
     # create an NPV matrix: rows = rho (rights ratio), columns = pi (price factor)
     results = [
@@ -1421,17 +1474,18 @@ for country in target_countries
     lim_globale = 6.0
     my_cgrad = cgrad(:RdBu)
 
-    p = heatmap(pi_vals, ratio_vals, results;
+    n_pi    = length(pi_vals)
+    n_ratio = length(ratio_vals)
+
+    p = heatmap(1:n_pi, 1:n_ratio, results;
         xlabel         = "\n" * L"Autarky: Price factor $\pi_i$  ($p_i = \pi_i \cdot p^*$)" * "\n\n Note: p* (2030) = $(round(p_star0, digits=2)) USD/tCO2",
         ylabel         = L"Uniform price: Rights ratio $\rho_i$ ($r_i=\rho_i\cdot E$)",
         colorbar_title = "Discounted cumulative gain (%)",
         titlealign     = :center,
         color          = my_cgrad,
         clims          = (-lim_globale, lim_globale),
-        xscale         = :log10,
-        yscale         = :log10,
-        xticks         = (pi_vals, string.(pi_vals)),
-        yticks         = (ratio_vals, string.(ratio_vals)),
+        xticks         = (1:n_pi,    string.(pi_vals)),
+        yticks         = (1:n_ratio, string.(ratio_vals)),
         right_margin   = 12mm,
         left_margin    = 8mm,
         bottom_margin  = 30mm,
@@ -1439,26 +1493,29 @@ for country in target_countries
         size           = (900, 600),
         frame          = :box,
         grid           = true,
+        widen          = false,
+        tickdir        = :out,
     )
 
     # out-of-bounds flags (when carbon tax/rights are supposed to be negative in the rest of the world to satisfy the global price identity)
     hatch_x = Float64[]
     hatch_y = Float64[]
 
-    pop_share_2030 = sum(get(pop_lookup, (2030, s), 0.0) for s in target_symbols) / 
-                     sum(get(pop_lookup, (2030, s), 0.0) for s in dim_keys(base_model, :country))
-
     for j in eachindex(pi_vals)
         pi_i = pi_vals[j]
-        p_minus_i_raw = ifelse.(denom .> 1e-10, p_star_path .* (1.0 .- omega_i .* pi_i) ./ denom, 0.0)
-        impossible_tax = any(p_minus_i_raw .< 0.0)
+
+        # RoW tax becomes negative if (pi_i * emissions_share) > 1 in ANY year
+        row_tax_negative = any((omega_i .* pi_i) .> 1.0)
 
         for i in eachindex(ratio_vals)
             rho_i = ratio_vals[i]
-            impossible_rights = (rho_i * pop_share_2030) >= 1.0
-            if impossible_tax || impossible_rights
-                push!(hatch_x, pi_vals[j])
-                push!(hatch_y, ratio_vals[i])
+
+            # RoW rights become negative if (rho_i * pop_share) > 1 in ANY year
+            row_rights_negative = any((pop_share_target_hm .* rho_i) .> 1.0)
+
+            if row_tax_negative || row_rights_negative
+                push!(hatch_x, float(j))
+                push!(hatch_y, float(i))
             end
         end
     end
@@ -1471,7 +1528,7 @@ for country in target_countries
             markeralpha        = 0.6,
             markerstrokecolor  = :black,
             markerstrokewidth  = 1,
-            label              = "Infeasible policy (RoW price or rights < 0)",
+            label              = "RoW price or rights < 0",
         )
     else
         scatter!(p, Float64[], Float64[];
@@ -1480,13 +1537,45 @@ for country in target_countries
         )
     end
 
-    contour!(p, pi_vals, ratio_vals, results;
+    contour!(p, 1:n_pi, 1:n_ratio, results;
         levels    = [0.0],
         color     = :black,
-        lw        = 1.5,
-        linestyle = :dash,
+        lw        = 1.3,
+        linestyle = :solid,
         label     = "Indifference",
+        markershape = :none,
     )
+
+    # rho_nl_idx is the fractional row index at which the zero contour crosses pi=1.
+    j_pi1 = findfirst(==(1.0), pi_vals)
+    if !isnothing(j_pi1)
+        col = results[:, j_pi1]
+        rho_nl_idx = NaN
+        for i in 1:(length(col) - 1)
+            if !isnan(col[i]) && !isnan(col[i+1]) && col[i] * col[i+1] <= 0
+                t = col[i] / (col[i] - col[i+1])
+                rho_nl_idx = i + t
+                break
+            end
+        end
+        if !isnan(rho_nl_idx)
+            min_x = xlims(p)[1]
+            min_y = ylims(p)[1]
+            plot!(p, [float(j_pi1), float(j_pi1)], [min_y, rho_nl_idx];
+                color=:grey, lw=1.3, linestyle=:dot, label="")
+            plot!(p, [min_x, float(j_pi1)], [rho_nl_idx, rho_nl_idx];
+                color=:grey, lw=1.3, linestyle=:dot, label="")
+            scatter!(p, [float(j_pi1)], [rho_nl_idx];
+                markershape        = :cross,
+                markersize         = 5,
+                markercolor        = :black,
+                markeralpha        = 0.6,
+                markerstrokecolor  = :black,
+                markerstrokewidth  = 1,
+                label              = "",
+            )
+        end
+    end
 
     savefig(p, joinpath(country_path, "NPV_Relative_Heatmap_$(country).png"))
 end
