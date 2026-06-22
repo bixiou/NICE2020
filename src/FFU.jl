@@ -1095,8 +1095,11 @@ pop_df       = getdataframe(nice2020_global_cap_share, :grosseconomy => :l)
 emissions_df = getdataframe(nice2020_global_cap_share, :emissions => :E_gtco2)
 unique_years = sort(unique(emissions_df.time))
 
+# Both autarky and uniform scenarios use scenario 5 (global_cap_share) global emissions cap
+global_rights_bau = [sum(filter(r -> r.time == y, emissions_df).E_gtco2) for y in unique_years]
+
 # sanity check: the model time steps and these years should be in sync
-@assert length(unique_years) == nb_steps "unique_years length ($(length(unique_years))) != nb_steps ($nb_steps)"
+@assert length(unique_years) == nb_steps "unique_years length ($(length(unique_years))) != nb_steps"
 
 pop_lookup       = Dict((row.time, row.country) => row.l        for row in eachrow(pop_df))
 emissions_lookup = Dict((row.time, row.country) => row.E_gtco2  for row in eachrow(emissions_df))
@@ -1121,9 +1124,8 @@ eu27_countries   = Symbol.(split("AUT BEL BGR HRV CYP CZE DNK EST FIN FRA DEU GR
 invisible_countries = ["BRA", "MEX", "DEU", "FRA"] # we compute the values but don't make a plot
 
 # creating scales
-pi_vals    = [0.05, 0.08, 0.1, 0.15, 0.2, 0.3, 0.5, 0.8, 1.0, 1.5, 2.0, 3.0, 5.0, 10.0, 20.0]
-ratio_vals = [0.05, 0.08, 0.1, 0.15, 0.2, 0.3, 0.5, 0.8, 1.0, 1.5, 2.0, 3.0, 5.0, 10.0, 20.0]
-
+pi_vals    = [0.05, 0.1, 0.2, 0.5, 1.0, 2.0, 5.0]
+ratio_vals = [0.02, 0.05, 0.1, 0.2, 0.5, 1.0, 2.0, 5.0, 10.0, 20.0]
 
 function apply_common_params!(m)
     update_param!(m, :switch_custom_transfers,          0)
@@ -1165,26 +1167,23 @@ function save_country_series!(folder, country_name)
     CSV.write(joinpath(folder, "country_carbon_tax.csv"), wide_to_long(df_selected, country_name, "country_carbon_tax"))
 end
 
-# Clean up existing emissions.csv files by applying epsilon threshold on-the-fly
-function cleanup_emissions_csv!(path::String; epsilon=1e-10)
-    !isfile(path) && return
-    df = CSV.read(path, DataFrame)
-    if "co2_emissions" in names(df)
-        df[!, :co2_emissions] = map(x -> abs(x) < epsilon ? 0.0 : x, df[!, :co2_emissions])
-        CSV.write(path, df)
-    end
-end
-
 # ═════════════════════════════════════════════════════════════════════════════
 # SCENARIO 1 — AUTARKY
 #
 # For each country i and each price factor π_i, we set that country's carbon
 # tax to π_i × p*, then back out the rest-of-world price p_{-i} from the
-# identity  p* = ω_i p_i + (1 − ω_i) p_{-i}, where ω_i is country i's
-# share of global emissions
+# emissions identity  E_i(π_i·p*) + E_{-i}(p_{-i}) = global_rights,
+# which gives the closed form:
+#   p_{-i} = p* × [(1 − π_i^α × ω_i) / (1 − ω_i)]^(θ2−1),  α = 1/(θ2−1)
+# This replaces the old price-average identity p* = ω_i p_i + (1−ω_i) p_{-i},
+# which did NOT fix global emissions (the MAC function is nonlinear).
 # ═════════════════════════════════════════════════════════════════════════════
 
-# i'm creating a parallel grid matrix to track where the 0 bound for carbon tax is actually used
+# abatement-cost exponent from nice2020_module.jl (DICE-2023 default)
+#= θ2_abat    = try Float64(Mimi.get_param(base_model, :abatement, :θ2)) catch; 2.6 end
+α_abat     = 1.0 / (θ2_abat - 1.0)
+pback_path = try collect(Float64, Mimi.get_param(base_model, :abatement, :pbacktime)) catch; nothing end
+
 is_bounded_dict = Dict{String, Matrix{Bool}}()
 
 for country_name in [target_countries; invisible_countries]
@@ -1194,32 +1193,59 @@ for country_name in [target_countries; invisible_countries]
 
     # country i's share of global emissions used to infer p_{-i} for any π_i
     omega_i = [
-        sum(get(emissions_lookup, (y, s), 0.0) for s in target_symbols) /
-        sum(get(emissions_lookup, (y, s), 0.0) for s in dim_keys(base_model, :country))
+        sum(get(emissions_lookup_bau, (y, s), 0.0) for s in target_symbols) /
+        sum(get(emissions_lookup_bau, (y, s), 0.0) for s in dim_keys(base_model, :country))
         for y in unique_years
     ]
 
     is_bounded_matrix = zeros(Bool, length(ratio_vals), length(pi_vals))
     is_crashed_matrix = zeros(Bool, length(ratio_vals), length(pi_vals))
 
-    for (j, pi_i) in enumerate(pi_vals)        pi_str = replace(string(round(pi_i, digits=2)), "." => "p")
+    for (j, pi_i) in enumerate(pi_vals)
+        pi_str = replace(string(round(pi_i, digits=2)), "." => "p")
         folder = joinpath(OUTPUT_BASE, country_name, "autarchy_$pi_str")
 
         println("   Autarchy: $country_name | π=$pi_i")
 
-        # p_{-i} such that the global price identity holds at every t
-        denom         = 1.0 .- omega_i
-        p_minus_i     = ifelse.(denom .> 1e-10,
-                            p_star_path .* (1.0 .- omega_i .* pi_i) ./ denom,
-                            0.0) # raw because it might want to assign a negative value to the rest of the world
-        
-        # track if the RoW tax is negative
-        is_negative_tax = any(p_minus_i .< 0.0)
+        # p_{-i} from the emissions identity E_i(π_i·p*) + E_{-i}(p_{-i}) = global_rights
+        #
+        # Base formula (MAC μ=(p/pback)^α, same μ_ref for all countries in reference):
+        #   μ_{-i} = μ_ref·(1 − π_i^α·ω_i)/(1−ω_i)
+        #   p_{-i} = p*·[(1 − π_i^α·ω_i)/(1−ω_i)]^(θ2−1)
+        #
+        # Backstop correction: the model caps μ at 1 when π·p* > pback.
+        # In that case E_i = 0 (not E_i^formula), so p_{-i} must absorb the extra slack.
+        # We detect this per time-step and compute the corrected effective μ_i before
+        # feeding it into the formula.
+        denom = 1.0 .- omega_i
+
+        # effective μ_i at each time step, respecting the backstop cap
+        if !isnothing(pback_path)
+            mu_ref_t   = [p_star_path[t] > 0 && pback_path[t] > 0 ?
+                          (min(p_star_path[t], pback_path[t]) / pback_path[t])^α_abat :
+                          0.0 for t in 1:nb_steps]
+            mu_i_t     = [min(pi_i^α_abat * mu_ref_t[t], 1.0) for t in 1:nb_steps]
+            # effective π^α adjusted for the cap: mu_i_t / mu_ref_t (avoid /0 when ref=0)
+            eff_pi_alpha = [mu_ref_t[t] > 1e-10 ? mu_i_t[t] / mu_ref_t[t] : pi_i^α_abat
+                            for t in 1:nb_steps]
+        else
+            eff_pi_alpha = fill(pi_i^α_abat, nb_steps)
+        end
+
+        raw_ratio = (1.0 .- eff_pi_alpha .* omega_i) ./ max.(denom, 1e-10)
+
+        # flag: RoW would need a subsidy to hold global emissions fixed
+        is_negative_tax = any(raw_ratio .< 0.0)
+
+        # sign(x)*abs(x)^exp handles negative raw_ratio (subsidy) without DomainError
+        p_minus_i = ifelse.(denom .> 1e-10,
+                        p_star_path .* sign.(raw_ratio) .* abs.(raw_ratio) .^ (θ2_abat - 1.0),
+                        0.0)
         
         for i in eachindex(ratio_vals)
             is_bounded_matrix[i, j] = is_negative_tax
         end
-
+            
         # uncomment this to skip runs that already produced output:
         # isdir(folder) && isfile(joinpath(folder, "consumption_EDE.csv")) && continue
 
@@ -1231,10 +1257,57 @@ for country_name in [target_countries; invisible_countries]
         apply_common_params!(m)
         update_param!(m, :switch_global_recycling, 0)
         update_param!(m, :abatement, :control_regime,      4)
-        update_param!(m, :abatement, :direct_country_tax,  tax_mat)
+
+        if isnothing(pback_path)
+            println("   ⚠ pback_path unavailable; skipping autarky p_minus_i correction")
+            tax_mat = [c in target_indices ? pi_i * p_star_path[t] : p_minus_i[t]
+                       for t in 1:nb_steps, c in 1:nb_country]
+            update_param!(m, :abatement, :direct_country_tax, tax_mat)
+            @time run(m)
+        else
+            MAX_ITER = 4
+            for iter in 1:MAX_ITER
+                tax_mat = [c in target_indices ? pi_i * p_star_path[t] : p_minus_i[t]
+                           for t in 1:nb_steps, c in 1:nb_country]
+                update_param!(m, :abatement, :direct_country_tax, tax_mat)
+                @time run(m)
+
+                glob_df = getdataframe(m, :emissions => :E_Global_gtco2)
+                ctry_df = getdataframe(m, :emissions => :E_gtco2)
+                ctry_lk = Dict((r.time, r.country) => r.E_gtco2 for r in eachrow(ctry_df))
+
+                max_err = 0.0
+                for (t_idx, y) in enumerate(unique_years)
+                    E_tot    = only(filter(r -> r.time == y, glob_df)).E_Global_gtco2
+                    E_target = global_rights[t_idx]
+                    rel_err  = abs(E_tot - E_target) / max(E_target, 1e-10)
+                    max_err  = max(max_err, rel_err)
+                    if rel_err < 0.001
+                        continue
+                    end
+
+                    E_i = sum(get(ctry_lk, (y, s), 0.0) for s in target_symbols)
+                    E_minus_i_actual = E_tot - E_i
+                    E_minus_i_target = E_target - E_i
+                    if E_minus_i_actual <= 1e-10
+                        continue
+                    end
+
+                    mu_cur = p_minus_i[t_idx] > 0 && pback_path[t_idx] > 0 ? min((p_minus_i[t_idx] / pback_path[t_idx])^α_abat, 1.0) : 0.0
+                    sigma_eff = E_minus_i_actual / max(1.0 - mu_cur, 1e-10)
+                    mu_new = clamp(1.0 - E_minus_i_target / sigma_eff, 0.0, 1.0)
+                    p_minus_i[t_idx] = pback_path[t_idx] * mu_new^(θ2_abat - 1.0)
+                end
+
+                println("   iter $iter | max Δ = $(round(max_err*100, digits=3))%")
+                if max_err < 0.001
+                    println("   ✓ converged")
+                    break
+                end
+            end
+        end
 
         try
-            @time run(m)
             save_nice2020_reduced_output(m, folder)
             save_country_series!(folder, country_name)
         catch e # catch other kind of errors
@@ -1255,7 +1328,7 @@ for country_name in [target_countries; invisible_countries]
     end
 
     is_bounded_dict[country_name] = is_bounded_matrix
-end
+end =#
 
 
 # ═════════════════════════════════════════════════════════════════════════════
@@ -1281,12 +1354,12 @@ for country_name in [target_countries; invisible_countries]
         folder  = joinpath(OUTPUT_BASE, country_name, "uniform_ratio_$rat_str")
 
         # uncomment this to skip already-completed runs:
-        # isdir(folder) && isfile(joinpath(folder, "consumption_EDE.csv")) && continue
+        isdir(folder) && isfile(joinpath(folder, "consumption_EDE.csv")) && continue
 
         println("   Uniform: $country_name | ρ=$ratio")
 
         # country i's total rights = ρ × pop_share × global_cap
-        target_rights_total = (ratio .* pop_share_target) .* global_rights
+        target_rights_total = (ratio .* pop_share_target) .* global_rights_bau
 
         # build the (T × N) rights matrix
         rights_mat = zeros(Float64, nb_steps, nb_country)
@@ -1294,8 +1367,9 @@ for country_name in [target_countries; invisible_countries]
         for t in 1:nb_steps
             target_group_pop[t] == 0 && continue
             y = unique_years[t]
-
-            y > 2100 && break
+            # Note: p_star_path[t] = 0 for t > 2100 (calibrated_global_cs.csv stops at 2100),
+            # so transfer = p* × excess_rights = 0 for any t > 2100 regardless of rights.
+            # We fill rights for all t anyway so the normalization in revenue_recycle stays consistent.
 
             # distribute country i's total rights among its members by population
             for idx in target_indices
@@ -1320,12 +1394,49 @@ for country_name in [target_countries; invisible_countries]
             end
         end
 
+        # ── build model once ──────────────────────────────────────────────
         m = MimiNICE2020.create_nice2020()
         apply_common_params!(m)
-        update_param!(m, :abatement, :control_regime,      1)
-        update_param!(m, :abatement, :global_carbon_tax,   p_star_path)
-        update_param!(m, :switch_custom_transfers,         1)
-        update_param!(m, :revenue_recycle, :rights_proposed, rights_mat)
+        update_param!(m, :switch_global_recycling, 0)
+        update_param!(m, :abatement, :control_regime, 4)
+
+        MAX_ITER = 4
+        for iter in 1:MAX_ITER
+            tax_mat = [c in target_indices ? pi_i * p_star_path[t] : p_minus_i[t]
+                        for t in 1:nb_steps, c in 1:nb_country]
+            update_param!(m, :abatement, :direct_country_tax, tax_mat)
+            @time run(m)
+
+            glob_df = getdataframe(m, :emissions => :E_Global_gtco2)
+            ctry_df = getdataframe(m, :emissions => :E_gtco2)
+            ctry_lk = Dict((r.time, r.country) => r.E_gtco2 for r in eachrow(ctry_df))
+
+            max_err = 0.0
+            for (t_idx, y) in enumerate(unique_years)
+                E_tot    = only(filter(r -> r.time == y, glob_df)).E_Global_gtco2
+                E_target = global_rights[t_idx]
+                rel_err  = abs(E_tot - E_target) / max(E_target, 1e-10)
+                max_err  = max(max_err, rel_err)
+                rel_err < 0.001 && continue                    # already close enough
+
+                E_i = sum(get(ctry_lk, (y, s), 0.0) for s in target_symbols)
+                E_minus_i_actual = E_tot - E_i
+                E_minus_i_target = E_target - E_i
+                E_minus_i_actual <= 1e-10 && continue
+
+                # Infer effective sigma_eff = YGROSS_{-i}×σ_{-i} from the actual run
+                mu_cur   = p_minus_i[t_idx] > 0 && pback_path[t_idx] > 0 ?
+                            min((p_minus_i[t_idx] / pback_path[t_idx])^α_abat, 1.0) : 0.0
+                sigma_eff = E_minus_i_actual / max(1.0 - mu_cur, 1e-10)
+
+                # Solve for new μ_{-i} that hits E_minus_i_target
+                mu_new = clamp(1.0 - E_minus_i_target / sigma_eff, 0.0, 1.0)
+                p_minus_i[t_idx] = pback_path[t_idx] * mu_new^(θ2_abat - 1.0)
+            end
+
+            println("   iter $iter | max Δ = $(round(max_err*100, digits=3))%")
+            max_err < 0.001 && (println("   ✓ converged"); break)
+        end
 
         @time run(m)
         mkpath(folder)
@@ -1397,22 +1508,6 @@ function relative_npv(df_u, df_a, start_y, end_y, rate)
     return (npv_u - npv_a) / npv_a * 100
 end
 
-
-# Clean up numerical artifacts in all existing emissions.csv files before heatmap generation
-for country in target_countries
-    country_path = joinpath(OUTPUT_BASE, country)
-    
-    # Autarchy scenarios
-    for d in find_output_dirs(country_path, "autarchy_")
-        cleanup_emissions_csv!(joinpath(d, "emissions.csv"))
-    end
-    
-    # Uniform price scenarios
-    for d in find_output_dirs(country_path, "uniform_ratio_")
-        cleanup_emissions_csv!(joinpath(d, "emissions.csv"))
-    end
-end
-
 p_star0 = read_p_star0()
 start_y, end_y = first(YEARS_NPV), last(YEARS_NPV)
 
@@ -1433,27 +1528,23 @@ for country in target_countries
     a_dicts = [read_ede_df(d) for d in autarchy_dirs]
     u_dicts = [read_ede_df(d) for d in uniform_dirs]
 
-    # recalculate omega_i to flag the impossible rest-of-world carbon taxes
     is_eu27        = (country == "EU27")
     target_symbols = is_eu27 ? eu27_countries : [Symbol(country)]
 
-    # restrict the years used to detect negative RoW prices/rights to <= 2100
     years_for_hatch = filter(y -> y <= 2100, unique_years)
+    hatch_indices   = findall(y -> y <= 2100, unique_years)
 
-    omega_i = [
-        sum(get(emissions_lookup, (y, s), 0.0) for s in target_symbols) /
-        sum(get(emissions_lookup, (y, s), 0.0) for s in dim_keys(base_model, :country))
-        for y in years_for_hatch
-    ]
-    denom = 1.0 .- omega_i
-
-    # population share of target country (needed to check when RoW rights go negative)
+    # population share — needed to flag when Scenario 2 RoW rights go negative
     target_group_pop_hm = [sum(get(pop_lookup, (y, s), 0.0) for s in target_symbols) for y in years_for_hatch]
-    
-    # Get the indices for the years <= 2100 to slice the 281-element array down to 81 elements
-    hatch_indices = findall(y -> y <= 2100, unique_years)
-    
     pop_share_target_hm = target_group_pop_hm ./ global_pop_total[hatch_indices]
+
+    # emission share for this country/group — used to recompute the Sc.1 feasibility
+    # flag analytically (avoids dimension mismatch with the stale is_bounded_dict)
+    omega_i_hm = [
+        sum(get(emissions_lookup, (y, s), 0.0) for s in target_symbols) /
+        max(sum(get(emissions_lookup, (y, s), 0.0) for s in dim_keys(base_model, :country)), 1e-10)
+        for y in unique_years
+    ]
 
     # create an NPV matrix: rows = rho (rights ratio), columns = pi (price factor)
     results = [
@@ -1476,6 +1567,7 @@ for country in target_countries
 
     n_pi    = length(pi_vals)
     n_ratio = length(ratio_vals)
+    
 
     p = heatmap(1:n_pi, 1:n_ratio, results;
         xlabel         = "\n" * L"Autarky: Price factor $\pi_i$  ($p_i = \pi_i \cdot p^*$)" * "\n\n Note: p* (2030) = $(round(p_star0, digits=2)) USD/tCO2",
@@ -1502,18 +1594,15 @@ for country in target_countries
     hatch_y = Float64[]
 
     for j in eachindex(pi_vals)
-        pi_i = pi_vals[j]
-
-        # RoW tax becomes negative if (pi_i * emissions_share) > 1 in ANY year
-        row_tax_negative = any((omega_i .* pi_i) .> 1.0)
+        # Sc.1 flag: RoW would need a subsidy to keep global emissions fixed at this π
+        autarchy_failed = any((1.0 .- pi_vals[j]^α_abat .* omega_i_hm) .< 0.0)
 
         for i in eachindex(ratio_vals)
             rho_i = ratio_vals[i]
-
-            # RoW rights become negative if (rho_i * pop_share) > 1 in ANY year
+            # Sc.2 flag: RoW rights go negative when country i takes too large a share
             row_rights_negative = any((pop_share_target_hm .* rho_i) .> 1.0)
 
-            if row_tax_negative || row_rights_negative
+            if autarchy_failed || row_rights_negative
                 push!(hatch_x, float(j))
                 push!(hatch_y, float(i))
             end
@@ -1528,7 +1617,7 @@ for country in target_countries
             markeralpha        = 0.6,
             markerstrokecolor  = :black,
             markerstrokewidth  = 1,
-            label              = "RoW price or rights < 0",
+            label              = "RoW tax or rights < 0",
         )
     else
         scatter!(p, Float64[], Float64[];

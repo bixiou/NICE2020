@@ -94,15 +94,9 @@
             
             elseif (p.control_regime==4) # manually added tax for each country x year
                 v.country_carbon_tax[t,c] = p.direct_country_tax[t,c]
-                # ratio = max(v.country_carbon_tax[t,c], 0.0) / p.pbacktime[t]
-                #v.μ[t,c] = min(max(ratio^(1/(p.θ2-1)), 0.0), 1.0)
-
                 ratio = v.country_carbon_tax[t,c] / p.pbacktime[t]
-                if ratio >= 0.0
-                    v.μ[t,c] = min(max(ratio^(1/(p.θ2-1)), 0.0), 1.0)
-                else
-                    v.μ[t,c] = - (abs(ratio)^(1/(p.θ2-1)))
-                end
+                # this is an abatement formula that allows for negative taxes (standard with sign preservation)
+                v.μ[t,c] = sign(ratio) * abs(ratio)^(1.0 / (p.θ2 - 1.0))
 
             elseif (p.control_regime==5)
                 v.country_carbon_tax[t,c] = min(p.pbacktime[t], p.global_carbon_tax[t]) * p.club_country[p.policy_scenario,c]

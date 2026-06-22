@@ -403,7 +403,7 @@ function save_nice2020_reduced_output(m::Model, output_directory::String)
     )
 
     # only these three variables go into the annual wide file
-    essential_vars = ["consumption_ede", "co2_emissions", "country_carbon_tax"]
+    essential_vars = ["consumption_ede", "co2_emissions", "country_carbon_tax", "gross_output"]
 
     # we pull each variable from its Mimi component and join everything into one DataFrame on (country, time)
     # we rename to normalise the value column name regardless of whether Mimi returned it as :value or under the original variable symbol

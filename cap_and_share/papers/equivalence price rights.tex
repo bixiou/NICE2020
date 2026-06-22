@@ -1,0 +1,657 @@
+\documentclass[12pt, a4paper]{article}
+
+% --- Packages ---
+\usepackage[T1]{fontenc}
+\usepackage[utf8]{inputenc}
+\usepackage{lmodern}
+\usepackage[margin=2.5cm]{geometry}
+\usepackage{amsmath, amssymb}
+\usepackage{enumitem}
+\usepackage{titlesec}
+\usepackage{hyperref}
+\usepackage{setspace}
+\usepackage{parskip}
+\usepackage{subcaption}
+\usepackage{graphicx}
+\usepackage{booktabs}
+\usepackage{mathrsfs}
+
+% --- Hyperref setup ---
+\hypersetup{
+    colorlinks=true,
+    linkcolor=blue,
+    urlcolor=blue,
+    citecolor=blue
+}
+
+% --- Title ---
+\title{%
+    \textbf{Correspondence between transfers in a\\ cap-and-trade\\ and differentiated carbon prices}
+}
+\author{}
+\date{}
+
+\begin{document}
+
+\maketitle
+\tableofcontents
+\newpage
+
+
+% ============================================================
+%  INTRODUCTION
+% ============================================================
+
+\section{Introduction}
+
+The Paris Agreement commits its signatories to limiting global warming to
+1.5--2\textdegree C above pre-industrial levels. Meeting that target requires
+cutting global CO$_2$ emissions by roughly 28~GtCO$_2$ per year relative to
+current policy trajectories, yet the 2025 round of Nationally Determined
+Contributions (NDCs) closes barely fourteen percent of that gap
+\{unepgap2024\}. It can be argued that this shortfall is a failure of
+coordination with a distributional disagreement that has never been cleanly resolved.
+
+The disagreement takes the following form. Lower-income economies, whose
+per-capita emissions are below the global average, argue that a
+high, uniform global carbon price would impose disproportionate adjustment
+costs on their populations and their still-developing industrial bases. They
+therefore claim the right to set lower, nationally differentiated prices, or
+to delay ambitious action until wealthier countries provide sufficient
+financial compensation. Proponents of differentiated prices appeal to equity:
+a country that cannot afford to decarbonise its industrial base should not
+face the same carbon price as a wealthy one. However, critics of this view counter that
+differentiated prices are economically inefficient and that equity objectives
+are better achieved through lump-sum transfers alongside a uniform price.
+
+This paper argues that the disagreement rests on a false dichotomy. The
+central contribution is a distributional equivalence result: for any
+system of nationally differentiated carbon prices in autarky---that is,
+without international transfers---there exists a uniform global carbon price
+combined with appropriately calibrated emission rights that delivers the same
+welfare outcome for every country, to a first-order approximation. Because
+abatement costs are convex, the uniform-price regime is moreover strictly more
+efficient: international carbon trading always weakly dominates autarky. The
+debate over prices versus rights is therefore not a debate
+about fundamentally different policy instruments but about the
+distribution of a single policy's gains, and it can in principle be resolved
+by choosing the right allocation of emission rights.
+
+This equivalence holds cleanly in a static, single-period setting. It breaks
+down once time is introduced, because the welfare value of an emission right
+then depends not only on its quantity but on the full trajectory of the future
+carbon price, a trajectory that cannot be recovered analytically without
+knowledge of how capital markets, abatement technologies, and emissions
+elasticities evolve. We characterise two special cases that restore a partial
+equivalence: first, the case in which country-level autarky prices are
+homothetic to the global price path and each country receives a fixed share
+of the global carbon budget; and second, the more restrictive but analytically
+tractable Hotelling case, in which efficient capital markets and
+perfect foresight keep discounted carbon prices constant over time. In the
+Hotelling case the dynamic formula collapses to one that is structurally
+identical to the static result, with the intertemporal carbon budget playing
+the role of the single-period emission right. 
+
+[FINDINGS PARAGRAPH HERE]
+
+This paper connects to several strands of the literature. The efficiency
+comparison between carbon prices and quantity instruments originates with
+\{weitzman1974prices\} and has been extended in many directions. Our
+contribution is different, in that we are not comparing instruments for their
+efficiency alone but establishing their distributional equivalence and
+then quantifying the efficiency cost of departing from it. The political
+economy of cap-and-trade versus carbon taxes is examined in
+\{goulder2013carbon\} and \{stavins2019carbon\}; again, our angle is
+complementary. A growing literature uses integrated
+assessment models to study distributional consequences of climate policy
+across countries \{fabre2024uniform\}. We build directly on the NICE model
+\{youngbrun2025\} and extend it by constructing the two-dimensional
+parameter space of autarky price factors and emission-rights multipliers over
+which the equivalence can be tested. The efficiency of uniform carbon pricing
+as a corollary of the Diamond--Mirrlees production efficiency theorem
+\{diamond1971optimal\} is well known in principle. We make the argument
+precise in the context of international climate policy and attach quantitative
+stakes to it.
+
+The remainder of the paper is organised as follows.
+Section~\ref{sec:theory} derives the static distributional equivalence and the
+Diamond--Mirrlees efficiency result, then characterises the conditions under
+which a partial equivalence extends to the dynamic case.
+Section~\ref{sec:methodology} describes the simulation design.
+Section~\ref{sec:results} presents the heatmaps and assesses where the
+Hotelling approximation holds and where it fails.
+
+% ============================================================
+%  THEORY
+% ============================================================
+
+\section{Theory}
+\label{sec:theory}
+
+This section establishes the core theoretical claims of the paper. We begin
+with a static, single-period model in which the equivalence between
+differentiated prices and uniform prices with transfers takes a closed,
+analytically tractable form. We then extend the analysis to a dynamic setting
+and show that the correspondence breaks down, because the welfare value
+of an emission right depends on the price trajectory rather than on quantities
+alone. We characterise two special cases that restore a partial
+equivalence, homothetic prices with a fixed budget share, and the Hotelling
+case, and explain why the Hotelling case serves as the natural empirical
+benchmark for the simulations that follow.
+
+\subsection{The static case}
+\label{sec:static}
+
+\paragraph{Setting.}
+Consider a world of many countries indexed by $i$, a single period, and no
+uncertainty. Every country has an incentive to reduce its emissions, but
+decarbonisation is costly. When country $i$ faces a carbon price $p_i$, firms
+substitute towards low-carbon capital and households shift to less preferred,
+less carbon-intensive consumption. We call these abatement costs and denote them $a_i$. Allowing for
+international transfers $t_i$ (positive if received, negative if paid) and
+abstracting from exogenous investment, country $i$'s per-capita consumption
+is:
+\begin{equation}
+    c_i = y_i + t_i - a_i,
+\end{equation}
+where $y_i$ is potential output per capita.
+
+Welfare of country $i$ depends on its consumption $c_i$ and on global
+emissions $E = \sum_j e_j n_j$, where $e_j$ is country $j$'s per-capita
+emissions and $n_j$ its population. We fix global emissions at their optimal
+level $E^*$: the question we ask is not ``what is the optimal target?'' but
+``given an agreed global target, which policy regime distributes its costs and
+benefits most fairly and efficiently?'' The temperature outcome is identical
+under both regimes, only distribution and efficiency differ.
+
+Let $p^*$ be the uniform carbon price that attains $E^*$, defined implicitly
+by $E^* = \sum_j e_j(p^*) n_j$. We use the shorthands $e_i := e_i(p_i)$,
+$a_i := a_i(e_i)$, $e^*_i := e_i(p^*)$, and $a^*_i := a_i(e^*_i)$. A
+situation for country $i$, given fixed global emissions, can be summarised
+as $s = (t_i, p_i)$, and we write welfare as $u_i(t_i, p_i)$ with a slight
+abuse of notation.
+
+\paragraph{The equivalent variation from the benchmark.}
+To analyse an arbitrary situation $s$, it is useful to anchor the analysis
+to two special cases. The first is the benchmark situation
+$s^* = (0, p^*)$: no transfers and a uniform carbon price. The second is the
+autarky situation $s^a = (0, p_i)$: no transfers and a nationally
+differentiated price. We define $V_i(p_i)$ as the equivalent variation
+between autarky and the benchmark. It is the lump-sum transfer that, if paid at
+the benchmark price $p^*$, would make country $i$ exactly as well off as
+under autarky:
+\begin{equation}
+    u_i\bigl(V_i(p_i),\, p^*\bigr) = u_i(0,\, p_i).
+\end{equation}
+
+Since consumption under autarky is $c^a_i = y_i - a_i$ and under the
+benchmark is $c^*_i = y_i - a^*_i$, we have:
+\begin{equation}
+    V_i(p_i) = c^a_i - c^*_i = a^*_i - a_i.
+\end{equation}
+
+This difference in abatement costs can be approximated by a first-order
+Taylor expansion around the benchmark emissions level $e^*_i$. At $e^*_i$,
+the optimising country sets its marginal abatement cost equal to the price it
+faces. Under $p^*$ this gives $\frac{da_i}{de}(e^*_i) = -p^*$. Therefore:
+\begin{equation}
+    V_i(p_i)
+    \approx (e_i - e^*_i)\,p^*.
+    \label{eq:Vi_approx}
+\end{equation}
+
+Denoting by $\varepsilon^* = -\frac{de_i/e^*_i}{dp/p^*}$ the price
+elasticity of emissions evaluated at $p^*$, we can write the equivalent
+variation more explicitly as:
+\begin{equation}
+    V_i(p_i) \approx (p^* - p_i)\,e^*_i\,\varepsilon^*.
+    \label{eq:Vi_price}
+\end{equation}
+
+The sign is intuitive: if $p_i < p^*$, country $i$ abates less in autarky
+and therefore has lower abatement costs. Moving it to the benchmark forces
+higher abatement, so a positive compensation $V_i > 0$ is required to hold
+welfare constant. The magnitude of the compensation is larger when the price
+gap is large, when baseline emissions are high, and when emissions are
+price-elastic. All three make the cost of tightening the price more
+burdensome.
+
+\paragraph{The equivalent transfer for an arbitrary situation.}
+Let $g^s_i$ denote country $i$'s welfare gain in situation $s = (t_i, p_i)$
+relative to the benchmark, expressed as a money-equivalent transfer at $p^*$.
+We call this the equivalent transfer. It decomposes cleanly as:
+\begin{equation}
+    g^s_i = t_i + V_i(p_i).
+    \label{eq:gsi}
+\end{equation}
+
+The first term is the actual transfer received, the second is the welfare
+gain or loss from facing a price that differs from the benchmark. Because
+$g^s_i$ reduces every situation to a single money-equivalent number at a
+common price, it is the natural metric for comparing welfare across regimes
+that differ both in transfers and in prices.\footnote{One can also define an
+  equivalent price $p^*_i$ such that $(0, p^*_i)$ is
+  welfare-equivalent to $(t_i, p_i)$. Solving $t_i + (p^* - p_i)e^*_i
+  \varepsilon^* \approx (p^* - p^*_i)e^*_i\varepsilon^*$ gives $p^*_i
+  \approx p_i - t_i/(e^*_i\varepsilon^*)$. This equivalent price can be
+  negative when the transfer is large, however, which has no natural economic
+  interpretation as a carbon price. The equivalent transfer $g^s_i$ does not
+  share this limitation, which is why we use it as our primary welfare
+  metric.}
+
+\paragraph{Correspondence between differentiated prices and emission rights.}
+We can now state the central result of the static case. Suppose countries
+establish a cap-and-trade at the uniform price $p^*$, and each person in
+country $i$ is allocated emission rights $r_i$. The net monetary transfer to
+$i$ under the cap-and-trade is:
+\begin{equation}
+    t^*_i = (r_i - e^*_i)\,p^*.
+\end{equation}
+
+Country $i$ sells rights if $r_i > e^*_i$ (it was allocated more than it
+emits at $p^*$) and buys them otherwise. The equivalent transfer in the
+cap-and-trade situation is therefore $g^*_i = t^*_i$. The equivalent transfer
+in autarky is, from equation~\eqref{eq:Vi_price}:
+\begin{equation}
+    g^a_i = V_i(p_i) \approx (p^* - p_i)\,e^*_i\,\varepsilon^*.
+\end{equation}
+
+Setting $g^*_i = g^a_i$ and solving yields the equivalence relation:
+\begin{equation}
+    \boxed{(r_i - e^*_i)\,p^* \approx (p^* - p_i)\,e^*_i\,\varepsilon^*,}
+    \label{eq:static_equiv}
+\end{equation}
+from which one can isolate either variable:
+\begin{align}
+    r_i &\approx \Bigl(1 + \bigl(1 - \tfrac{p_i}{p^*}\bigr)\varepsilon^*\Bigr)
+           e^*_i,
+           \label{eq:r_from_p} \\[4pt]
+    p_i &\approx \Bigl(1 + \tfrac{e^*_i - r_i}{e^*_i\,\varepsilon^*}\Bigr)p^*.
+           \label{eq:p_from_r}
+\end{align}
+
+Equation~\eqref{eq:r_from_p} is the key formula for policy design: given a
+country's autarky price $p_i$, it tells us how many emission rights to
+allocate in a cap-and-trade in order to leave that country's welfare
+unchanged. A country with a low autarky price ($p_i < p^*$) needs a generous
+rights allocation ($r_i > e^*_i$) to compensate for the abatement burden it
+takes on when forced to the higher uniform price; a country with a high
+autarky price ($p_i > p^*$) can be left with fewer rights than its
+equilibrium emissions.
+
+\paragraph{Efficiency of the uniform price.}
+The equivalence result shows that the two regimes can deliver identical
+welfare distributions, and we now want to see if the cap-and-trade do strictly better.
+
+Suppose we give country $i$ rights equal to its autarky emissions $e_i$, so
+that the net transfer under the cap-and-trade is $\tilde{t}_i = (e_i -
+e^*_i)p^*$. Convexity of abatement costs implies:
+\begin{equation}
+    a_i - a^*_i \geq (e_i - e^*_i)\frac{da^*_i}{de} = (e_i - e^*_i)(-p^*),
+\end{equation}
+and therefore $\tilde{t}_i = (e_i - e^*_i)p^* \geq a^*_i - a_i = V_i(p_i) =
+g^a_i$. Country $i$'s consumption under the cap-and-trade is:
+\begin{equation}
+    \tilde{c}_i = y_i + \tilde{t}_i - a^*_i \geq y_i - a_i = c^a_i.
+\end{equation}
+
+Welfare is therefore weakly higher under the cap-and-trade than in autarky,
+for every country simultaneously. In
+autarky, a lower price reduces abatement costs, but at a diminishing rate,
+because of convexity. Selling spare permits on the cap-and-trade market
+generates revenue at the full market price $p^*$, which is always at least as
+good a deal as facing a lower domestic price. Trading strictly dominates
+autarky whenever abatement costs are strictly convex and prices differ across
+countries.
+
+This is a statement of the Diamond--Mirrlees production efficiency
+theorem~\cite{diamond1971optimal} applied to international climate policy: in
+the absence of other distortions, direct transfers are always preferable to
+differentiated factor prices as a
+redistributive instrument.
+
+\subsection{The dynamic case}
+\label{sec:dynamic}
+
+\paragraph{Setting.}
+We now add a time index $t$ running over multiple periods. Each variable
+becomes a trajectory: prices $(p_{it})_t$, transfers $(t_{it})_t$, emissions
+$(e_{it})_t$. Let $\beta_t$ be the discount factor between the initial period
+and period $t$. Intertemporal quantities are written in upper case:
+$G_i = \sum_t g_{it}\beta_t$ is the total discounted equivalent gain, and
+$R_i = \sum_t r_{it}$ is country $i$'s intertemporal carbon budget.
+
+Welfare equivalence now requires equality of entire discounted streams rather
+than point-in-time values. The natural dynamic extension of the static
+formula~\eqref{eq:static_equiv} is:
+\begin{equation}
+    G^U_i = G^{\mathcal{A}}_i
+    \iff
+    \sum_t (r_{it} - e^*_{it})\,\beta_t\,p^*_t
+    \approx
+    \sum_t (p^*_t - p_{it})\,e^*_{it}\,\varepsilon^*_t\,\beta_t.
+    \label{eq:dynamic_equiv}
+\end{equation}
+
+In the static case,
+equation~\eqref{eq:static_equiv} admits a clean solution because $p^*$
+appears as a common factor on both sides and cancels. In
+equation~\eqref{eq:dynamic_equiv} it does not: the price $p^*_t$ varies over
+time and sits inside both sums, so the welfare value of a unit of emission
+rights in period $t$ depends on what the carbon price happens to be in that
+period. A generous allocation in a period of low prices is worth less than the
+same allocation in a period of high prices. The upshot is that there is no
+direct correspondence between a country's intertemporal carbon
+budget $R_i$ and its welfare. The timing of the allocation matters, and the
+timing depends on the full price trajectory $(p^*_t)_t$.
+
+\paragraph{Special case 1: homothetic prices and fixed budget shares.}
+Suppose the autarky price in each country is always proportional to the
+global benchmark price: $p_{it} = \pi_i p^*_t$ for a country-specific scalar
+$\pi_i$. Suppose also that country $i$ receives a fixed share of the global
+emission budget in every period: $r_{it} = \rho_i r_t$, where $r_t$ is the
+aggregate global allocation. Under these two assumptions,
+equation~\eqref{eq:dynamic_equiv} simplifies to:
+\begin{equation}
+    \rho_i\,\mathscr{B} - \sum_t e^*_{it}\,p^*_t\,\beta_t
+    \approx
+    (1 - \pi_i)\sum_t e^*_{it}\,\varepsilon^*_t\,p^*_t\,\beta_t,
+    \label{eq:homothetic}
+\end{equation}
+where $\mathscr{B} = \sum_t r_t\,\beta_t\,p^*_t$ is a price-weighted sum of
+the global allocation. The formula is analogous to the static case but
+contains $\mathscr{B}$, which requires knowledge of the full price trajectory
+$(p^*_t)_t$. The equivalence holds, but it is not analytically tractable
+without a model.
+
+\paragraph{Special case 2: the Hotelling case.}
+In a world with a fixed aggregate carbon budget, perfect foresight, and
+efficient capital markets, the carbon price rises at the rate of return on
+capital. When we discount
+at that same rate, the discounted price $\beta_t p^*_t$ is constant at $p_0$
+in every period. This means $p^*_t$ factors out of the discounted sums in
+equation~\eqref{eq:dynamic_equiv}, and the equivalence reduces to:
+\begin{equation}
+    \boxed{R_i - E^*_i \approx (1 - \pi_i)\sum_t e^*_{it}\,\varepsilon^*_t,}
+    \label{eq:hotelling_equiv}
+\end{equation}
+where $E^*_i = \sum_t e^*_{it}$ is country $i$'s total discounted emissions
+under the benchmark price trajectory. This is structurally identical to the
+static formula~\eqref{eq:static_equiv}: the intertemporal carbon budget $R_i$
+plays the role of the single-period rights allocation, and the homothetic
+autarky price factor $\pi_i$ plays the role of $p_i/p^*$. The timing of the
+rights allocation no longer matters, because every period carries the same
+discounted price.
+
+The Hotelling case is the best possible setting for the equivalence: it
+requires the most favourable conditions (perfect foresight, efficient capital
+markets, a fixed global budget, and homothetic autarky prices). If the
+approximation fails even here, it will fail everywhere. This is why
+Section~\ref{sec:methodology} uses equation~\eqref{eq:hotelling_equiv} as the
+empirical benchmark: the simulations ask not whether the Hotelling formula
+holds in theory, but how far the numerically computed welfare effects deviate
+from what the formula predicts, and what those deviations reveal about the
+underlying mechanisms.
+
+% ==============================================================
+\section{Methodology}
+% ==============================================================
+
+\subsection{Framework and parameters}
+
+\begin{itemize}
+    \item Policy timeline: 2030--2100 + disaggregation at the country--decile--year level
+    \item Baseline carbon-price path $(p_t^*)$: calibrated to enforce 
+          1.8\,$^\circ$C global carbon budget, reaching net-zero global emissions
+          by 2080 and net-negative after
+    \item Welfare metric: Net Present Value (NPV) of EDE consumption, discounted at $r = 3\%$ + inequality
+          aversion parameter $\eta = 1.5$.
+\end{itemize}
+
+\subsection{Scenario 1: Autarky baseline}
+
+\begin{itemize}
+    \item Country $i$ sets an independent domestic carbon price $p_i = \pi_i
+          \times p^*$
+    \item International revenue pooling and transfers disabled (revenues
+          recycled within the country)
+    \item Rest of the World (RoW) price $p_{-i}$ computed dynamically from the
+          global price identity:
+          \[p^* = \omega_i p_i + (1-\omega_i)p_{-i}\]
+          where $\omega_i$ is country $i$'s dynamic share of global baseline
+          emissions
+    \item We make sure that the global emissions cap is maintained across the simulation (Newton and bisection)
+\end{itemize}
+
+\subsection{Scenario 2: Uniform price with varying rights}
+
+\begin{itemize}
+    \item All regions face the uniform global price $p_t^*$ but emission rights vary
+          by country
+    \item Country $i$ receives a share of the total global carbon budget
+          proportional to its population, scaled by the rights multiplier $\rho_i$
+    \item The remaining global budget
+          is distributed to the RoW proportionally based on baseline emissions
+          (grandfathering) to prevent macroeconomic collapse of heavy emitters in
+          the aggregate group
+\end{itemize}
+
+\subsection{Building the heatmaps}
+
+\begin{itemize}
+    \item For each $(\rho_i, \pi_i)$ combination, compute relative welfare
+          variation:
+          \[\Delta W_i = \frac{NPV_{\text{uniform}} - NPV_{\text{autarky}}}
+          {NPV_{\text{autarky}}} \times 100\]
+    \item Plot as a heatmap and trace indifference curve where
+          the country experiences no net welfare loss
+\end{itemize}
+
+\subsection{Flags}
+
+\begin{itemize}
+    \item Two conditions evaluated at every year of 2030--2100:
+    \begin{enumerate}
+        \item $\omega_i \times \pi_i > 1$: this means that country $i$ claims more than 100\% of the global price burden, forcing $p_{-i} < 0$ (a market-distorting fossil-fuel subsidy for the RoW)
+        \item $\rho_i > 1/\text{share of world pop}\iff\text{share of global rights}>1$: granting country $i$ its rights multiplier uses more than 100\% of the total global carbon budget, forcing the RoW into negative emission rights
+    \end{enumerate}
+    \item If either condition is triggered in any single year, the parameter combination is flagged with a gray cross.
+\end{itemize}
+
+% ==============================================================
+\section{Results}
+% ==============================================================
+
+An illustration of the numbers we're talking about:
+
+\begin{table}[h]
+\centering
+\caption{Autarky scenario for the USA ($\pi=2$)}
+\renewcommand{\arraystretch}{1.2}
+\begin{tabular}{lrrrrrrrr}
+  \toprule
+  \textbf{Variable} & \textbf{2030} & \textbf{2040} & \textbf{2050} & \textbf{2060} & \textbf{2070} & \textbf{2080} & \textbf{2090} & \textbf{2100} \\
+  \midrule
+  $p^*$ (USD/tCO$_2$) & 42.6 & 112.9 & 205.9 & 285.7 & 401.6 & 480.9 & 476.2 & 471.4 \\
+  $p_i$ (USD/tCO$_2$) & 85.2 & 225.8 & 411.7 & 571.4 & 803.3 & 961.9 & 952.3 & 942.8 \\
+  $E_i$ (GtCO$_2$) & 3.88 & 2.32 & 0.57 & -0.48 & -1.58 & -2.01 & -1.68 & -1.37 \\
+  \bottomrule
+\end{tabular}
+\end{table}
+
+\begin{table}[h]
+\centering
+\caption{Uniform price scenario for the COD ($\rho=5$)}
+\renewcommand{\arraystretch}{1.2}
+\begin{tabular}{lrrrrrrrr}
+  \toprule
+  \textbf{Variable} & \textbf{2030} & \textbf{2040} & \textbf{2050} & \textbf{2060} & \textbf{2070} & \textbf{2080} & \textbf{2090} & \textbf{2100} \\
+  \midrule
+  $p^*$ (USD/tCO$_2$) & 42.6 & 112.9 & 205.9 & 285.7 & 401.6 & 480.9 & 476.2 & 471.4 \\
+  $r_i$ (GtCO$_2$) & 2.211 & 1.854 & 1.313 & 0.989 & 0.427 & 0.0 & 0.0 & 0.0 \\
+  $E_i$ (GtCO$_2$) & 0.005 & 0.008 & 0.009 & 0.009 & 0.005 & 0.0 & 0.0 & 0.0 \\
+  Transfer (bn USD) & 93.9 & 208.4 & 268.5 & 280.0 & 169.8 & 0.0 & 0.0 & 0.0 \\
+  \bottomrule
+\end{tabular}
+\end{table}
+
+
+\iffalse\begin{figure}[htbp]
+    \centering
+    \begin{subfigure}[b]{0.495\textwidth}
+        \centering
+        \includegraphics[width=\linewidth]{GDP_Heatmap_USA.png}
+        \caption{United States (USA)}
+    \end{subfigure}
+    \hfill
+    \begin{subfigure}[b]{0.495\textwidth}
+        \centering
+        \includegraphics[width=\linewidth]{GDP_Heatmap_RUS.png}
+        \caption{Russia (RUS)}
+    \end{subfigure}
+    
+
+    \vspace{0.5cm}
+
+    \begin{subfigure}[b]{0.495\textwidth}
+        \centering
+        \includegraphics[width=\linewidth]{GDP_Heatmap_TUR.png}
+        \caption{Turkey (TUR)}
+    \end{subfigure}
+    \hfill
+    \begin{subfigure}[b]{0.495\textwidth}
+        \centering
+        \includegraphics[width=\linewidth]{GDP_Heatmap_CHN.png}
+        \caption{China (CHN)}
+    \end{subfigure}
+
+    \vspace{0.5cm}
+
+    \begin{subfigure}[b]{0.495\textwidth}
+        \centering
+        \includegraphics[width=\linewidth]{GDP_Heatmap_IND.png}
+        \caption{India (IND)}
+    \end{subfigure}
+    \hfill
+    \begin{subfigure}[b]{0.495\textwidth}
+        \centering
+        \includegraphics[width=\linewidth]{GDP_Heatmap_EU27.png}
+        \caption{European Union (EU27)}
+    \end{subfigure}
+
+    \vspace{0.5cm}
+    
+    \begin{subfigure}[b]{0.495\textwidth}
+        \centering
+        \includegraphics[width=\linewidth]{GDP_Heatmap_NGA.png}
+        \caption{Nigeria (NGA)}
+    \end{subfigure}
+    \hfill
+    \begin{subfigure}[b]{0.495\textwidth}
+        \centering
+        \includegraphics[width=\linewidth]{GDP_Heatmap_COD.png}
+        \caption{Democratic Republic of Congo (COD)}
+    \end{subfigure}
+    \hfill
+    
+
+    \caption{NPV of the relative GDP gain per country: Uniform Price vs Autarky scenario}
+    \label{fig:heatmaps_all}
+\end{figure}
+\fi
+
+\subsection{Reading the heatmaps}
+
+\begin{itemize}
+    \item x-axis: homothetic price factor $\pi_i$ (autarky price relative to
+          global price)
+    \item y-axis: fixed rights-share multiplier $\rho_i$
+    \item Colours: relative welfare variation $\Delta W_i$ (\%)
+    \item Solid line: empirical indifference curve
+    \item Grey crosses: economical or mathematical extreme parameter
+          combinations
+    \item Dotted lines point to non-losing rights allocation ($\rho_i$ that verifies $\pi_i=1$)
+\end{itemize}
+
+\iffalse
+\subsection{By country}
+
+\begin{itemize}
+    \item High-emitting countries (net losers under strict egalitarian
+          allocation)
+    \begin{itemize}
+        \item USA: $\rho_i \approx 4.5$ at $\pi_i = 1$
+        \item Russia: $\rho_i \approx 3$ at $\pi_i = 1$
+        \item Turkey: $\rho_i \approx 1.6$ at $\pi_i = 1$
+    \end{itemize}
+
+$\rightarrow$ A strictly egalitarian cap-and-trade ($\rho_i = 1$ for
+              all) is politically impossible because it forces massive polluters well
+              below their indifference curves, ensuring refusal to participate
+
+    \item Net beneficiary countries
+    \begin{itemize}
+        \item China: $\rho_i \approx 0.9$ at $\pi_i = 1$
+        \item India: $\rho_i \approx 0.8$ at $\pi_i = 1$
+        \item Nigeria: $\rho_i \approx 0.08$ at $\pi_i = 1$
+        \item DRC: $\rho_i \approx 0$ (any positive
+              allocation is a net gain)
+    \end{itemize}
+
+    \item Focus on the EU:
+    \begin{itemize}
+        \item Non-losing allocation: $\rho_i \approx 0.25$ (the indifference
+              curve is essentially flat until $\pi_i \approx 2$)
+        \item Interpretation: the EU is already doing okay and has already depleted its cheapest domestic
+              abatement options, so the marginal cost of domestic-only
+              decarbonisation is very high?
+        \item This would mean that, in autarky, meeting ambitious targets becomes very
+              expensive so joining the global market allows purchasing cheap
+              reductions from low-emitting countries
+        \item The EU is therefore willing to accept a very small initial
+              allocation ($\rho_i \approx 0.2$) just to gain access to the
+              international market
+        \item In the end, the macroeconomic efficiency gains from international carbon trading
+              dominate
+    \end{itemize}
+\end{itemize}
+
+\subsection{Trying to explain the shape of the indifference curves}
+
+    \begin{itemize}
+        \item Hypothesis: country output is not exogenous and global capital
+              markets and trade are interconnected
+        \item This would mean that if a large country free-rides with a very low domestic price
+              ($\pi_i < 0.5$), the global price identity forces the RoW to adopt a
+              very high price to maintain the global cap
+        \item This localised economic shock in the RoW triggers a global
+              recession, which impacts the free-riding country's own export
+              markets and capital returns
+        \item On th contrary, when a large country takes on a larger burden
+              ($\pi_i \ge 1$), it prevents global economic collapse and protects
+              its own economy
+        \item As autarky welfare increases when the global market is healthy, the
+              country requires a higher rights allocation $\rho_i$ to be persuaded
+              to leave the optimised autarky state
+    \end{itemize}
+
+\subsection{Out-of-bounds cases}
+\fi
+
+\begin{itemize}
+    \item Grey crosses are drawn when $\omega_i \times \pi_i > 1$ (x-axis) or
+          when $\rho_i > 1/\text{world pop.\ share}$ (y-axis)
+    \item These are parameter combinations
+          for which no non-negative price $p_{-i}$ satisfies the global price
+          identity (and the static efficiency result 
+          breaks down)
+    \item Countries with a larger share of world emissions or world population
+          have more constrained feasible regions
+    \item Example:
+    \begin{itemize}
+        \item China and India (share of world pop.\ $> 10\%$): grey crosses
+              appear from $\rho_i = 10$ on the y-axis
+    \end{itemize}
+\end{itemize}
+
+\end{document}
