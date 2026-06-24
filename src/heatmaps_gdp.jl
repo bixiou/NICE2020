@@ -165,7 +165,7 @@ function save_country_series!(folder, country_name)
 end
 
 # ═════════════════════════════════════════════════════════════════════════════
-# SCENARIO A1 — AUTARKY
+# SCENARIO A — AUTARKY WITH NEGISHI RECYCLING
 
 # For each country i and each price factor π_i, we set that country's carbon
 # tax to π_i × p*, then back out the rest-of-world price p_{-i} from the
@@ -183,269 +183,7 @@ end
 # hence, tthe Newtooon iterations and bisection
 # ═════════════════════════════════════════════════════════════════════════════
 
-cap_norm = max(maximum(global_cap), 1.0)
-
-for country_name in [target_countries; invisible_countries]
-    is_eu27        = (country_name == "EU27")
-    target_symbols = is_eu27 ? eu27_countries : [Symbol(country_name)]
-    target_indices = findall(x -> x in target_symbols, all_countries)
-
-    e_i_ref = [sum(get(emissions_lookup, (y, s), 0.0) for s in target_symbols) for y in unique_years]
-    omega_i = e_i_ref ./ max.(global_cap, 1e-10)
-
-    println("\nAutarky | $country_name")
-    println("  Ref emissions 2030 = $(round(e_i_ref[1]; digits=3)) GtCO2 | Global cap 2030 = $(round(global_cap[1]; digits=3)) GtCO2")
-
-    for pi_i in pi_vals
-        pi_str = replace(string(round(pi_i; digits=2)), "." => "p")
-        folder = joinpath(OUTPUT_BASE, country_name, "autarky_$pi_str")
-        isdir(folder) && isfile(joinpath(folder, "gross_output.csv")) && continue
-
-        println("\nAutarky | $country_name | π = $pi_i")
-
-        # ── Analytical starting estimate for p_{-i} using the actual MAC exponent ──
-        if !isnothing(pback)
-            mu_ref   = [pback[t] > 0 && p_star_path[t] > 0 ?
-                        (min(p_star_path[t], pback[t]) / pback[t])^α_abat : 0.0
-                        for t in 1:nb_steps]
-            mu_i     = [min(pi_i^α_abat * mu_ref[t], 1.0) for t in 1:nb_steps]
-            eff_pi_α = [mu_ref[t] > 1e-10 ? mu_i[t] / mu_ref[t] : pi_i^α_abat
-                        for t in 1:nb_steps]
-        else
-            eff_pi_α = fill(pi_i^α_abat, nb_steps)
-        end
-        denom     = max.(1.0 .- omega_i, 1e-10)
-        raw_ratio = (1.0 .- eff_pi_α .* omega_i) ./ denom
-        p_minus_i = p_star_path .* sign.(raw_ratio) .* abs.(raw_ratio) .^ (θ2_abat - 1.0)
-        p_minus_i[unique_years .< 2030] .= 0.0
-
-        # ── Model setup ───────────────────────────────────────────────────────
-        m = MimiNICE2020.create_nice2020()
-        update_param!(m, :quantile_recycle, :elasticity_slope,        0)
-        update_param!(m, :switch_custom_transfers,                    0)
-        update_param!(m, :switch_recycle,                             0)
-        update_param!(m, :switch_global_recycling,                    0)
-        update_param!(m, :revenue_recycle, :global_recycle_share,     zeros(nb_country))
-        update_param!(m, :revenue_recycle, :switch_global_pc_recycle, 0)
-        update_param!(m, :switch_footprint,                           1)
-        update_param!(m, :switch_transfers_affect_growth,             1)
-        update_param!(m, :policy_scenario, MimiNICE2020.scenario_index[:All_World])
-        update_param!(m, :abatement, :control_regime,                 4)
-        update_param!(m, :quantile_recycle, :recycle_share,           recycle_share_neutral)
-
-        # ── Newton iterations ─────────────────────────────────────────────────
-        max_err = Inf
-        glob_e  = nothing
-        e_lk    = nothing
-        for iter in 1:4
-            tax_mat = Float64[c in target_indices ? pi_i * p_star_path[t] : p_minus_i[t]
-                              for t in 1:nb_steps, c in 1:nb_country]
-            update_param!(m, :abatement, :direct_country_tax, tax_mat)
-            run(m)
-
-            glob_e = getdataframe(m, :emissions => :E_Global_gtco2)
-            ctry_e = getdataframe(m, :emissions => :E_gtco2)
-            e_lk   = Dict((r.time, r.country) => r.E_gtco2 for r in eachrow(ctry_e))
-
-            max_err = 0.0
-            for (t_idx, y) in enumerate(unique_years)
-                E_tot    = only(filter(r -> r.time == y, glob_e)).E_Global_gtco2
-                E_target = global_cap[t_idx]
-                E_target < 0.1 && continue
-                abs_err  = abs(E_tot - E_target)
-                max_err  = max(max_err, abs_err / cap_norm)
-                abs_err / cap_norm < 0.001 && continue
-
-                E_i          = sum(get(e_lk, (y, s), 0.0) for s in target_symbols)
-                E_row_actual = E_tot - E_i
-                E_row_target = E_target - E_i
-                abs(E_row_actual) <= 1e-10 && continue
-
-                if !isnothing(pback) && pback[t_idx] > 0
-                    r         = p_minus_i[t_idx] / pback[t_idx]
-                    mu_cur    = sign(r) * abs(r)^α_abat
-                    abs(1.0 - mu_cur) < 1e-10 && continue
-                    sigma_eff = E_row_actual / (1.0 - mu_cur)
-                    mu_new    = 1.0 - E_row_target / sigma_eff
-                    (isnan(mu_new) || isinf(mu_new)) && continue
-                    p_minus_i[t_idx] = pback[t_idx] * sign(mu_new) * abs(mu_new)^(θ2_abat - 1.0)
-                end
-            end
-
-            println("  [Newton $iter]  max rel. error = $(round(max_err * 100; digits=3))%")
-            max_err < 0.001 && (println("  ✓ converged"); break)
-        end
-
-        # ── Bisection fallback ────────────────────────────────────────────────
-        if max_err >= 0.001
-            @warn "$country_name π=$pi_i Newton did not converge, trying bisection"
-            p_low  = !isnothing(pback) ? -copy(pback)  : fill(-1000.0, nb_steps)
-            p_high = !isnothing(pback) ? 10.0 .* pback : fill(10000.0, nb_steps)
-
-            for (t_idx, y) in enumerate(unique_years)
-                global_cap[t_idx] < 0.1 && continue
-                E_tot    = only(filter(r -> r.time == y, glob_e)).E_Global_gtco2
-                E_target = global_cap[t_idx]
-                if abs(E_tot - E_target) / cap_norm < 0.001
-                    p_low[t_idx] = p_high[t_idx] = p_minus_i[t_idx]
-                    continue
-                end
-                E_i          = sum(get(e_lk, (y, s), 0.0) for s in target_symbols)
-                E_row_actual = E_tot - E_i
-                E_row_target = E_target - E_i
-                if E_row_actual > E_row_target
-                    p_low[t_idx]  = max(p_low[t_idx],  p_minus_i[t_idx])
-                else
-                    p_high[t_idx] = min(p_high[t_idx], p_minus_i[t_idx])
-                end
-            end
-
-            for bis_iter in 1:30
-                for t in 1:nb_steps
-                    global_cap[t] >= 0.1 && p_low[t] < p_high[t] &&
-                        (p_minus_i[t] = 0.5 * (p_low[t] + p_high[t]))
-                end
-                tax_mat = Float64[c in target_indices ? pi_i * p_star_path[t] : p_minus_i[t]
-                                  for t in 1:nb_steps, c in 1:nb_country]
-                update_param!(m, :abatement, :direct_country_tax, tax_mat)
-                run(m)
-
-                glob_e = getdataframe(m, :emissions => :E_Global_gtco2)
-                ctry_e = getdataframe(m, :emissions => :E_gtco2)
-                e_lk   = Dict((r.time, r.country) => r.E_gtco2 for r in eachrow(ctry_e))
-
-                max_err = 0.0
-                for (t_idx, y) in enumerate(unique_years)
-                    global_cap[t_idx] < 0.1 && continue
-                    E_tot    = only(filter(r -> r.time == y, glob_e)).E_Global_gtco2
-                    E_target = global_cap[t_idx]
-                    max_err  = max(max_err, abs(E_tot - E_target) / cap_norm)
-                    E_i          = sum(get(e_lk, (y, s), 0.0) for s in target_symbols)
-                    E_row_actual = E_tot - E_i
-                    E_row_target = E_target - E_i
-                    if E_row_actual > E_row_target
-                        p_low[t_idx]  = p_minus_i[t_idx]
-                    else
-                        p_high[t_idx] = p_minus_i[t_idx]
-                    end
-                end
-
-                println("  [Bisection $bis_iter]  max_err = $(round(max_err * 100; digits=3))%")
-                max_err < 0.001 && (println("  ✓ bisection converged"); break)
-                bis_iter == 30 && @warn "$country_name π=$pi_i did not converge after bisection (max_err=$(round(max_err*100;digits=3))%)"
-            end
-        end
-
-        mkpath(folder)
-        save_nice2020_reduced_output(m, folder)
-        save_country_series!(folder, country_name)
-
-        df_go = CSV.read(joinpath(folder, "gross_output.csv"), DataFrame)
-        println("  [Check Output] Gross Output | Min: $(round(minimum(df_go.gross_output); digits=2)) | Max: $(round(maximum(df_go.gross_output); digits=2)) | Mean: $(round(mean(df_go.gross_output); digits=2))")
-
-        m = nothing
-    end
-end
-
-# ═════════════════════════════════════════════════════════════════════════════
-# SCENARIO U1 — UNIFORM PRICE, VARYING RIGHTS
-#
-# The global cap stays fixed (same total emissions as scenario 5).  We vary
-# the rights allocated to country i by a factor rho relative to its population
-# share, then redistribute the remaining rights to other countries in
-# proportion to their baseline emissions.
-# ═════════════════════════════════════════════════════════════════════════════
-
-idx_2030 = findfirst(y -> y >= 2030, unique_years)
-
-for country_name in [target_countries ; invisible_countries]
-    is_eu27        = (country_name == "EU27")
-    target_symbols = is_eu27 ? eu27_countries : [Symbol(country_name)]
-    target_indices = findall(x -> x in target_symbols, all_countries)
-
-    target_pop  = [sum(get(pop_lookup, (y, s), 0.0) for s in target_symbols) for y in unique_years]
-    pop_share_i = target_pop ./ global_pop          # vector of length nb_steps
-
-    e_i_ref_2030 = sum(get(emissions_lookup, (unique_years[idx_2030], s), 0.0) for s in target_symbols)
-    println("\nUniform | $country_name")
-    println("  Pop share 2030     = $(round(pop_share_i[idx_2030] * 100; digits=2))%")
-    println("  Ref emissions 2030 = $(round(e_i_ref_2030; digits=3)) GtCO2 | Global cap 2030 = $(round(global_cap[idx_2030]; digits=3)) GtCO2")
-
-    for ratio in ratio_vals
-        rat_str = replace(string(round(ratio; digits=2)), "." => "p")   # "0.02" → "0p02" for folder name
-        folder  = joinpath(OUTPUT_BASE, country_name, "uniform_ratio_$rat_str")
-
-        rights_i = ratio .* pop_share_i .* global_cap  # ratio = ρ
-
-        println("\nUniform | $country_name | ρ = $ratio")
-        println("  Rights 2030 = $(round(rights_i[idx_2030]; digits=3)) GtCO2  (ρ × pop_share × E* = $(round(ratio * pop_share_i[idx_2030] * global_cap[idx_2030]; digits=3)))")
-        rights_i[idx_2030] > global_cap[idx_2030] && println("  ⚠  rights_i > global_cap → RoW gets negative rights")
-
-        rights_mat = zeros(Float64, nb_steps, nb_country)
-        for t in 1:nb_steps
-            target_pop[t] == 0 && continue   # guard against division by zero
-            y = unique_years[t]
-
-            # group members: proportional to their population
-            for idx in target_indices
-                s = all_countries[idx]
-                rights_mat[t, idx] = get(pop_lookup, (y, s), 0.0) / target_pop[t] * rights_i[t]
-            end
-
-            # RoW: proportional to reference emissions
-            rem       = max(0.0, global_cap[t] - rights_i[t])
-            other_ems = sum(get(emissions_lookup, (y, s), 0.0)
-                            for s in all_countries if !(s in target_symbols))
-            for c in 1:nb_country
-                c in target_indices && continue
-                s = all_countries[c]
-                rights_mat[t, c] = other_ems > 0 ?
-                    get(emissions_lookup, (y, s), 0.0) / other_ems * rem :
-                    rem / (nb_country - length(target_indices))   # fallback: equal split
-            end
-        end
-
-        m = MimiNICE2020.create_nice2020()
-        update_param!(m, :switch_custom_transfers,                   1)  # activate transfer mechanism
-        update_param!(m, :switch_recycle,                            1)
-        update_param!(m, :switch_global_recycling,                   1)
-        update_param!(m, :revenue_recycle, :global_recycle_share,    ones(nb_country))  # all countries participate
-        update_param!(m, :revenue_recycle, :switch_global_pc_recycle, 1)
-        update_param!(m, :revenue_recycle, :rights_proposed,         rights_mat)        # rights matrix
-        update_param!(m, :switch_footprint,                          1)
-        update_param!(m, :switch_transfers_affect_growth,            1)
-        update_param!(m, :abatement, :control_regime,                1)                 # uniform global tax
-        update_param!(m, :abatement, :global_carbon_tax,             p_star_path)       # p* for everyone
-        update_param!(m, :quantile_recycle, :recycle_share,          recycle_share_neutral)
-        run(m)
-
-        E_ctry_2030 = sum(m[:emissions, :E_gtco2][idx_2030, idx] for idx in target_indices)
-        transfer_bn  = p_star_path[idx_2030] * (rights_i[idx_2030] - E_ctry_2030)
-        println("  Emissions 2030    = $(round(E_ctry_2030; digits=3)) GtCO2")
-        println("  Net transfer 2030 = $(round(transfer_bn; digits=2)) bn USD  (p* × (r_i − E_i))")
-
-        mkpath(folder)
-        save_nice2020_reduced_output(m, folder)
-        save_country_series!(folder, country_name)
-
-        df_go  = CSV.read(joinpath(folder, "gross_output.csv"), DataFrame)
-        go_min  = minimum(df_go.gross_output)
-        go_max  = maximum(df_go.gross_output)
-        go_mean = mean(df_go.gross_output)
-        println("  [Check Output] Gross Output | Min: $(round(go_min; digits=2)) | Max: $(round(go_max; digits=2)) | Mean: $(round(go_mean; digits=2))")
-
-        m = nothing   # release memory — important inside a loop over many scenarios
-    end
-end
-
-# ═════════════════════════════════════════════════════════════════════════════
-# SCENARIO A2 — AUTARKY WITH NEGISHI RECYCLING
-# Same Newton+bisection solver; only recycle_share changes.
-# YGROSS is unaffected (pre-redistribution), but EDE welfare changes because
-# Negishi weights redirect revenue towards richer quintiles.
-# ═════════════════════════════════════════════════════════════════════════════
-
-pi_vals_negishi = [0.3, 0.4, 0.5, 0.65, 0.85, 1.1, 1.4, 1.8, 2.35, 3.0]
+pi_vals_negishi = [0.25, 0.5, 0.75, 1.0, 1.25, 1.5, 1.75, 2.0, 2.25, 2.5, 2.75, 3.0, 3.25, 3.5, 3.75, 4.0, 4.25, 4.5, 4.75]
 
 for country_name in [target_countries; invisible_countries]
     is_eu27        = (country_name == "EU27")
@@ -490,7 +228,7 @@ for country_name in [target_countries; invisible_countries]
         update_param!(m, :switch_transfers_affect_growth,             1)
         update_param!(m, :policy_scenario, MimiNICE2020.scenario_index[:All_World])
         update_param!(m, :abatement, :control_regime,                 4)
-        update_param!(m, :quantile_recycle, :recycle_share,           recycle_share_negishi)
+        update_param!(m, :quantile_recycle, :recycle_share,           recycle_share_negishi) # or recycle_share_neutral for the other scenario
 
         max_err = Inf
         glob_e  = nothing
@@ -605,7 +343,12 @@ for country_name in [target_countries; invisible_countries]
 end
 
 # ═════════════════════════════════════════════════════════════════════════════
-# SCENARIO U2 — UNIFORM PRICE WITH NEGISHI RECYCLING
+# SCENARIO U — UNIFORM PRICE WITH NEGISHI RECYCLING
+
+# The global cap stays fixed (same total emissions as scenario 5).  We vary
+# the rights allocated to country i by a factor rho relative to its population
+# share, then redistribute the remaining rights to other countries in
+# proportion to their baseline emissions.
 # ═════════════════════════════════════════════════════════════════════════════
 
 for country_name in [target_countries; invisible_countries]
@@ -691,9 +434,6 @@ end
 parse_pval(name, sep) = parse(Float64, replace(split(basename(name), sep)[end], "p" => "."))
 npv_go(df) = net_present_value(df, first(YEARS_NPV), last(YEARS_NPV), DISCOUNT_RATE, "gross_output")
 
-# Heatmap on a log-log grid using actual log10 coordinates (no yscale/:log10 on the axis).
-# This avoids the gap between the frame and the cells that appears when log scale is applied
-# to integer indices. Half-cell padding keeps cells flush with the frame.
 function log_heatmap_plot(pi_hm, ratio_hm, results, clims, color_scheme; kwargs...)
     lpi  = log10.(pi_hm)
     lrat = log10.(ratio_hm)
@@ -719,170 +459,12 @@ function try_parse_pval(name, sep) # to ignore the negishi folders in these heat
     return tryparse(Float64, cleaned)
 end
 
-function load_gdp_heatmap(country, omega_i, pop_share_i)
-    cpath  = joinpath(OUTPUT_BASE, country)
-    # a_dirs = sort(filter(d -> isdir(d) && startswith(basename(d), "autarky_"),
-                        # readdir(cpath; join=true)); by = d -> parse_pval(d, "autarky_"))
-    # u_dirs = sort(filter(d -> isdir(d) && startswith(basename(d), "uniform_ratio_"),
-                        # readdir(cpath; join=true)); by = d -> parse_pval(d, "uniform_ratio_"))
-    
-    a_valid = Tuple{String, Float64}[]
-    for d in readdir(cpath; join=true)
-        if isdir(d) && startswith(basename(d), "autarky_")
-            p = try_parse_pval(d, "autarky_")
-            # Only keep it if it successfully parsed AND is <= 2.0
-            if !isnothing(p) && p <= 2.0
-                push!(a_valid, (d, p))
-            end
-        end
-    end
-    sort!(a_valid, by = x -> x[2]) # Sort by the parsed float value
-    a_dirs = first.(a_valid)       # Extract the folder paths
-
-    u_valid = Tuple{String, Float64}[]
-    for d in readdir(cpath; join=true)
-        if isdir(d) && startswith(basename(d), "uniform_ratio_")
-            p = try_parse_pval(d, "uniform_ratio_")
-            # Only keep it if it successfully parsed AND is <= 10.0
-            if !isnothing(p) && p <= 10.0
-                push!(u_valid, (d, p))
-            end
-        end
-    end
-    sort!(u_valid, by = x -> x[2])
-    u_dirs = first.(u_valid)
-
-    (isempty(a_dirs) || isempty(u_dirs)) && return nothing
-
-    pi_hm    = last.(a_valid)
-    ratio_hm = last.(u_valid)
-
-    read_npv(d) = begin # takes into account whether gross_output is Nan for any year in YEARS_NPV (which is the case for India and China)
-      path = joinpath(d, "gross_output.csv")
-      !isfile(path) && return (NaN, false)
-      df    = CSV.read(path, DataFrame)
-      rows  = filter(r -> first(YEARS_NPV) <= r.time <= last(YEARS_NPV), df)
-      valid = filter(r -> !isnan(r.gross_output), rows)
-      nrow(valid) == 0 && return (NaN, false)
-      val = net_present_value(valid, first(YEARS_NPV), last(YEARS_NPV), DISCOUNT_RATE, "gross_output")
-      return (val, nrow(valid) < nrow(rows))   # (npv, was_truncated)
-    end
-
-    a_results       = read_npv.(a_dirs)
-    a_npvs          = first.(a_results)
-    a_truncated     = last.(a_results)
-
-    u_results   = read_npv.(u_dirs)
-    u_npvs      = first.(u_results)
-
-    results = Float64[
-        isnan(u_npvs[i]) || isnan(a_npvs[j]) || abs(a_npvs[j]) < 1e-6 ? NaN :
-            (u_npvs[i] - a_npvs[j]) / abs(a_npvs[j]) * 100
-        for i in eachindex(u_dirs), j in eachindex(a_dirs)
-    ]
-    
-    autarky_subsidy = [any((1.0 .- π^α_abat .* omega_i) .< 0.0) for π in pi_hm]
-    uniform_bad     = [any(pop_share_i .* ρ .> 1.0)              for ρ in ratio_hm]
-
-    return (results         = results,
-            pi_hm           = pi_hm,
-            ratio_hm        = ratio_hm,
-            autarky_truncated = a_truncated,
-            autarky_subsidy = autarky_subsidy,
-            uniform_bad     = uniform_bad)
-end
-
-# ── derive shared colour limits across all countries ──────────────────────────
-store = Dict(c => begin
-      t_syms = (c == "EU27") ? eu27_countries : [Symbol(c)]
-      ω = [sum(get(emissions_lookup,(y,s),0.0) for s in t_syms) for y in unique_years] ./
-          max.(global_cap, 1e-10)
-      ps = [sum(get(pop_lookup,(y,s),0.0) for s in t_syms) for y in unique_years] ./ global_pop
-      load_gdp_heatmap(c, ω, ps)
-end for c in target_countries)
-filter!(p -> !isnothing(p.second), store)
-
-all_vals = vcat([filter(!isnan, vec(d.results)) for d in values(store)]...)
-clim_val = isempty(all_vals) ? 5.0 : quantile(abs.(all_vals), 0.95)
-shared_clims = (-clim_val, clim_val)
-
-for country in target_countries
-    !haskey(store, country) && continue
-    d = store[country]
-
-    # apply supervisor range: π ∈ [0.5, 2.0], ρ ≤ 10
-    pi_mask    = (d.pi_hm .>= 0.5) .& (d.pi_hm .<= 2.0)
-    ratio_mask = d.ratio_hm .<= 10.0
-    pi_sub    = d.pi_hm[pi_mask]
-    ratio_sub = d.ratio_hm[ratio_mask]
-    res_sub   = d.results[ratio_mask, pi_mask]
-    asub      = d.autarky_subsidy[pi_mask]
-    ubad      = d.uniform_bad[ratio_mask]
-    n_ratio, n_pi = size(res_sub)
-
-    p, lpi, lrat = log_heatmap_plot(pi_sub, ratio_sub, res_sub, shared_clims, cgrad(:RdBu);
-        xlabel          = "\n" * L"Autarky: Price factor $\pi_i$  ($p_i = \pi_i \cdot p^*$)",
-        ylabel          = L"Uniform price: Rights ratio $\rho_i$  ($r_i = \rho_i \cdot e^*_i$)",
-        colorbar_title  = "\nRelative NPV GDP gain (%)\n(Uniform price / Autarky)",
-        size=(600, 700), right_margin=16mm, left_margin=6mm,
-        bottom_margin=10mm, top_margin=4mm, frame=:axes, tickdir=:out,
-        tickfontsize=11, guidefontsize=12, colorbar_titlefontsize=10, legendfontsize=9,
-    )
-
-    # white cell borders — drawn over heatmap, under contour/scatter
-    for bx in [(lpi[i] + lpi[i+1]) / 2 for i in 1:n_pi-1]
-        vline!(p, [bx]; color=:white, lw=0.8, label="")
-    end
-    for by in [(lrat[i] + lrat[i+1]) / 2 for i in 1:n_ratio-1]
-        hline!(p, [by]; color=:white, lw=0.8, label="")
-    end
-
-    contour!(p, lpi, lrat, res_sub;
-        levels=[0.0], color=:black, lw=1.5, label="Indifference")
-
-    subsidy_xy = [(lpi[j], lrat[i])
-                for i in 1:n_ratio, j in 1:n_pi
-                if asub[j] && !ubad[i]]
-    bad_xy     = [(lpi[j], lrat[i])
-                for i in 1:n_ratio, j in 1:n_pi if ubad[i]]
-
-    !isempty(subsidy_xy) && scatter!(p, first.(subsidy_xy), last.(subsidy_xy);
-      markershape=:circle, markersize=4, markercolor=:white, markeralpha=0.7,
-      markerstrokecolor=:dimgrey, markerstrokewidth=1, label="RoW subsidized (autarky)")
-
-    !isempty(bad_xy) && scatter!(p, first.(bad_xy), last.(bad_xy);
-      markershape=:x, markersize=5, markercolor=:dimgrey,
-      markerstrokecolor=:black, markerstrokewidth=1, label="RoW rights < 0 (uniform)")
-
-    j1 = findfirst(==(1.0), pi_sub)
-    if !isnothing(j1)
-        col = res_sub[:, j1]
-        for i in 1:length(col)-1
-            if !isnan(col[i]) && !isnan(col[i+1]) && col[i] * col[i+1] <= 0
-                t    = col[i] / (col[i] - col[i+1])
-                lρ   = lrat[i] + t * (lrat[i+1] - lrat[i])
-                lpi1 = lpi[j1]
-                xl, yl = xlims(p)[1], ylims(p)[1]
-                plot!(p, [lpi1, lpi1], [yl, lρ]; color=:grey, lw=1.2, linestyle=:dot, label="")
-                plot!(p, [xl, lpi1],   [lρ, lρ]; color=:grey, lw=1.2, linestyle=:dot, label="")
-                scatter!(p, [lpi1], [lρ]; markershape=:cross, markersize=6,
-                         markercolor=:black, markeralpha=0.8, markerstrokecolor=:black,
-                         markerstrokewidth=1.5, label="")
-                break
-            end
-        end
-    end
-
-    savefig(p, joinpath(OUTPUT_BASE, country, "GDP_Heatmap_$(country).pdf"))
-    savefig(p, joinpath(OUTPUT_BASE, country, "GDP_Heatmap_$(country).png"))
-    println("Saved: GDP_Heatmap_$country (.pdf + .png)")
-end
 
 ## example of numbers for autarky, USA, pi=2.0 
 country = "USA"
 pi_i    = 2.0
 pi_str  = replace(string(round(pi_i; digits=2)), "." => "p")
-folder  = joinpath(OUTPUT_BASE, country, "autarky_$pi_str")
+folder  = joinpath(OUTPUT_BASE, country, "autarky_negishi_$pi_str")
 
 tax_df = CSV.read(joinpath(folder, "country_carbon_tax.csv"), DataFrame)
 ems_df = CSV.read(joinpath(folder, "emissions.csv"), DataFrame)
@@ -920,7 +502,7 @@ country = "COD"
 ratio   = 5.0
 
 rat_str        = replace(string(round(ratio; digits=2)), "." => "p")
-folder         = joinpath(OUTPUT_BASE, country, "uniform_ratio_$rat_str")
+folder         = joinpath(OUTPUT_BASE, country, "uniform_negishi_ratio_$rat_str")
 
 ems_df = CSV.read(joinpath(folder, "emissions.csv"), DataFrame)
 
@@ -1002,12 +584,14 @@ function load_welfare_heatmap(country, omega_i, pop_share_i, target_pis)
             uniform_bad       = uniform_bad)
 end
 
+pi_vals_heatmap = [0.1, 0.3, 0.5, 0.75, 1.0, 1.25, 1.5, 2.0, 2.5, 3.0, 4.0, 5.0]
+
 store_welfare = Dict(c => begin
     t_syms = (c == "EU27") ? eu27_countries : [Symbol(c)]
     ω  = [sum(get(emissions_lookup,(y,s),0.0) for s in t_syms) for y in unique_years] ./
          max.(global_cap, 1e-10)
     ps = [sum(get(pop_lookup,(y,s),0.0) for s in t_syms) for y in unique_years] ./ global_pop
-    load_welfare_heatmap(c, ω, ps, pi_vals_negishi)
+    load_welfare_heatmap(c, ω, ps, pi_vals_heatmap)
 end for c in target_countries)
 filter!(p -> !isnothing(p.second), store_welfare)
 
@@ -1020,7 +604,7 @@ for country in target_countries
     d = store_welfare[country]
 
     # apply supervisor range: π ∈ [0.5, 2.0], ρ ≤ 10
-    pi_mask    = (d.pi_hm .>= 0.3) .& (d.pi_hm .<= 3.0)
+    pi_mask    = (d.pi_hm .>= 0.3) .& (d.pi_hm .<= 5.0)
     ratio_mask = d.ratio_hm .<= 10.0
     pi_sub    = d.pi_hm[pi_mask]
     ratio_sub = d.ratio_hm[ratio_mask]
@@ -1032,7 +616,7 @@ for country in target_countries
     p, lpi, lrat = log_heatmap_plot(pi_sub, ratio_sub, res_sub, shared_clims_w, cgrad(:RdBu);
         xlabel          = "\n" * L"Autarky: Price factor $\pi_i$  ($p_i = \pi_i \cdot p^*$)",
         ylabel          = L"Uniform price: Rights factor $\rho_i$  ($r_i = \rho_i \cdot e^*_i$)",
-        colorbar_title  = "\nWelfare in Uniform relative to Autarky",
+        colorbar_title  = "\nWelfare in Uniform relative to Autarky\n(% of EDE consumption NPV)",
         size=(800, 600), right_margin=16mm, left_margin=6mm,
         bottom_margin=10mm, top_margin=4mm, frame=:axes, tickdir=:out,
         tickfontsize=11, guidefontsize=12, colorbar_titlefontsize=10, legendfontsize=9,
@@ -1158,23 +742,60 @@ for country in target_countries
     !haskey(store_gdp_negishi, country) && continue
     d = store_gdp_negishi[country]
 
-    # apply supervisor range: π ∈ [0.5, 2.0], ρ ≤ 10
-    pi_mask    = (d.pi_hm .>= 0.3) .& (d.pi_hm .<= 3.0)
-    ratio_mask = d.ratio_hm .<= 10.0
-    pi_sub    = d.pi_hm[pi_mask]
+    # subset to display range
+    pi_mask    = (d.pi_hm    .>= 0.3) .& (d.pi_hm    .<= 5.0)
+    ratio_mask =  d.ratio_hm .<= 10.0
+
+    pi_sub    = d.pi_hm[pi_mask]       # linear values
     ratio_sub = d.ratio_hm[ratio_mask]
     res_sub   = d.results[ratio_mask, pi_mask]
     asub      = d.autarky_subsidy[pi_mask]
     ubad      = d.uniform_bad[ratio_mask]
     n_ratio, n_pi = size(res_sub)
 
+    # axis positions
+    # π is the policy-relevant axis; linear keeps π=1 visually central.
+    # ρ spans 0→10 so log helps, but linear is also fine.
+    x_pos = pi_sub                          # linear x positions
+    y_pos = log.(ratio_sub)                 # log y positions (swap to ratio_sub if preferred)
+
+    xtick_vals = pi_vals_negishi
+    xtick_pos  = xtick_vals                 # same as vals since linear
+    xtick_labs = string.(xtick_vals)
+
+    ytick_vals = [0.0, 1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0, 8.0, 9.0, 10.0]
+    ytick_pos  = ytick_vals
+    ytick_labs = string.(ytick_vals)
+
+    # apply supervisor range: π ∈ [0.5, 2.0], ρ ≤ 10
+    # pi_mask    = (d.pi_hm .>= 0.3) .& (d.pi_hm .<= 5.0)
+    # ratio_mask = d.ratio_hm .<= 10.0
+    # pi_sub    = d.pi_hm[pi_mask]
+    # ratio_sub = d.ratio_hm[ratio_mask]
+    # res_sub   = d.results[ratio_mask, pi_mask]
+    # asub      = d.autarky_subsidy[pi_mask]
+    # ubad      = d.uniform_bad[ratio_mask]
+    # n_ratio, n_pi = size(res_sub)
+
     p, lpi, lrat = log_heatmap_plot(pi_sub, ratio_sub, res_sub, shared_clims_g, cgrad(:RdBu);
         xlabel          = "\n" * L"Autarky: Price factor $\pi_i$  ($p_i = \pi_i \cdot p^*$)",
         ylabel          = L"Uniform price: Rights ratio $\rho_i$  ($r_i = \rho_i \cdot e^*_i$)",
         colorbar_title  = "\nNPV GDP gain (%)\n(Uniform / Autarky, Negishi)",
-        size=(800, 700), right_margin=16mm, left_margin=6mm,
-        bottom_margin=10mm, top_margin=4mm, frame=:axes, tickdir=:out,
-        tickfontsize=11, guidefontsize=12, colorbar_titlefontsize=10, legendfontsize=9,
+        xticks         = (xtick_pos, xtick_labs),
+        yticks         = (ytick_pos, ytick_labs),
+        size           = (780, 580),
+        right_margin   = 14Plots.mm,
+        left_margin    = 8Plots.mm,
+        bottom_margin  = 10Plots.mm,
+        top_margin     = 6Plots.mm,
+        frame          = :axes,
+        tickdir        = :out,
+        tickfontsize   = 10,
+        guidefontsize  = 11,
+        colorbar_titlefontsize = 9,
+        legendfontsize = 9,
+        legend         = :topright,
+        dpi            = 300,
     )
 
     # white cell borders — drawn over heatmap, under contour/scatter
@@ -1224,4 +845,298 @@ for country in target_countries
     savefig(p, joinpath(OUTPUT_BASE, country, "GDP_Negishi_Heatmap_$(country).pdf"))
     savefig(p, joinpath(OUTPUT_BASE, country, "GDP_Negishi_Heatmap_$(country).png"))
     println("Saved: GDP_Negishi_Heatmap_$country (.pdf + .png)")
+end
+
+# ═════════════════════════════════════════════════════════════════════════════
+# WELFARE HEATMAP — NPV OF RELATIVE EDE GAIN: UNIFORM vs AUTARKY (NEGISHI)
+
+# Reads consumption_EDE.csv from the Negishi scenario folders.
+# EDE uses Atkinson equal weights; the Negishi recycling determines the
+# within-country distribution of carbon revenue, not the welfare evaluation.
+#
+# π-axis (x): LINEAR 
+# ρ-axis (y): LOG 
+# ═════════════════════════════════════════════════════════════════════════════
+
+function load_welfare_heatmap(country, omega_i, pop_share_i, target_pis)
+    cpath   = joinpath(OUTPUT_BASE, country)
+    a_all   = sort(filter(d -> isdir(d) && startswith(basename(d), "autarky_negishi_"),
+                         readdir(cpath; join=true)); by = d -> parse_pval(d, "autarky_negishi_"))
+    a_pairs = filter(x -> any(isapprox(x[2], t; rtol=1e-3) for t in target_pis),
+                    [(d, parse_pval(d, "autarky_negishi_")) for d in a_all])
+    a_dirs  = first.(a_pairs)
+    u_dirs  = sort(filter(d -> isdir(d) && startswith(basename(d), "uniform_negishi_ratio_"),
+                         readdir(cpath; join=true)); by = d -> parse_pval(d, "uniform_negishi_ratio_"))
+    (isempty(a_dirs) || isempty(u_dirs)) && return nothing
+
+    pi_hm    = last.(a_pairs)
+    ratio_hm = parse_pval.(u_dirs, "uniform_negishi_ratio_")
+
+    read_ede_npv(d) = begin
+        path = joinpath(d, "consumption_EDE.csv")
+        !isfile(path) && return (NaN, false)
+        df    = CSV.read(path, DataFrame)
+        rows  = filter(r -> first(YEARS_NPV) <= r.time <= last(YEARS_NPV), df)
+        valid = filter(r -> !isnan(r.consumption_ede), rows)
+        nrow(valid) == 0 && return (NaN, false)
+        val = net_present_value(valid, first(YEARS_NPV), last(YEARS_NPV), DISCOUNT_RATE, "consumption_ede")
+        return (val, nrow(valid) < nrow(rows))
+    end
+
+    a_results   = read_ede_npv.(a_dirs)
+    a_npvs      = first.(a_results)
+    a_truncated = last.(a_results)
+    u_results   = read_ede_npv.(u_dirs)
+    u_npvs      = first.(u_results)
+
+    results = Float64[
+        isnan(u_npvs[i]) || isnan(a_npvs[j]) || abs(a_npvs[j]) < 1e-6 ? NaN :
+            (u_npvs[i] - a_npvs[j]) / abs(a_npvs[j]) * 100
+        for i in eachindex(u_dirs), j in eachindex(a_dirs)
+    ]
+
+    autarky_subsidy = [any((1.0 .- π^α_abat .* omega_i) .< 0.0) for π in pi_hm]
+    uniform_bad     = [any(pop_share_i .* ρ .> 1.0)              for ρ in ratio_hm]
+
+    return (results           = results,
+            pi_hm             = pi_hm,
+            ratio_hm          = ratio_hm,
+            autarky_truncated = a_truncated,
+            autarky_subsidy   = autarky_subsidy,
+            uniform_bad       = uniform_bad)
+end
+
+store_welfare = Dict(c => begin
+    t_syms = (c == "EU27") ? eu27_countries : [Symbol(c)]
+    ω  = [sum(get(emissions_lookup,(y,s),0.0) for s in t_syms) for y in unique_years] ./
+         max.(global_cap, 1e-10)
+    ps = [sum(get(pop_lookup,(y,s),0.0) for s in t_syms) for y in unique_years] ./ global_pop
+    load_welfare_heatmap(c, ω, ps, pi_vals_negishi)
+end for c in target_countries)
+filter!(p -> !isnothing(p.second), store_welfare)
+
+all_welf_vals  = vcat([filter(!isnan, vec(d.results)) for d in values(store_welfare)]...)
+clim_welf      = isempty(all_welf_vals) ? 5.0 : quantile(abs.(all_welf_vals), 0.95)
+shared_clims_w = (-clim_welf, clim_welf)
+
+for country in target_countries
+    !haskey(store_welfare, country) && continue
+    d = store_welfare[country]
+
+    # ── 1. Subset to the display range ───────────────────────────────────────
+    pi_mask    = (d.pi_hm .>= 0.3) .& (d.pi_hm .<= 5.0)
+    ratio_mask = d.ratio_hm .<= 10.0
+    pi_sub    = d.pi_hm[pi_mask]        # linear x coordinates
+    ratio_sub = d.ratio_hm[ratio_mask]  # raw ρ values (plotted on log y)
+    res_sub   = d.results[ratio_mask, pi_mask]
+    asub      = d.autarky_subsidy[pi_mask]
+    ubad      = d.uniform_bad[ratio_mask]
+    n_ratio, n_pi = size(res_sub)
+
+    # ── 2. Log-y coordinates for the heatmap and overlays ────────────────────
+    # x stays linear (pi_sub); y is log10(ratio_sub) so heatmap cells are even
+    lrat = log10.(ratio_sub)
+
+    pi_step   = length(pi_sub) > 1 ? (pi_sub[end] - pi_sub[end-1]) / 2 : 0.5
+    lrat_step = length(lrat)   > 1 ? (lrat[end]   - lrat[end-1])   / 2 : 0.5
+
+    # ── 3. Build the heatmap ─────────────────────────────────────────────────
+    # heatmap() treats x/y as cell centres; with linear x the spacing is uniform
+    p = heatmap(pi_sub, lrat, res_sub;
+        clims          = shared_clims_w,
+        color          = cgrad(:RdBu),
+        xlabel         = "\n" * L"Autarky: price factor $\pi_i$  ($p_i = \pi_i \cdot p^*$)",
+        ylabel         = "Uniform price:\n"* L"rights factor $\rho_i$  ($r_i = \rho_i \cdot e_i^*$)",
+        colorbar_title = "\nWelfare in Uniform relative to Autarky\n(% of EDE consumption NPV)",
+        size           = (720, 360),
+        right_margin   = 18mm,
+        left_margin    = 8mm,
+        bottom_margin  = 12mm,
+        top_margin     = 6mm,
+        frame          = :axes, 
+        tickdir        = :out,
+        tickfontsize   = 10,
+        guidefontsize  = 12,
+        colorbar_titlefontsize = 10,
+        legendfontsize = 9,
+        legend         = :topright,
+        xlims = (minimum(pi_sub) - pi_step,   maximum(pi_sub) + pi_step),
+        ylims = (minimum(lrat)   - lrat_step, maximum(lrat)   + lrat_step)
+    )
+
+    # ── 4. Explicit x-ticks: show every 0.5 increment, label with π symbol ───
+    xtick_vals   = filter(v -> 0.3 <= v < 5.0, 0.25:0.25:5.0)
+    xtick_labels = [isinteger(v) || v in [0.5, 1.0, 1.5, 2.0, 2.5, 3.0, 3.5, 4.0, 4.5] ?
+                    string(v) : "" for v in xtick_vals]
+    plot!(p; xticks = (collect(xtick_vals), xtick_labels))
+
+    # ── 5. y-ticks: show the raw ρ values on the log scale ───────────────────
+    ytick_vals   = [0.02, 0.05, 0.1, 0.2, 0.5, 1.0, 2.0, 5.0, 10.0]
+    ytick_labels = ["0.02","0.05","0.1","0.2","0.5","1","2","5","10"]
+    plot!(p; yticks = (log10.(ytick_vals), ytick_labels))
+
+    # ── 6. Thin white cell borders (x now linear, so use midpoints of pi_sub) ─
+    for bx in [(pi_sub[i] + pi_sub[i+1]) / 2 for i in 1:n_pi-1]
+        vline!(p, [bx]; color=:white, lw=0.5, label="")
+    end
+    for by in [(lrat[i] + lrat[i+1]) / 2 for i in 1:n_ratio-1]
+        hline!(p, [by]; color=:white, lw=0.5, label="")
+    end
+
+    # ── 7. Indifference contour (zero welfare change) ────────────────────────
+    contour!(p, pi_sub, lrat, res_sub;
+        levels = [0.0],
+        color  = :black,
+        lw     = 2.0,
+        label  = "Indifference (ΔW = 0)",
+    )
+
+    # ── 8. Flag markers (coordinates: linear x, log10 y) ─────────────────────
+    subsidy_xy = [(pi_sub[j], lrat[i])
+                  for i in 1:n_ratio, j in 1:n_pi
+                  if asub[j] && !ubad[i]]
+    bad_xy     = [(pi_sub[j], lrat[i])
+                  for i in 1:n_ratio, j in 1:n_pi if ubad[i]]
+
+    !isempty(subsidy_xy) && scatter!(p, first.(subsidy_xy), last.(subsidy_xy);
+        markershape       = :circle,
+        markersize        = 2,
+        markercolor       = :white,
+        markeralpha       = 0.7,
+        markerstrokecolor = :dimgrey,
+        markerstrokewidth = 1,
+        label             = L"\mathrm{RoW\ price} < 0 \ \mathrm{(autarky)}",
+    )
+
+    !isempty(bad_xy) && scatter!(p, first.(bad_xy), last.(bad_xy);
+        markershape       = :xcross,
+        markersize        = 4,
+        markercolor       = :dimgrey,
+        markerstrokecolor = :black,
+        markerstrokewidth = 1,
+        label             = L"\mathrm{RoW\ rights} < 0 \ \mathrm{(uniform)}",
+    )
+
+    # ── 9. Crosshair at π = 1 (the theoretically neutral autarky price) ───────
+    # Find the column index for π = 1, interpolate ρ where ΔW crosses zero
+    j1 = findfirst(v -> isapprox(v, 1.0; atol=1e-3), pi_sub)
+    if !isnothing(j1)
+        col = res_sub[:, j1]
+        for i in 1:length(col)-1
+            if !isnan(col[i]) && !isnan(col[i+1]) && col[i] * col[i+1] <= 0
+                t    = col[i] / (col[i] - col[i+1])
+                lρ   = lrat[i] + t * (lrat[i+1] - lrat[i])
+                ρ_star = 10^lρ
+                xl   = xlims(p)[1]
+                yl   = ylims(p)[1]
+                # vertical dotted line down from the crosshair to x-axis
+                plot!(p, [pi_sub[j1], pi_sub[j1]], [yl, lρ];
+                      color=:grey, lw=1.2, linestyle=:dot, label="")
+                # horizontal dotted line left from the crosshair to y-axis
+                plot!(p, [xl, pi_sub[j1]], [lρ, lρ];
+                      color=:grey, lw=1.2, linestyle=:dot, label="")
+                scatter!(p, [pi_sub[j1]], [lρ];
+                        markershape       = :diamond,
+                        markersize        = 5,
+                        markercolor       = :black,
+                        markeralpha       = 0.9,
+                        markerstrokecolor = :black,
+                        markerstrokewidth = 1.2,
+                        label             = L"\rho_i \ \mathrm{at} \ \pi_i = 1\ (\rho_1)")
+                annotate!(p, xl + 0.75, lρ + 0.15,
+                      text(L"$\rho_1 = $ %$(round(ρ_star, digits=2))", :left, 8, :grey20))
+                break
+            end
+        end
+    end
+
+    # ── 11. Save ──────────────────────────────────────────────────────────────
+    savefig(p, joinpath(OUTPUT_BASE, country, "Welfare_Heatmap_$(country).pdf"))
+    println("Saved: Welfare_Heatmap_$country")
+end
+
+# ═════════════════════════════════════════════════════════════════════════════
+# SUMMARY TABLE — break-even ρ_1 at π=1 for each country
+# ═════════════════════════════════════════════════════════════════════════════
+
+# reference year for shares (2030, first policy year)
+ref_year = 2030
+t_ref    = findfirst(==(ref_year), unique_years)
+
+summary_rows = []
+
+for country in target_countries
+    !haskey(store_welfare, country) && continue
+    d = store_welfare[country]
+
+    t_syms = (country == "EU27") ? eu27_countries : [Symbol(country)]
+
+    # emission share and population share at ref_year
+    e_i   = sum(get(emissions_lookup, (ref_year, s), 0.0) for s in t_syms)
+    pop_i = sum(get(pop_lookup,       (ref_year, s), 0.0) for s in t_syms)
+    e_world   = global_cap[t_ref]
+    pop_world = global_pop[t_ref]
+
+    ems_share  = round(100 * e_i / e_world;   digits=1)  # %
+    pop_share  = round(100 * pop_i / pop_world; digits=1) # %
+    pc_ems = round((e_i * 1e9) / (pop_i * 1e3); digits=2) 
+    pc_ems_rel = round((e_i / pop_i) / (e_world / pop_world); digits=2) # ratio to world avg
+
+    # find ρ* at π=1 from the heatmap data
+    pi_mask    = (d.pi_hm .>= 0.3) .& (d.pi_hm .<= 5.0)
+    ratio_mask = d.ratio_hm .<= 10.0
+    pi_sub     = d.pi_hm[pi_mask]
+    ratio_sub  = d.ratio_hm[ratio_mask]
+    res_sub    = d.results[ratio_mask, pi_mask]
+    lrat       = log10.(ratio_sub)
+
+    ρ_star = NaN
+    j1 = findfirst(v -> isapprox(v, 1.0; atol=1e-3), pi_sub)
+    if !isnothing(j1)
+        col = res_sub[:, j1]
+        for i in 1:length(col)-1
+            if !isnan(col[i]) && !isnan(col[i+1]) && col[i] * col[i+1] <= 0
+                t     = col[i] / (col[i] - col[i+1])
+                lρ    = lrat[i] + t * (lrat[i+1] - lrat[i])
+                ρ_star = round(10^lρ; digits=2)
+                break
+            end
+        end
+    end
+
+    push!(summary_rows, (
+        country    = country,
+        ems_share  = ems_share,
+        pop_share  = pop_share,
+        pc_ems     = pc_ems,
+        pc_ems_rel = pc_ems_rel,
+        rho_star   = ρ_star,
+    ))
+end
+
+summary_df = DataFrame(summary_rows)
+println(summary_df)
+
+io = IOBuffer()
+println(io, "\\begin{table}[h]")
+println(io, "\\centering")
+println(io, "\\caption{Break-even rights factor \$\\rho^*\$ at \$\\pi_i = 1\$ by country}")
+println(io, "\\renewcommand{\\arraystretch}{1.2}")
+println(io, "\\begin{tabular}{lrrrr}")
+println(io, "  \\toprule")
+println(io, "  \\textbf{Country} & \\textbf{Emission share (\\%)} & \\textbf{Population share (\\%)} & \\textbf{Per-capita emissions (tC02)} & \$\\rho^*\$ at \$\\pi_i=1\$ \\\\")
+println(io, "  \\midrule")
+for r in eachrow(summary_df)
+    println(io, "  $(r.country) & $(r.ems_share) & $(r.pop_share) & $(r.pc_ems) & $(r.rho_star) \\\\")
+end
+println(io, "  \\bottomrule")
+println(io, "\\end{tabular}")
+println(io, "\\end{table}")
+
+latex_str = String(take!(io))
+println(latex_str)
+
+# optionally save to file
+open(joinpath(OUTPUT_BASE, "summary_table.tex"), "w") do f
+    write(f, latex_str)
 end
