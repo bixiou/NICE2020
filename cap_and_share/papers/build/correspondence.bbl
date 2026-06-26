@@ -1,0 +1,93 @@
+\begin{thebibliography}{11}
+\providecommand{\natexlab}[1]{#1}
+\providecommand{\url}[1]{\texttt{#1}}
+\expandafter\ifx\csname urlstyle\endcsname\relax
+  \providecommand{\doi}[1]{doi: #1}\else
+  \providecommand{\doi}{doi: \begingroup \urlstyle{rm}\Url}\fi
+
+\bibitem[Aldy \& Stavins(2012)]{aldy_promise_2012}
+J.~E. Aldy \& R.~N. Stavins.
+\newblock The {{Promise}} and {{Problems}} of {{Pricing Carbon}}: {{Theory}}
+  and {{Experience}}.
+\newblock \emph{The Journal of Environment \& Development}, 2012.
+\newblock \url{https://doi.org/10.1177/1070496512442508}.
+
+\bibitem[Anthoff et~al.(2021)Anthoff, Dennig, \&
+  Emmerling]{anthoff_differentiated_2021}
+D.~Anthoff, F.~Dennig, \& J.~Emmerling.
+\newblock On {{Differentiated Carbon Prices}} and {{Discount Rates}}, 2021.
+\newblock \url{https://papers.ssrn.com/abstract=3906413}.
+
+\bibitem[Babiker et~al.(2004)Babiker, Reilly, \& Viguier]{babiker_is_2004}
+M.~Babiker, J.~Reilly, \& L.~Viguier.
+\newblock Is {{International Emissions Trading Always Beneficial}}?
+\newblock \emph{The Energy Journal}, 2004.
+\newblock \url{https://doi.org/10.5547/ISSN0195-6574-EJ-Vol25-No2-2}.
+
+\bibitem[Bauer et~al.(2020)Bauer, Bertram, Schultes, Klein, Luderer, Kriegler,
+  Popp, \& Edenhofer]{bauer_quantification_2020}
+N.~Bauer, C.~Bertram, A.~Schultes, D.~Klein, G.~Luderer, E.~Kriegler, A.~Popp,
+  \& O.~Edenhofer.
+\newblock Quantification of an efficiency--sovereignty trade-off in climate
+  policy.
+\newblock \emph{Nature}, 2020.
+\newblock \url{https://www.nature.com/articles/s41586-020-2982-5}.
+
+\bibitem[Boeters(2014)]{boeters_optimally_2014}
+S.~Boeters.
+\newblock Optimally differentiated carbon prices for unilateral climate policy.
+\newblock \emph{Energy Economics}, 2014.
+\newblock
+  \url{https://www.sciencedirect.com/science/article/pii/S0140988314001728}.
+
+\bibitem[Chateau et~al.(2024)Chateau, Jaumotte, \&
+  Schwerhoff]{chateau_global_2024}
+J.~Chateau, F.~Jaumotte, \& G.~Schwerhoff.
+\newblock Global climate policy with differentiated carbon price floors.
+\newblock \emph{Climate Policy}, 2024.
+\newblock \url{https://doi.org/10.1080/14693062.2023.2205376}.
+
+\bibitem[Diamond \& Mirrlees(1971)]{diamond_optimal_1971}
+P.~A. Diamond \& J.~A. Mirrlees.
+\newblock Optimal {{Taxation}} and {{Public Production I}}: {{Production
+  Efficiency}}.
+\newblock \emph{The American Economic Review}, 1971.
+\newblock \url{https://www.jstor.org/stable/1910538}.
+
+\bibitem[Fabre(2025)]{fabre_global_2025}
+A.~Fabre.
+\newblock From {{Global Policies}} to {{Phase Out Fossil Fuels To}} a
+  {{Sustainable Union}}.
+\newblock 2025.
+\newblock
+  \url{https://github.com/bixiou/global\_tax\_attitudes/raw/main/paper/global\_climate\_policies.pdf}.
+
+\bibitem[Parry et~al.(2021)Parry, Black, \& Roaf]{parry_proposal_2021}
+I.~Parry, S.~Black, \& J.~Roaf.
+\newblock Proposal for an {{International Carbon Price Floor Among Large
+  Emitters}}.
+\newblock Technical report, IMF, 2021.
+\newblock
+  \url{https://www.imf.org/en/Publications/staff-climate-notes/Issues/2021/06/15/Proposal-for-an-International-Carbon-Price-Floor-Among-Large-Emitters-460468}.
+
+\bibitem[Wolfram et~al.(2025)Wolfram, Aldy, Bracher, Chaturvedi, Clausing,
+  Gollier, Jotzo, Medeiros, Muthitacharoen, Ockenfels, Pangestu, Sembene,
+  Somanathan, Tingley, Winter, Black, \& Fischer]{wolfram_building_2025}
+C.~Wolfram, J.~Aldy, C.~Bracher, V.~Chaturvedi, K.~Clausing, C.~Gollier,
+  F.~Jotzo, M.~Medeiros, A.~Muthitacharoen, A.~Ockenfels, M.~Pangestu,
+  D.~Sembene, E.~Somanathan, D.~Tingley, J.~Winter, S.~Black, \& C.~Fischer.
+\newblock Building a {{Climate Coalition}}: {{Aligning Carbon Pricing}},
+  {{Trade}}, and {{Development}}, 2025.
+\newblock
+  \url{https://ceepr.mit.edu/wp-content/uploads/2025/09/Full-Report-Building-a-Climate-Coalition.pdf}.
+
+\bibitem[{Young-Brun} et~al.(2025){Young-Brun}, Dennig, Errickson, Feindt,
+  M{\'e}jean, \& Zuber]{young-brun_within-country_2025}
+M.~{Young-Brun}, F.~Dennig, F.~Errickson, S.~Feindt, A.~M{\'e}jean, \&
+  S.~Zuber.
+\newblock Within-country inequality and the shaping of a just global climate
+  policy.
+\newblock \emph{Proceedings of the National Academy of Sciences}, 2025.
+\newblock \url{https://www.pnas.org/doi/10.1073/pnas.2505239122}.
+
+\end{thebibliography}

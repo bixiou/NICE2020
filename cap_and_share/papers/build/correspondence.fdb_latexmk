@@ -1,18 +1,19 @@
 # Fdb version 4
-["bibtex build/correspondence"] 1782143514 "build/correspondence.aux" "build/correspondence.bbl" "build/correspondence" 1782143517 0
-  "build/correspondence.aux" 1782143516 3175 92a8d55c6ea484d5153fb44024753245 "pdflatex"
-  "global_tax_attitudes.bib" 0 -1 0 ""
-  "plainnaturl_clean.bst" 0 -1 0 ""
+["bibtex build/correspondence"] 1782475155 "build/correspondence.aux" "build/correspondence.bbl" "build/correspondence" 1782475159 0
+  "./global_tax_attitudes.bib" 1781181674 302018 0caa401e0d362431a1c34fcd1ce795b1 ""
+  "./plainnaturl_clean.bst" 1674817879 24654 4b2b0914a35465b0a6a8366fb04efb16 ""
+  "build/correspondence.aux" 1782475158 5298 ec222a728d80600bc73d38619a7fa93c "pdflatex"
   (generated)
   "build/correspondence.bbl"
   "build/correspondence.blg"
   (rewritten before read)
-["pdflatex"] 1782143514 "c:/Users/fabre/Documents/www/NICE2020/cap_and_share/papers/correspondence.tex" "build/correspondence.pdf" "correspondence" 1782143517 2
-  "build/correspondence.aux" 1782143516 3175 92a8d55c6ea484d5153fb44024753245 "pdflatex"
-  "build/correspondence.bbl" 0 -1 0 "bibtex build/correspondence"
-  "build/correspondence.out" 1782143516 993 658355049dba99e893cd8e511809e090 "pdflatex"
-  "build/correspondence.toc" 1782143516 492 83e6ec8250b303ded2d2fda80d87e1d3 "pdflatex"
-  "c:/Users/fabre/Documents/www/NICE2020/cap_and_share/papers/correspondence.tex" 1782143507 37244 9c63989549aec8c473e52636a141b768 ""
+["pdflatex"] 1782475155 "c:/Users/fabre/Documents/www/NICE2020/cap_and_share/papers/correspondence.tex" "build/correspondence.pdf" "correspondence" 1782475159 0
+  "build/correspondence.aux" 1782475158 5298 ec222a728d80600bc73d38619a7fa93c "pdflatex"
+  "build/correspondence.bbl" 1782475155 4200 e8d65e9247fbb34241ba71888e5c8809 "bibtex build/correspondence"
+  "build/correspondence.brf" 1782475158 691 638fe438428e5f4ed9d4d33de3c4b65e "pdflatex"
+  "build/correspondence.out" 1782475158 1100 75cf689953d9377a63ca9873a832b14e "pdflatex"
+  "build/correspondence.toc" 1782475158 547 798d760077385036738905e4c2e0c063 "pdflatex"
+  "c:/Users/fabre/Documents/www/NICE2020/cap_and_share/papers/correspondence.tex" 1782466304 37451 84518ce62b895d29a6d1ec3f0e4bdbaa ""
   "c:/texlive/2022/texmf-dist/fonts/enc/dvips/base/8r.enc" 1670336910 4850 80dc9bab7f31fb78a000ccfed0e27cab ""
   "c:/texlive/2022/texmf-dist/fonts/map/fontname/texfonts.map" 1670337557 3524 cb3e574dea2d1052e39280babc910dc8 ""
   "c:/texlive/2022/texmf-dist/fonts/tfm/adobe/palatino/pplb7t.tfm" 1670341705 1616 371d1ee60c04b008c8fd760060cd34f1 ""
@@ -28,7 +29,6 @@
   "c:/texlive/2022/texmf-dist/fonts/tfm/public/cm/cmmi10.tfm" 1670336129 1528 abec98dbc43e172678c11b3b9031252a ""
   "c:/texlive/2022/texmf-dist/fonts/tfm/public/cm/cmr10.tfm" 1670336129 1296 45809c5a464d5f32c8f98ba97c1bb47f ""
   "c:/texlive/2022/texmf-dist/fonts/tfm/public/cm/cmr12.tfm" 1670336129 1288 655e228510b4c2a1abe905c368440826 ""
-  "c:/texlive/2022/texmf-dist/fonts/tfm/public/cm/cmss8.tfm" 1670336129 1296 d77f431d10d47c8ea2cc18cf45346274 ""
   "c:/texlive/2022/texmf-dist/fonts/tfm/public/cm/cmsy10.tfm" 1670336129 1124 6c73e740cf17375f03eec0ee63599741 ""
   "c:/texlive/2022/texmf-dist/fonts/tfm/public/mathpazo/fplmr.tfm" 1670340831 1032 7fa31d93ecd4cbdfac02c7a1ebc6facc ""
   "c:/texlive/2022/texmf-dist/fonts/tfm/public/mathpazo/fplmri.tfm" 1670340831 1148 56b0fdf7ca3f800294e968f64cfdcb87 ""
@@ -46,7 +46,6 @@
   "c:/texlive/2022/texmf-dist/fonts/type1/public/amsfonts/cm/cmex10.pfb" 1670334942 30251 6afa5cb1d0204815a708a080681d4674 ""
   "c:/texlive/2022/texmf-dist/fonts/type1/public/amsfonts/cm/cmmi10.pfb" 1670334942 36299 5f9df58c2139e7edcf37c8fca4bd384d ""
   "c:/texlive/2022/texmf-dist/fonts/type1/public/amsfonts/cm/cmr10.pfb" 1670334942 35752 024fb6c41858982481f6968b5fc26508 ""
-  "c:/texlive/2022/texmf-dist/fonts/type1/public/amsfonts/cm/cmss8.pfb" 1670334942 24420 52dbb8e8aa0069a1b987309557f8d303 ""
   "c:/texlive/2022/texmf-dist/fonts/type1/public/amsfonts/cm/cmsy10.pfb" 1670334942 32569 5e5ddc8df908dea60932f3c484a54c0d ""
   "c:/texlive/2022/texmf-dist/fonts/type1/public/mathpazo/fplmr.pfb" 1670340831 9356 3e1f7eacbb57d05d0b682da8d83eb600 ""
   "c:/texlive/2022/texmf-dist/fonts/type1/public/mathpazo/fplmri.pfb" 1670340831 15213 d999bbe8bd9c8f231f3f66a737c76478 ""
@@ -260,10 +259,10 @@
   "c:/texlive/2022/texmf-var/fonts/map/pdftex/updmap/pdftex.map" 1670344826 4662777 6d30ebd1f2949ad7a3d8a3b5cd0d9f7d ""
   "c:/texlive/2022/texmf-var/web2c/pdftex/pdflatex.fmt" 1670345276 3063323 6b2b6e0ebf0608d2b004d02eba85e55f ""
   "c:/texlive/2022/texmf.cnf" 1670344812 713 e69b156964470283e0530f5060668171 ""
-  "correspondence.tex" 1782143507 37244 9c63989549aec8c473e52636a141b768 ""
-  "correspondence.toc" 0 -1 0 ""
+  "correspondence.tex" 1782466304 37451 84518ce62b895d29a6d1ec3f0e4bdbaa ""
   (generated)
   "build/correspondence.aux"
+  "build/correspondence.brf"
   "build/correspondence.log"
   "build/correspondence.out"
   "build/correspondence.pdf"
