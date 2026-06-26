@@ -97,6 +97,7 @@
 \usepackage{titletoc} % Adds title to ToC (use with tocloft?)
 \usepackage[export]{adjustbox}
 \usepackage[anythingbreaks]{breakurl} % for links
+\usepackage{threeparttable}
 \usepackage{multicol}
 \usepackage{lineno}
 \usepackage{endnotes}
@@ -192,7 +193,12 @@ The various princ
 
 The Paris Agreement commits its signatories to limiting global warming to 1.5--2\textdegree C above pre-industrial levels. Meeting that target requires cutting global CO$_2$ emissions by roughly 28~GtCO$_2$ per year relative to current policy trajectories, yet the 2025 round of Nationally Determined Contributions (NDCs) leaves expected 2030 emissions largely unchanged~\citep{unepgap2025}. Worse still, global CO$_2$ emissions actually grew by 2.3 per cent in 2024, nearly four times the 0.6 per cent average growth rate of the 2010s. It can be argued that this shortfall is a failure of coordination with a distributional disagreement that has never been cleanly resolved.
 
-The disagreement takes the following form. Lower-income economies, whose per-capita emissions are below the global average, argue that a high, uniform global carbon price would impose disproportionate adjustment costs on their populations and their still-developing industrial bases. They therefore claim the right to set lower, nationally differentiated prices, or to delay ambitious action until wealthier countries provide sufficient financial compensation. Proponents of differentiated prices appeal to equity: a country that cannot afford to decarbonise its industrial base should not face the same carbon price as a wealthy one.
+The disagreement takes the following form. Lower-income economies, whose per-capita emissions are below the global average, argue that a high, uniform global carbon price would impose disproportionate adjustment costs on their populations and their still-developing industrial bases. They therefore claim the right to set lower, nationally differentiated prices, or to delay ambitious action until wealthier countries provide sufficient financial compensation. Proponents of a uniform price counter that differentiated prices are economically inefficient and that equity objectives are better achieved through lump-sum transfers alongside a uniform price. 
+
+The IMF's proposal for an International Carbon Price Floor \citep{parry2021} illustrates he disagreement's structure precisely: high-income countries would face a floor of \$75/tCO$_2$, middle-income countries \$50, and low-income countries \$25, with explicit acknowledgement that differentiated floors reduce the need for financial transfers between countries. The proposal has been contested on grounds that, while non-binding for developed economies, the floors would impose substantial additional abatement costs on large developing emitters such as China and India, placing the burden of increased ambition on countries least responsible for historical emissions \citep{majun2022}. The debate has remained unresolved in part because the two sides are talking past each other: proponents of differentiated prices treat the infeasibility of large international transfers as a given, while proponents of uniform pricing treat the efficiency of trading as decisive. This paper argues that both are right on their own terms, but that the disagreement rests on a false dichotomy. Indeed, our central contribution is a distributional equivalence result: for any system of nationally differentiated carbon prices in autarky, there exists a uniform global carbon price combined with an appropriately calibrated allocation of emission rights that delivers the same welfare outcome for every country, to a first-order approximation. The key formula is simple: the non-losing rights allocation for country $i$ is proportional to its per-capita emissions relative to the world average. It provides a direct mapping from any politically negotiated price differentiation to an equivalent cap-and-trade design. Because abatement costs are convex, the uniform-price regime is moreover strictly more efficient: international carbon trading always weakly dominates autarky. The debate over prices versus rights is therefore not a debate about fundamentally different policy instruments but about the distribution of a single policy's gains, and it can in principle be resolved by choosing the right allocation of emission rights.
+
+This result connects to a broader literature on the rationales for price differentiation. There are three classes of second-best arguments. First, \citet{anthoff2022} show that countries with different growth rates face different discount rates, implying that optimal carbon prices should differ even under a welfare-maximising social planner. Second and third, \citet{babiker2005} and \citet{boeters2014} demonstrate theoretically and numerically that pre-existing distortions, like market power in traded goods and sector-specific taxes, can justify price differentiation on pure efficiency grounds, with \citet{boeters2014} finding potential welfare gains equivalent to a 27\% emission reduction. These three arguments are second-best justifications that operate outside our first-best framework. A fourth argument, however, is that large international transfers are politically infeasible, making differentiated prices a necessary second-best redistributive instrument \citep{bauer2020, youngbrun2025}. It is this fourth argument that our equivalence result directly challenges: if any differentiated-price regime can be replicated by a uniform price with an appropriate rights allocation, the infeasibility of transfers cannot by itself justify price differentiation, since emission rights are a form of transfer that operates through the same market mechanism.
+
 
 % Arguments against uniform price: Boeters (14): other taxes, terms-of-trade (numerical); Anthoff, Dennig, Emmerling (22): different discount rates; Babiker et al. (04): other taxes, terms-of-trade (theoretical).
 % Also cite Bauer et al. (2020): efficiency-sovereignty trade-off.
@@ -219,22 +225,18 @@ The disagreement takes the following form. Lower-income economies, whose per-cap
 % in comparison, we provide the analytical microfoundation explaining why the corner solutions are welfare-equivalent to first order (static equivalence result) + use of NICE
 % moderate price differentiation sharply reduces transfers at small efficiency cost as empirical motivation for the heatmaps -> indifference curves can tell policymakers exactly how much differentiation or rights generosity is needed to keep a country indifferent
 
-However, critics of this view counter that differentiated prices are economically inefficient and that equity objectives are better achieved through lump-sum transfers alongside a uniform price.
 
 % Bohringer et al. (2014): two incentives for carbon price differentiation -> strategic use of market power in international trade (terms-of-trade effects) and compensation for leakage
 % negligible welfare gain attainable by exploiting carbon price differentiation
 
-This paper argues that the disagreement rests on a false dichotomy. The central contribution is a distributional equivalence result: for any system of nationally differentiated carbon prices in autarky---that is, without international transfers---there exists a uniform global carbon price combined with appropriately calibrated emission rights that delivers the same welfare outcome for every country, to a first-order approximation. Because abatement costs are convex, the uniform-price regime is moreover strictly more efficient: international carbon trading always weakly dominates autarky. The debate over prices versus rights is therefore not a debate about fundamentally different policy instruments but about the distribution of a single policy's gains, and it can in principle be resolved by choosing the right allocation of emission rights.
+The equivalence holds cleanly in a static, single-period setting. It breaks down once time is introduced, because the welfare value of an emission right then depends not only on its quantity but on the full trajectory of the future carbon price, a trajectory that cannot be recovered analytically without knowledge of how capital markets, abatement technologies, and emissions elasticities evolve. We characterise two special cases that restore a partial equivalence: the case of homothetic autarky prices with fixed budget shares, and the Hotelling case, in which efficient capital markets and perfect foresight keep discounted carbon prices constant over time. In the Hotelling case the dynamic formula collapses to one that is structurally identical to the static result, with the intertemporal carbon budget playing the role of the single-period emission right. 
 
-This equivalence holds cleanly in a static, single-period setting. It breaks down once time is introduced, because the welfare value of an emission right then depends not only on its quantity but on the full trajectory of the future carbon price, a trajectory that cannot be recovered analytically without knowledge of how capital markets, abatement technologies, and emissions elasticities evolve. We characterise two special cases that restore a partial equivalence: first, the case in which country-level autarky prices are homothetic to the global price path and each country receives a fixed share of the global carbon budget; and second, the more restrictive but analytically tractable Hotelling case, in which efficient capital markets and perfect foresight keep discounted carbon prices constant over time. In the Hotelling case the dynamic formula collapses to one that is structurally identical to the static result, with the intertemporal carbon budget playing the role of the single-period emission right. 
-
-[FINDINGS PARAGRAPH HERE]
+We then test the equivalence numerically using the NICE integrated assessment model \citep{youngbrun2025}, which disaggregates regional populations into income quintiles and therefore allows precise measurement of distributional effects. For each of eight representative countries or regions, we compute the non-losing rights allocation $\rho_1$, which is the minimum rights multiplier at which the country weakly prefers the uniform regime, and then compare it to the static formula's prediction. The static formula explains the cross-country variation in $\rho_1$ well as a first approximation: the non-losing allocation is roughly predicted by each country's per-capita emissions relative to the world average, consistent with the equivalence result. The three largest deviations from this prediction reveal distinct mechanisms that the static framework abstracts from: RoW general equilibrium feedback for China, prior MAC exhaustion for the European Union (27 states), and a rapidly growing emission baseline for India. In all eight cases, there exists a rights allocation above which the uniform-price regime weakly dominates autarky on efficiency grounds, that threshold allocation is closely predicted by the static formula.
 
 This paper connects to several strands of the literature. The efficiency comparison between carbon prices and quantity instruments originates with \cite{weitzman1974prices} and has been extended in many directions. Our contribution is different, in that we are not comparing instruments for their efficiency alone but establishing their distributional equivalence and then quantifying the efficiency cost of departing from it. The political economy of cap-and-trade versus carbon taxes is examined in \cite{goulder2013carbon} and \cite{stavins2019carbon}; again, our angle is
-complementary. A growing literature studies the distributional consequences of climate policy across countries (\cite{moritz2024}, \cite{lemoigne2026}). One approach is to use integrated assessment models to analyse those effects.
-In particular, we build directly on the NICE model \cite{youngbrun2025} and extend it by constructing the two-dimensional parameter space of autarky price factors and emission-rights multipliers over which the equivalence can be tested. The efficiency of uniform carbon pricing as a corollary of the Diamond--Mirrlees production efficiency theorem \citep{diamond1971optimal} is well known in principle. We make the argument precise in the context of international climate policy and attach quantitative stakes to it.
+complementary. A growing literature studies the distributional consequences of climate policy across countries \citep{moritz2024, lemoigne2026}, and several papers quantify the efficiency-sovereignty trade-off of differentiated regimes \citep{bauer2020, bekkers2022}. We build directly on the NICE model \citep{youngbrun2025} and extend it by constructing the two-dimensional parameter space of autarky price factors and emission-rights multipliers over which the equivalence can be tested. The efficiency of uniform carbon pricing as a corollary of the Diamond--Mirrlees production efficiency theorem \citep{diamond1971optimal} is well known in principle. We make the argument precise in the context of international climate policy and attach quantitative stakes to it.
 
-The remainder of the paper is organised as follows. Section~\ref{sec:theory} derives the static distributional equivalence and the Diamond--Mirrlees efficiency result, then characterises the conditions under which a partial equivalence extends to the dynamic case. Section~\ref{sec:methodology} describes the simulation design. Section~\ref{sec:results} presents the heatmaps and assesses where the Hotelling approximation holds and where it fails.
+The remainder of the paper is organised as follows. Section~\ref{sec:theory} derives the static distributional equivalence and the Diamond--Mirrlees efficiency result, then characterises the conditions under which a partial equivalence extends to the dynamic case. Section~\ref{sec:methodology} describes the simulation design. Section~\ref{sec:results} presents the results and assesses where the static prediction holds and where it fails.
 
 % ============================================================
 %  THEORY
@@ -318,9 +320,9 @@ from which one can isolate either variable:
 
 Equation~\eqref{eq:r_from_p} is the key formula for policy design: given a country's autarky price $p_i$, it tells us how many emission rights to allocate in a cap-and-trade in order to leave that country's welfare unchanged. A country with a low autarky price ($p_i < p^*$) needs a generous rights allocation ($r_i > e^*_i$) to compensate for the abatement burden it takes on when forced to the higher uniform price; a country with a high autarky price ($p_i > p^*$) can be left with fewer rights than its equilibrium emissions.
 
-\paragraph{Efficiency of the uniform price.} The equivalence result shows that the two regimes can deliver identical welfare distributions, but we now want to see if the cap-and-trade do strictly better.
+This equivalence result shows that the two regimes can, in principle, deliver identical welfare distributions: any differentiated-price arrangement corresponds to a cap-and-trade with a specific rights allocation, and vice versa. This raises a natural follow-up question. If the two regimes can always be made equivalent by choosing the right allocation, is there any reason to prefer one over the other? We now show that the answer is yes: the uniform-price regime strictly dominates differentiated prices on efficiency grounds, for every country simultaneously, whenever abatement cost functions are strictly convex. The argument is a direct application of the Diamond--Mirrlees production efficiency theorem, and its mechanism is straightforward: under differentiated prices, countries at a lower domestic price forgo abatement whose cost is below the market rate. Under a cap-and-trade, those same reductions are sold at the full market price $p^*$, which is always at least as favourable a deal.
 
-Suppose we give country $i$ rights equal to its autarky emissions $e_i$, so that the net transfer under the cap-and-trade is $\tilde{t}_i = (e_i -e^*_i)p^*$. Convexity of abatement costs implies:
+\paragraph{Efficiency of the uniform price.} Suppose we give country $i$ rights equal to its autarky emissions $e_i$, so that the net transfer under the cap-and-trade is $\tilde{t}_i = (e_i -e^*_i)p^*$. Convexity of abatement costs implies:
 \begin{equation}
     a_i - a^*_i \geq (e_i - e^*_i)\frac{da^*_i}{de} = (e_i - e^*_i)(-p^*),
 \end{equation}
@@ -369,18 +371,22 @@ where $E^*_i = \sum_t e^*_{it}$ is country $i$'s total discounted emissions unde
 
 The Hotelling case is the best possible setting for the equivalence: it requires the most favourable conditions (perfect foresight, efficient capital markets, a fixed global budget, and homothetic autarky prices). If the approximation fails even here, it will fail everywhere. This is why Section~\ref{sec:methodology} uses equation~\eqref{eq:hotelling_equiv} as the empirical benchmark: the simulations ask not whether the Hotelling formula holds in theory, but how far the numerically computed welfare effects deviate from what the formula predicts, and what those deviations reveal about the underlying mechanisms.
 
+% concluding paragraph that summarizes the key takeaways of the Hotelling case before introducing the NICE model
+
 % ==============================================================
 \section{Methodology}
 \label{sec:methodology}
 % ==============================================================
 
-To empirically test the distributional equivalence between differentiated carbon prices and a uniform global cap-and-trade system, the analysis uses the NICE (Nested Inequalities Climate Economy) Integrated Assessment Model. It was adapted from \citet{nordhaus2000}'s Dynamic Integrated Climate-Economy model by \cite{youngbrun2025}, which, unlike standard representative-agent models, explicitly disaggregates regional populations into income quintiles, allowing for the precise measurement of intra-regional economic inequalities, distributional climate damages, and the regressive or progressive impacts of climate policies. The model evaluated a climate policy timeline spanning from 2030 to 2100. To align with the Paris Agreement, the baseline scenario used a globally calibrated carbon price pathway ($p_t^*$) designed to enforce a strict 1.8°C global carbon budget, which requires reaching net-zero global emissions by 2080 and achieving net-negative emissions thereafter. 
+% methodology introduction: what question are the simulations are answering? why is an IAM needed? what do the two scenarios represent in terms of the theoretical framework from Section 2?
 
-To assess the macroeconomic impacts of different policy regimes, the model calculated the Net Present Value (NPV) of both GDP over time and Equally-Distributed Equivalent (EDE) consumption, using a discount rate of 3\% and an Atkinson inequality parameter of 1.5.
+The static equivalence result and the Hotelling dynamic extension provide clean analytical predictions, but both rest on approximations and structural assumptions (constant elasticities, homothetic price trajectories, and perfect capital markets) that a calibrated model doesn't need to satisfy. Whether the formula $r_i \approx \bigl(1 + (1 - p_i/p^*)\varepsilon^*\bigr)e^*_i$ accurately predicts the non-losing rights allocation in a full dynamic general equilibrium or not is an empirical question. To answer it, we require a model that (i) captures the non-linear MAC curves that make the Taylor approximation potentially inaccurate, (ii) allows autarky prices and global prices to evolve along distinct trajectories over a multi-decade horizon, and (iii) disaggregates welfare at the sub-national level so that distributional claims can be evaluated precisely. A representative-agent IAM satisfies (i) and (ii) but not (iii); we therefore use the Nested Inequalities Climate Economy (NICE) model \citep{youngbrun2025}, which extends the DICE framework to disaggregate regional populations into income quintiles. The model evaluated a climate policy timeline spanning from 2030 to 2100. To align with the Paris Agreement, the baseline scenario used a globally calibrated carbon price pathway ($p_t^*$) designed to enforce a strict 1.8°C global carbon budget, which requires reaching net-zero global emissions by 2080 and achieving net-negative emissions thereafter. To assess the macroeconomic impacts of different policy regimes, the model calculated the Net Present Value (NPV) of both GDP over time and Equally-Distributed Equivalent (EDE) consumption, using a discount rate of 3\% and an Atkinson inequality parameter of 1.5.
 
 \subsection{Scenario 1: Autarky baseline}
 
-The first scenario simulated an autarky regime where climate policy is entirely decentralized. In this baseline, the target country $i$ sets an independent domestic carbon price proportional to the global target price, defined by the price factor $\pi_i$ such that $p_i=\pi_i\times p^*$. To enforce the mathematical requirement of true autarky, all international revenue pooling and transfers were strictly disabled within the model, ensuring that revenues from the domestic carbon tax were recycled entirely within the country's own borders. A Negishi welfare-weighting recycling scheme was applied, meaning that financial transfers are inversely proportional to the marginal utility of consumption. Mathematically, because marginal utility diminishes with income, this scheme allocates a larger absolute share of carbon tax revenues to the wealthiest quintiles and a smaller share to the poorest. This deliberate configuration neutralizes the mechanical reduction in domestic inequality that standard lump-sum recycling would produce, allowing the analysis to isolate the pure macroeconomic efficiency effects of the climate policy on the country's aggregate GDP and consumption. Furthermore, to maintain the global emissions cap across the simulation, the model dynamically calculated the required carbon price for the Rest of the World (RoW), denoted as $p_{-i}$, using the global price identity: 
+The first scenario simulated an autarky regime where climate policy is entirely decentralized. In this baseline, the target country $i$ sets an independent domestic carbon price proportional to the global target price, defined by the price factor $\pi_i$ such that $p_i=\pi_i\times p^*$. To enforce the mathematical requirement of true autarky, all international revenue pooling and transfers were strictly disabled within the model, ensuring that revenues from the domestic carbon tax were recycled entirely within the country's own borders. A Negishi welfare-weighting recycling scheme was applied, meaning that financial transfers are inversely proportional to the marginal utility of consumption. Mathematically, because marginal utility diminishes with income, this scheme allocates a larger absolute share of carbon tax revenues to the wealthiest quintiles and a smaller share to the poorest. This deliberate configuration neutralizes the mechanical reduction in domestic inequality that standard lump-sum recycling would produce, allowing the analysis to isolate the pure macroeconomic efficiency effects of the climate policy on the country's aggregate GDP and consumption. 
+% why does isolating macroeconomic efficiency requires suppressing this mechanical reduction?
+Furthermore, to maintain the global emissions cap across the simulation, the model dynamically calculated the required carbon price for the Rest of the World (RoW), denoted as $p_{-i}$, using the global price identity: 
 
 \begin{equation}
     p^* = \omega_i p_i + (1-\omega_i)p_{-i}
@@ -388,7 +394,9 @@ The first scenario simulated an autarky regime where climate policy is entirely 
 \end{equation}
 where $\omega_i$ is country $i$'s dynamic share of global baseline emissions ($\omega_i=e_i/E^*$). From this, we derive the analytical approximation $p_{-i} = p^* \times (E^* - e_i \pi_i) / e_{-i}$.
 
-However, this identity assumes a linear relationship between carbon prices and emissions, implying that averaging prices based on emission weights results in the exact same global abatement. In the NICE model, the marginal abatement cost (MAC) curve is highly non-linear, and the emission shares are endogenous to the tax itself. Hence, running the model with this naive linear approximation would result in the RoW reducing its emissions by an incorrect magnitude, causing the sum of global emissions ($E_i + E_{-i}$) to breach the climate cap. 
+However, this identity assumes a linear relationship between carbon prices and emissions, implying that averaging prices based on emission weights results in the exact same global abatement. 
+% expand on the limits of this linear approximation
+In the NICE model, the marginal abatement cost (MAC) curve is highly non-linear, and the emission shares are endogenous to the tax itself. Hence, running the model with this naive linear approximation would result in the RoW reducing its emissions by an incorrect magnitude, causing the sum of global emissions ($E_i + E_{-i}$) to breach the climate cap. 
 
 To strictly maintain the global carbon budget across the simulation, an iterative root-finding algorithm was implemented to solve for the true $p_{-i}$. The model dynamically updated the RoW price based on the residual gap between simulated global emissions and the target cap. A Newton-Raphson method was utilized for rapid convergence, with a bisection algorithm serving as a fallback for extreme boundary cases where Newton iterations stalled. The algorithm iterated until the relative error between global emissions and the cap fell strictly below 0.1\%. This threshold ensures mathematical precision, as in absolute terms, 0.1\% represents a negligible fraction of a gigaton of CO$_2$, securing the integrity of the carbon budget without risking infinite computational loops.
 
@@ -410,6 +418,8 @@ To directly compare the two regimes, an automated grid search was executed over 
 
 To execute this grid search across highly varied parameters, a critical extension to the standard NICE framework was implemented. We allowed for abatement rates exceeding 100\% ($\mu_i > 1$). Standard IAMs generally constrain $\mu_i \in [0,1]$, but enforcing this limit causes computational crashes under extreme policy parameters. Allowing $\mu_i > 1$ mathematically represents the deployment of Carbon Dioxide Removal (CDR) technologies, implying the region is extracting more CO$_2$ than it emits. To model these costs, the standard nonlinear MAC function was extrapolated beyond the 100\% boundary.
 
+% expand on the specific numerical solvers used for the MAC curve extrapolations and the root-finding algorithm?
+
 Finally, we introduced a viability filter to flag economic and mathematical policy extremes. Two boundary conditions were evaluated continuously across every year of the 2030-2100 timeline:
 
 \begin{enumerate}
@@ -424,34 +434,108 @@ Finally, we introduced a viability filter to flag economic and mathematical poli
 
 % explain heatmap logic
 
-To visualise welfare differences between the two aforementioned scenarios, we created one heatmap per country, that map the relative NPV of consumption EDE onto the two-dimensional parameter space ($\pi_i,\ \rho_i$). The object of interest here is the empirical indifference curve, that indicates for which values of $\rho_i$ and $\pi_i$ county $i$ is indifferent between the two scenarios, i.e, how many rights they would need to receive in order to forego the more politically acceptable differentiated carbon price.
+To visualise welfare differences between the two scenarios, we construct one heatmap per country mapping the relative NPV of consumption EDE onto the two-dimensional parameter space $(\pi_i, \rho_i)$. The x-axis gives the autarky price factor $\pi_i$, the y-axis (on a log scale) gives the rights multiplier $\rho_i$, and the colour encodes the welfare gain of the uniform regime relative to autarky, expressed as a percentage of the NPV of EDE consumption. Blue cells indicate that the uniform price with transfers dominates autarky, red cells indicate the reverse. The empirical indifference curve separates the two regions and is the central object of interest. It shows, for any autarky price $\pi_i$, the minimum rights allocation $\rho_i$ that makes country $i$ weakly prefer the uniform regime, and its intercept at $\pi_i=1$ gives the non-losing rights multiplier $\rho_1$.
 
-To visualise welfare differences between the two scenarios, we construct one heatmap per country mapping the relative NPV of consumption EDE onto the two-dimensional parameter space $(\pi_i, \rho_i)$. The x-axis gives the autarky price factor $\pi_i$, the y-axis (on a log scale) gives the rights multiplier $\rho_i$, and the colour encodes the welfare gain of the uniform regime relative to autarky, expressed as a percentage of the NPV of EDE consumption. Blue cells indicate that the uniform price with transfers dominates autarky, red cells indicate the reverse. The empirical indifference curve separates the two regions and is the central object of interest. It shows, for any autarky price $\pi_i$, the minimum rights allocation $\rho_i$ that makes country $i$ weakly prefer the uniform regime. The theoretically relevant point $(\pi_i = 1, \rho^*_i)$ is where the autarky price equals the global benchmark and the non-losing rights allocation factor can be read directly off the y-axis.
+Table~\ref{tab:summary} reports $\rho_1$ alongside each country's emission share, population share, per-capita emissions, and a predicted $\rho_1$ derived from the static formula. Evaluating equation~\eqref{eq:r_from_p} at $\pi_i = 1\iff p_i=p^*$ gives $r_i = e^*_i$, so the predicted non-losing allocation equals the country's equilibrium emissions under the uniform price expressed as a multiple of its population share of the global budget. Under the Hotelling approximation this simplifies to the ratio of emission share to population share, which is algebraically equivalent to per-capita emissions relative to the world average, hence the near-identical values in the last two columns of Table~\ref{tab:summary} for most countries. Deviations between predicted and actual $\rho_1$ are the central empirical finding: they are negligible for the USA, Russia, Nigeria, and DRC, moderate for Turkey, and large for China (-52\%), the EU27 (-76\%), and India (+75\%). The discussion below focuses on explaining these three large deviations, as they reveal the mechanisms through which dynamic general equilibrium effects cause the simulation to depart from the static prediction.
 
-Tables~\ref{tab:autarky_usa} and~\ref{tab:uniform_cod} illustrate the scale of the quantities involved. Under the autarky scenario, the USA facing $\pi = 2$ pays a domestic carbon price that reaches nearly \$1{,}000/tCO$_2$ by 2070 and is forced into net negative emissions from 2060 onward as cheap abatement options are exhausted. Under the uniform scenario, the DRC with $\rho = 5$ receives transfers of \$94--280 billion per year over 2030--2070 despite emitting less than 0.01~GtCO$_2$ annually, because it holds rights far in excess of its actual emissions.
 
-\subsection{Cross-country patterns}
+\begin{figure}[htbp]
+    \centering
+    \begin{subfigure}[b]{0.495\textwidth}
+        \centering
+        \includegraphics[width=\linewidth]{Welfare_Heatmap_USA (pdfresizer.com)-3.pdf}
+        \caption{United States (USA)}
+    \end{subfigure}
+    \hfill
+    \begin{subfigure}[b]{0.495\textwidth}
+        \centering
+        \includegraphics[width=\linewidth]{Welfare_Heatmap_RUS (pdfresizer.com)-3.pdf}
+        \caption{Russia (RUS)}
+    \end{subfigure}
+    
 
-Table~\ref{tab:summary} summarises the non-losing rights allocation $\rho^*_i$ at $\pi_i = 1$ for each country alongside their emission share, population share, and per-capita emissions in 2030. $\rho_1$ is almost perfectly correlated with per-capita emissions. Countries emitting above the world average (USA, Russia, Turkey, and to a lesser extent the EU and China) require $\rho_1 > 1$ to be indifferent, meaning they need more rights than a strict per-capita allocation would grant. Countries emitting below the world average (India, Nigeria, DRC) break even at $\rho_1 < 1$ and benefit from almost any positive allocation.
+    \vspace{0.5cm}
 
-The static equivalence formula predicts this ordering directly: from equation~\eqref{eq:r_from_p}, at $\pi_i = 1$ we have $r_i = e^*_i$, so the non-losing allocation equals the country's equilibrium emissions under the uniform price. A country with above-average per-capita emissions emits more than its population share of $E^*$, and therefore needs a rights allocation above one times its population share, i.e.\ $\rho_1 > 1$. The empirical values in Table~\ref{tab:summary} are broadly consistent with this prediction, but the magnitudes deviate in two ways that we discuss below.
+    \begin{subfigure}[b]{0.495\textwidth}
+        \centering
+        \includegraphics[width=\linewidth]{Welfare_Heatmap_CHN (pdfresizer.com)-2.pdf}
+        \caption{China (CHN)}
+    \end{subfigure}
+    \hfill
+    \begin{subfigure}[b]{0.495\textwidth}
+        \centering
+        \includegraphics[width=\linewidth]{Welfare_Heatmap_TUR (pdfresizer.com)-3.pdf}
+        \caption{Turkey (TUR)}
+    \end{subfigure}
 
-\subsection{High-emitting countries}
 
-For the USA, Russia, and Turkey, the indifference curve is relatively flat for $\pi_i < 1$ and drops for $\pi_i > 1.5$. The flatness on the left likely reflects a general equilibrium response: because these countries account for a large share of global emissions, a low domestic autarky price implies the rest of the world must choose higher prices to respect the global cap. This, in turn, reduces foreign demand and feeds back onto the large emitter’s exports and investment, muting gains for different $\pi_i$. Once $\pi_i$ becomes sufficiently large ($>1.5$) the direct domestic income effects dominate and the curve drops. Free-riding therefore doesn't benefit these three countries much, and autarky welfare does not rise much even when $\pi_i$ falls below one. The steep drop on the right reflects abatement cost 
-exhaustion: at high $\pi_i$, cheap abatement options have already been implemented domestically, and further price increases move the country up the steep part of its MAC curve, generating large welfare losses that no feasible rights allocation can compensate.
+    \vspace{0.5cm}
 
-In this sense, the USA ($\rho_1 \approx 4.4$) is the most extreme case: its per-capita emissions are nearly four times the world average, its MAC curve is steep, 
-and its emission share is large enough to trigger strong RoW feedback. Russia ($\rho^*_i \approx 2.9$) is in a similar situation but with a shallower MAC curve, which come from a large fuel-switching potential. Turkey ($\rho^*_i \approx 1.8$) is intermediate: it has above-average per-capita emissions but a lower indifference curve, consistent with an industrialising economy that has not yet exhausted its cheapest abatement options.
+    \begin{subfigure}[b]{0.495\textwidth}
+        \centering
+        \includegraphics[width=\linewidth]{Welfare_Heatmap_EU27 (pdfresizer.com)-3.pdf}
+        \caption{European Union (EU27)}
+    \end{subfigure}
+    \hfill
+    \begin{subfigure}[b]{0.495\textwidth}
+        \centering
+        \includegraphics[width=\linewidth]{Welfare_Heatmap_IND (pdfresizer.com)-3.pdf}
+        \caption{India (IND)}
+    \end{subfigure}
 
-% check avec 2030 pour le PIB:
-% plafond mondial à environ 35 GtCO2
-% prix du carbone environ 50 $/tonne -> valeur totale du marché carbone mondial à 1 750 milliards $ (1,75 trillions)
-% PIB mondial 100-120 trillions $
-% même si un pays comme la Chine obtient un rho extrême qui lui donne 150 % des droits mondiaux le transfert financier maximal que le RoW devra lui payer est de moins de 1 trillion $ (=35/2*50 milliards $)
-% grosse somme mais ne représente qu'une perte de moins de 1 % du PIB pour le RoW Does that make sense?
+    \vspace{0.5cm}
+    
+    \begin{subfigure}[b]{0.495\textwidth}
+        \centering
+        \includegraphics[width=\linewidth]{Welfare_Heatmap_NGA (pdfresizer.com)-3.pdf}
+        \caption{Nigeria (NGA)}
+    \end{subfigure}
+    \hfill
+    \begin{subfigure}[b]{0.495\textwidth}
+        \centering
+        \includegraphics[width=\linewidth]{Welfare_Heatmap_COD (pdfresizer.com)-2.pdf}
+        \caption{Democratic Republic of Congo (COD)}
+    \end{subfigure}
+    \hfill
+    
 
-An illustration of the numbers we're talking about:
+    \caption{Welfare gain (consumption EDE) from Uniform Price scenario to Autarky scenario}
+    \label{fig:heatmaps_all}
+\end{figure}
+
+
+\begin{table}[h]
+\centering
+\small
+\begin{threeparttable}
+\caption{Non-losing rights allocation factor $\rho_i$ at $\pi_i = 1$ ($\rho_1$) by country}
+\renewcommand{\arraystretch}{1.2}
+\begin{tabular}{lrrrrr}
+  \toprule
+  \textbf{Country} & \textbf{Emission share} & \textbf{Population share} & \textbf{Emissions p.c} & \textbf{Predicted} & $\rho_1$ \\
+  & \textbf{in 2030 (\%)} & \textbf{in 2030 (\%)} & \textbf{in 2030 (tCO$_2$)} & \textbf{$\rho_1$}\tnote{a} & \\
+  \midrule
+  USA & 15.9 & 4.1 & 14.12 & 3.71 & 4.39 \\
+  RUS & 3.8 & 1.7 & 8.26 & 2.24 & 2.85 \\
+  CHN & 29.9 & 17.3 & 6.34 & 1.4 & 0.67 \\
+  TUR & 1.2 & 1.1 & 4.18 & 1.18 & 1.83 \\
+  EU27 & 5.6 & 5.2 & 3.97 & 0.96 & 0.23 \\
+  IND & 8.3 & 17.8 & 1.72 & 0.52 & 0.91 \\
+  NGA & 0.4 & 3.1 & 0.46 & 0.12 & 0.15 \\
+  COD & 0.0 & 1.4 & 0.05 & 0.02 & 0.02 \\
+  \bottomrule
+\end{tabular}
+\begin{tablenotes}\footnotesize
+  \item[a] The predicted $\rho_1$ equals the country's emission share divided by its population share, i.e., $(e_i/E^*) / (pop_i/\text{Pop})$, which simplifies to $(e_i/pop_i) / (E^*/\text{Pop})$: per-capita emissions divided by world average per-capita emissions, computed as a NPV.
+\end{tablenotes}
+\label{tab:summary}
+\end{threeparttable}
+\end{table}
+
+\subsection{Countries where the static formula holds}
+
+For the USA, Russia, Nigeria, and the COD, the actual $\rho_1$ is within  30\% of the static prediction, and in absolute terms the deviations are small. The formula's core prediction that the non-losing allocation scales with per-capita emissions relative to the world average holds as a first approximation across a wide range of income levels and emission intensities. Turkey deviates more in percentage terms (+55\%) but the absolute magnitude is modest, and the deviation likely reflects the fact that Turkey is a fast-industrialising economy whose per-capita emissions grow substantially over the 2030--2100 simulation horizon, pushing its equilibrium emissions under the uniform price above the 2030 snapshot used in the prediction. Among the conforming countries, Nigeria and the COD illustrate the Diamond--Mirrlees efficiency argument most starkly. Both have negligible per-capita emissions and very limited domestic abatement capacity, so the autarky price is essentially irrelevant to their welfare. What matters is the rights allocation: even a small positive $\rho_i$ generates a transfer that is large relative to national income, because the country holds rights it can sell at the full global price $p^*$ without needing to abate anything. For the DRC at $\rho_i = 0.5$, Table~\ref{tab:uniform_cod} shows transfer revenues of around \$9 billion in 2030, approximately 13\% of its current GDP, against actual emissions of just 0.005~GtCO$_2$. No autarky price comes close to delivering this outcome. For the poorest countries, differentiated prices offer no advantage whatsoever, and the transfer from trading strictly dominates.
+
 
 \begin{table}[h]
 \centering
@@ -471,152 +555,59 @@ An illustration of the numbers we're talking about:
 
 \begin{table}[h]
 \centering
-\caption{Uniform price scenario for the COD ($\rho=5$)}
+\caption{Uniform price scenario for the COD ($\rho=0.5$)}
+\renewcommand{\arraystretch}{1.2}
+\begin{tabular}{lrrrrrrrr}
+  \toprule
+  \textbf{Variable} & \textbf{2030} & \textbf{2040} & \textbf{2050} & \textbf{2060} & \textbf{2070} & \textbf{2080} & \textbf{2090} & \textbf{2100} \\
+  \hline
+  $p^*$ (USD/tCO$_2$) & 42.6 & 112.9 & 205.9 & 285.7 & 401.6 & 480.9 & 476.2 & 471.4 \\
+  $r_i$ (GtCO$_2$) & 0.221 & 0.185 & 0.131 & 0.099 & 0.043 & 0.0 & 0.0 & 0.0 \\
+  $e_i$ (GtCO$_2$) & 0.005 & 0.007 & 0.008 & 0.008 & 0.004 & 0.0 & 0.0 & 0.0 \\
+  Transfer (bn USD) & 9.2 & 20.1 & 25.4 & 25.9 & 15.4 & 0.0 & 0.0 & 0.0 \\
+  \bottomrule
+  \label{tab:uniform_cod}
+\end{tabular}
+\end{table}
+
+\subsection{China and the EU27: $\rho_1$ far below prediction}
+
+China ($\rho_1 = 0.67$, predicted 1.72) and the EU27 ($\rho_1 = 0.23$, predicted 0.96) both need far fewer rights than the static formula suggests to be indifferent between the two regimes. Both therefore strongly benefit from joining the uniform-price regime even with a less-than-proportional rights allocation, but for different reasons.
+
+For China, the deviation reflects the self-defeating nature of free-riding at its scale. With nearly 30\% of global emissions in 2030, a low Chinese domestic price forces a very large compensating adjustment on the rest of the world to maintain the global cap, which feeds back negatively through trade and capital markets and largely cancels the domestic benefit of setting $\pi_i < 1$. China's MAC curve is meanwhile relatively shallow, reflecting large remaining renewable and energy-efficiency potential, so autarky is not especially attractive regardless of the domestic price. The combination means that trading dominates autarky across almost the entire parameter space, and China is willing to accept a well below-proportional rights allocation to access the global market.
+
+For the EU27, the mechanism is different. Indeed, it has already implemented much of its cheap abatement through the ETS and domestic climate regulation, so its MAC curve is steep at the margin before any global price is imposed. In autarky, meeting the 1.8°C budget forces it onto the expensive part of that curve at every price level, making domestic-only decarbonisation very costly. Access to the international market, where low-cost reductions remain available in developing countries, is therefore valuable regardless of the autarky price. The EU's deviation from the static prediction is also an illustration of the Diamond--Mirrlees argument among high-income countries: when domestic abatement options are exhausted, the efficiency gain from a uniform price with international trading is large enough to compensate for a very small initial allocation.
+
+\subsection{India: $\rho_1$ far above prediction}
+
+India ($\rho_1 = 0.91$, predicted 0.52) needs nearly twice the rights the static formula predicts. This likely comes from India's emission trajectory over the simulation horizon. In the NICE model, India's baseline emissions grow substantially through 2040--2050 before peaking, reflecting ongoing industrialisation and energy access expansion. Under the uniform price, India's equilibrium emissions $e^*_i$ are therefore much larger than its 2030 snapshot suggests, which pushes the non-losing allocation well above the static prediction based on current per-capita emissions. The consequences of a high autarky price make this concrete. Table~\ref{tab:autarky_ind} shows that at $\pi_i = 4$, India's domestic price reaches \$1,607/tCO$_2$ by 2070 and forces net-negative emissions of
+-7.04~GtCO$_2$, which is more than the entire current global carbon removal capacity \citep{cdr2026}. 
+
+\begin{table}[h]
+\centering
+\caption{Autarky scenario for the IND ($\pi=4.0$)}
 \renewcommand{\arraystretch}{1.2}
 \begin{tabular}{lrrrrrrrr}
   \toprule
   \textbf{Variable} & \textbf{2030} & \textbf{2040} & \textbf{2050} & \textbf{2060} & \textbf{2070} & \textbf{2080} & \textbf{2090} & \textbf{2100} \\
   \midrule
   $p^*$ (USD/tCO$_2$) & 42.6 & 112.9 & 205.9 & 285.7 & 401.6 & 480.9 & 476.2 & 471.4 \\
-  $r_i$ (GtCO$_2$) & 2.211 & 1.854 & 1.313 & 0.989 & 0.427 & 0.0 & 0.0 & 0.0 \\
-  $E_i$ (GtCO$_2$) & 0.005 & 0.008 & 0.009 & 0.009 & 0.005 & 0.0 & 0.0 & 0.0 \\
-  Transfer (bn USD) & 93.9 & 208.4 & 268.5 & 280.0 & 169.8 & 0.0 & 0.0 & 0.0 \\
+  $p_i$ (USD/tCO$_2$) & 170.3 & 451.6 & 823.4 & 1142.8 & 1606.6 & 1923.8 & 1904.6 & 1885.7 \\
+  $E_i$ (GtCO$_2$) & 1.74 & 0.47 & -1.86 & -4.02 & -7.04 & -9.12 & -9.29 & -9.29 \\
   \bottomrule
-  \label{tab:uniform_cod}
+  \label{tab:autarky_ind}
 \end{tabular}
 \end{table}
 
+\subsection{Synthesis}
+Across all eight countries, the uniform-price regime weakly dominates autarky on efficiency grounds, consistent with the Diamond--Mirrlees theorem. The required non-losing rights allocation varies enormously, from $\rho_1 \approx 0.02$ for the DRC to $\rho_1 \approx 4.39$ for the USA, a range of more than two orders of magnitude. The static formula explains this variation well for most countries, with the large deviations for China, the EU27, and India pointing to three distinct dynamic mechanisms: RoW feedback suppressing the gains from free-riding, prior MAC exhaustion making trading unconditionally valuable, and a growing emission baseline inflating the equilibrium allocation. The political challenge is not efficiency but agreement on the rights allocation. One reason for cautious optimism is that the welfare cost of moderate departures from the indifference curve is small: the red region below the indifference curve barely registers in most heatmaps, rarely exceeding a few percentage points of EDE consumption NPV, while the blue region above it reaches the scale ceiling for countries like Nigeria and the DRC. The asymmetry between potential gains and losses is a visual confirmation of the Diamond--Mirrlees argument: the efficiency cost of being slightly below the indifference curve is small, while the efficiency gain from a generous rights allocation can be large, particularly for low-emitting countries with negligible domestic abatement capacity. It also means that there is room for negotiated compromise without incurring large efficiency losses
 
-\begin{figure}[htbp]
-    \centering
-    \begin{subfigure}[b]{0.495\textwidth}
-        \centering
-        \includegraphics[width=\linewidth]{Welfare_Heatmap_USA (pdfresizer.com).pdf}
-        \caption{United States (USA)}
-    \end{subfigure}
-    \hfill
-    \begin{subfigure}[b]{0.495\textwidth}
-        \centering
-        \includegraphics[width=\linewidth]{Welfare_Heatmap_RUS (pdfresizer.com).pdf}
-        \caption{Russia (RUS)}
-    \end{subfigure}
-    
+\section{Concluding remarks?}
 
-    \vspace{0.5cm}
-
-    \begin{subfigure}[b]{0.495\textwidth}
-        \centering
-        \includegraphics[width=\linewidth]{Welfare_Heatmap_CHN (pdfresizer.com).pdf}
-        \caption{China (CHN)}
-    \end{subfigure}
-    \hfill
-    \begin{subfigure}[b]{0.495\textwidth}
-        \centering
-        \includegraphics[width=\linewidth]{Welfare_Heatmap_TUR (pdfresizer.com).pdf}
-        \caption{Turkey (TUR)}
-    \end{subfigure}
-
-
-    \vspace{0.5cm}
-
-    \begin{subfigure}[b]{0.495\textwidth}
-        \centering
-        \includegraphics[width=\linewidth]{Welfare_Heatmap_EU27 (pdfresizer.com).pdf}
-        \caption{European Union (EU27)}
-    \end{subfigure}
-    \hfill
-    \begin{subfigure}[b]{0.495\textwidth}
-        \centering
-        \includegraphics[width=\linewidth]{Welfare_Heatmap_IND (pdfresizer.com).pdf}
-        \caption{India (IND)}
-    \end{subfigure}
-
-    \vspace{0.5cm}
-    
-    \begin{subfigure}[b]{0.495\textwidth}
-        \centering
-        \includegraphics[width=\linewidth]{Welfare_Heatmap_NGA (pdfresizer.com).pdf}
-        \caption{Nigeria (NGA)}
-    \end{subfigure}
-    \hfill
-    \begin{subfigure}[b]{0.495\textwidth}
-        \centering
-        \includegraphics[width=\linewidth]{Welfare_Heatmap_COD (pdfresizer.com).pdf}
-        \caption{Democratic Republic of Congo (COD)}
-    \end{subfigure}
-    \hfill
-    
-
-    \caption{Welfare gain (consumption EDE) from Uniform Price scenario to Autarky scenario}
-    \label{fig:heatmaps_all}
-\end{figure}
-
-% specific country cases (EU, China, US, India, NGA?)
-
-% here's a description of what we can see on the heatmaps and economic intuition:
-
-% USA: $\rho_i \approx 4.5$ at $\pi_i = 1$
-% high emitter with expensive domestic abatement
-% π > 1: it has exhausted cheap options to reduce emissions and is paying a lot to remove the last tons 
-% π < 1: free-riding by setting a low domestic price does not help much, because the USA's emission share is so large (ω ≈ 0.13) that a low US price forces the RoW price up dramatically to maintain the global cap, which feeds back negatively through trade and capital markets?
-
-% CHN: $\rho_i \approx 0.7$ at $\pi_i = 1$
-% high emitter (ω ≈ 0.32) but surprisingly shallow MAC curve -> potential for cheap renewable deployment and energy efficiency improvements
-% autarky is not especially attractive even when China sets its own price (cheap abatement is cheap whether you do it domestically or via the market)
-% a below-proportional rights allocation (ρ < 1) still benefits China because the efficiency gain from trading outweighs the transfer cost
-% large population also means the RoW-rights constraint binds early (grey crosses appear from ρ = 10), but that region is irrelevant for China's welfare
-
-% RUS: $\rho_i \approx 3$ at $\pi_i = 1$
-% large country (ω ≈ 0.046) but shallower curve than USA = it still has relatively cheap abatement options (fuel switching away from gas flaring, energy efficiency) = non-losing rights allocation is lower than the USA's
-% same general equilibrium feedback through the RoW price but weaker because Russia's emission share is smaller
-% NOT THAT INTERESTING AS A CASE STUDY I THINK
-
-% TUR: $\rho_i \approx 1.9$ at $\pi_i = 1$
-% middle-income country still industrialising, above-average per-capita emissions (since 2015) but smaller global share (ω ≈ 0.013 in 2024)
-% smoother indifference curve than Russia or the USA = not the same extreme abatement cost exhaustion at high π values, because it has not yet deployed as much capital-intensive low-carbon infrastructure
-
-% EU27: $\rho_i \approx 0.25$ at $\pi_i = 1$
-% surprising result (ω ≈ 0.063 in 2024)
-% EU already has an ETS, high domestic carbon prices, and has largely exhausted its cheap domestic abatement
-% in autarky, meeting the 1.8°C budget becomes very expensive for the EU: it's stuck paying the steep part of its MAC curve so joining the global cap-and-trade gives it access to cheap reductions elsewhere, which is so valuable that the EU breaks even with a very small rights allocation
-
-% IND: $\rho_i \approx 0.9$ at $\pi_i = 1$
-% similar to China but even more pronounced (steeper after pi=2)
-% per-capita emissions are well below the global average (around half even if ω ≈ 0.083 in 2024)
-% DIG DEEPER BECAUSE IND IS AN INTERESTING CASE
-
-% NGA: $\rho_i \approx 0.15$ at $\pi_i = 1$
-% very low per-capita emissions (around a tenth of global average and ω ≈ 0.0035 in 2024) and very limited domestic abatement capacity
-% in autarky at any π, Nigeria faces near-zero abatement costs regardless, so autarky welfare is roughly the same across the whole π range
-% indifference curve is very flat because the autarky price  does not matter much with baseline emissions as tiny
-
-% COD: $\rho_i \approx 0.03$ at $\pi_i = 1$
-% this  is the extreme version of NGA
-% emissions are negligible (ω ≈ 0.0002 in 2024), the economy is very small, and any rights allocation at all generates a transfer that is large relative to national income
-% eg: 2030, price of carbon is around $50, carbon budget is around 35 GtCO2, if COD is allocated 0.02 compared to its population, it gets 0.49 GtCO2 = 490 million tons (share of world pop is 1.4%), but it emitted only 5.9 million tons CO2 in 2024, so it will be able to sell around 490 million tons CO2 = 24.5 billion dollars, which is around 35% of its current GDP
-% illustration of the Diamond–Mirrlees argument: for a country with near-zero emissions, differentiated prices offer no advantage whatsoever, and the transfer from trading strictly dominates
-
-\begin{table}[h]
-\centering
-\caption{Non-losing rights allocation factor $\rho_i$ at $\pi_i = 1$ ($\rho_1$) by country}
-\renewcommand{\arraystretch}{1.2}
-\begin{tabular}{lrrrr}
-  \toprule
-  \textbf{Country} & \textbf{Emission share (\%)} & \textbf{Population share (\%)} & \textbf{Per-capita emissions (tCO$_2$)} & $\rho_1$ \\
-  \midrule
-  USA & 15.9 & 4.1 & 14.12 & 4.39 \\
-  RUS & 3.8 & 1.7 & 8.26 & 2.85 \\
-  CHN & 29.9 & 17.3 & 6.34 & 0.67 \\
-  TUR & 1.2 & 1.1 & 4.18 & 1.83 \\
-  EU27 & 5.6 & 5.2 & 3.97 & 0.23 \\
-  IND & 8.3 & 17.8 & 1.72 & 0.91 \\
-  NGA & 0.4 & 3.1 & 0.46 & 0.15 \\
-  COD & 0.0 & 1.4 & 0.05 & 0.02 \\
-  \bottomrule
-  \label{tab:summary}
-\end{tabular}
-\end{table}
-
+% (a) restate the central result non-technically
+% (b) connect it back to the policy debate in the introduction
+% (c) discuss limitations (second-best distortions, political feasibility of rights allocation negotiations)
+% (d) point to future work
 
 \bibliographystyle{plainnat}
 \bibliography{references}
