@@ -1,12 +1,14 @@
 # Raffiner la modélisation d'un Cap & Share
 
 ## Principaux objectifs du projet
-
+DONE:
 1. Pour les principaux pays, tracer la variation d'EDE (par rapport à l'autarcie) en fonction du prix d'autarcie x droits dans le cas uniforme, dans le cas Hotelling, dans différents scénarios de participation
 2. Mettre à jour l'allocation de droits (non-losing = proposed) pour l'UE et la Chine.
 3. Modéliser une transition entre absence de taxe et taxe optimale pour les premières années.
-4. Optimiser le prix carbone sans la contrainte qu'il est exponentiel.
-5. Modéliser la Sustainable Union, Global Justice trajectory, Equal Right
+4. Modéliser la Sustainable Union, Global Justice trajectory, Equal Right
+
+TODO:
+5. Optimiser le prix carbone sans la contrainte qu'il est exponentiel.
 6. Améliorer l'algo d'allocation; trouver des réformes telles que welfare gains decomposition soit > 0 pour les principaux pays, notamment avec participation partielle
 7. Nettoyer code, documenter changements, vérifier que la version par défaut donne les mêmes résultats que Marie, réduire la taille des données de sortie
 8. Étendre les NDCs et les utiliser comme baseline
