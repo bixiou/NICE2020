@@ -5,9 +5,18 @@
 % 1. Rationales for differentiated carbon prices
 % 2. Correspondence between transfers in a cap-and-trade and differentiated carbon prices
 % 3. Numerical comparison between autarky and uniform price with transfers
+% 4. Numerical estimation of welfare gains of uniform price compared to Wolfram/Duflo proposals.
 % Conclusion
 % 
 % 
+
+% 4.
+% Dans le papier, on va rajouter une table qui donne les droits d'émissions dans un scénario uniforme équivalents aux prix différenciés en autarcie proposés par Wolfram d'une part et Duflo d'autre part. La table inclura aussi le gain de welfare mondial permis par le passage à l'uniforme.
+% Voici comment procéder, en prenant l'exemple Wolfram : 
+% 1. Faire tourner le scénario avec les prix Wolfram (en supposant une hausse annuelle des prix de 5% par an).
+% 2. Deux options: A. Utiliser le code que tu as fait pour calculer, pays par pays, le ratio de droits équivalents au ratio de prix Wolfram; faire tourner le code avec: A1. ces ratios de droits multipliés par les émissions (moyennes mondiale par habitant) du scénario Wolfram (normalement on devrait obtenir moins de droits / température que dans Wolfram et avec A2: les droits A1 scalés uniformément de sorte à obtenir les émissions Wolfram. B. Rajouter un code qui permet d'optimiser simultanément les ratios de droits de chaque pays afin d'atteindre pour chaque pays le welfare intertemporel du scénario Wolfram (en faisant une descente du gradient sur l'espace des ratios de droits par ex) : lorsque l'algo converge on obtient B1; puis là aussi scaler les ratios de droits pour retrouver les émissions Wolfram, ce qui donne B2.
+% 3. Dans la table, rapporter les ratios de droits (non rescalés) des principaux pays (y.c. UE, pour laquelle on agrège les droits des pays membres) équivalents au scénario Wolfram ; le gain en droits (en proportion des droits mondiaux) et en température (mondiale en 2100) dans la variante 1 ; le gain en welfare dans la variante 2.
+% Le choix entre l'option A ou B est fonction ce qui est le plus simple pour toi à coder. Les deux ne donneront pas tout à fait les mêmes résultats. L'option B est plus rigoureuse conceptuellement, mais l'option A est plus conforme à ce qu'on fait dans le reste du papier (avec les heatmaps), donc les deux options sont valables.
 
 
 %%%%% OLD %%%%%%%
