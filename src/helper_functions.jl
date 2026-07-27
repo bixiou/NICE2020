@@ -408,10 +408,9 @@ function save_nice2020_reduced_output(m::Model, output_directory::String)
     # we pull each variable from its Mimi component and join everything into one DataFrame on (country, time)
     # we rename to normalise the value column name regardless of whether Mimi returned it as :value or under the original variable symbol
     function extract_var(name, comp, var)
-        df = getdataframe(m, comp, var)
-        # Mimi sometimes returns :value, sometimes the original symbol
-        value_col = :value in propertynames(df) ? :value : Symbol(var)
-        return rename(df, value_col => Symbol(name))
+        df = getdataframe(m, comp => var)
+        vc = :value in propertynames(df) ? :value : Symbol(var)
+        return rename(df, vc => Symbol(name))[:, [:country, :time, Symbol(name)]]
     end
 
     df_panel = reduce(
@@ -495,14 +494,14 @@ function save_nice2020_reduced_output(m::Model, output_directory::String)
 
     df_q = reduce(
         (acc, kv) -> innerjoin(acc, begin
-            df = getdataframe(m, kv[2][1], kv[2][2])
+            df = getdataframe(m, kv[2][1] => kv[2][2])
             vc = :value in propertynames(df) ? :value : Symbol(kv[2][2])
             rename(df, vc => Symbol(kv[1]))
         end, on=[:country, :time, :quantile]),
         Iterators.drop(pairs(quant_vars), 1);
         init = begin
             fkv = first(pairs(quant_vars))
-            df  = getdataframe(m, fkv[2][1], fkv[2][2])
+            df  = getdataframe(m, fkv[2][1] => fkv[2][2])
             vc  = :value in propertynames(df) ? :value : Symbol(fkv[2][2])
             rename(df, vc => Symbol(fkv[1]))
         end
@@ -543,7 +542,7 @@ function save_nice2020_reduced_output(m::Model, output_directory::String)
     # 3 global time series (temperature, total CO₂, total tax revenue)
     # ─────────────────────────────────────────────────────────────────────────
     function get_global_var(comp, var, col_name)
-        df = getdataframe(m, comp, var)
+        df = getdataframe(m, comp => var)
         vc = :value in propertynames(df) ? :value : Symbol(var)
         return rename(df, vc => Symbol(col_name))
     end
@@ -689,11 +688,28 @@ end
 #FUNCTION TO COMPUTE THE NET PRESENT VALUE 
 #########################################################################################################################
 
-function net_present_value(value, start_year, end_year, discount_rate, name_value)
+#=function net_present_value(value, start_year, end_year, discount_rate, name_value)
     col = Symbol(name_value)  # convertir le nom en symbole
     mask = (value.time .>= start_year) .& (value.time .<= end_year)
     npv = sum(
         value[mask, col] ./ (1 .+ discount_rate) .^ (value[mask, :time] .- start_year)
+    )
+    return npv
+end=#
+
+function net_present_value(value, start_year, end_year, discount_rate, name_value)
+    col = Symbol(name_value)  # convertir le nom en symbole
+    mask = (value.time .>= start_year) .& (value.time .<= end_year)
+    vals  = value[mask, col]
+    years = value[mask, :time]
+
+    if isempty(vals)
+        @warn "net_present_value: no rows found between $start_year and $end_year for column $name_value; returning 0.0"
+        return 0.0
+    end
+
+    npv = sum(
+        vals ./ (1 .+ discount_rate) .^ (years .- start_year)
     )
     return npv
 end

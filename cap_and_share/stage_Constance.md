@@ -22,9 +22,29 @@ On se place dans le cas Hotelling. La situation d'un pays i est définie par le 
 
 ### Problèmes rencontrés / observations
 
-Pour les grands pays émetteurs comme les USA ou la Chine, imposer des facteurs de prix d'autarcie extrêmes forçait mathématiquement le prix du carbone du reste du monde ($p_{-i}$) à devenir négatif pour maintenir l'identité du budget carbone mondial. Physiquement, le modèle buggait sur l'impossibilité de tenir l'objectif d'émissions globales sous ces contraintes unilatérales.
+Pour les grands pays émetteurs comme les USA ou la Chine, imposer des facteurs de prix d'autarcie extrêmes forçait mathématiquement le prix du carbone du reste du monde ($p_{-i}$) à devenir négatif pour maintenir l'identité du budget carbone mondial. Physiquement, le modèle buggait donc j'ai ajouté des fonctions conditionnelles dans le paramétrage du modèle (gross_economy et abatement).
 
 ### Où en est-on ?
+
+Code fonctionnel, heatmaps qui font sens, ajoutées dans le .tex. Calcul de l'équivalence pour les propositions de Wolfram et de Duflo, avec comparaison en termes de bien-être et de température. Explication du code :
+
+J'ai commencé par simuler les monde des deux propositions :
+1.  **Wolfram (Climate Coalition) :** Les pays d'une coalition paient une taxe carbone, basée sur leur niveau de richesse ($25 pour les pays pauvres, $50 pour les pays intermédiaires, $75 pour les pays riches), augmentant de 5% par an. Les autres pays paient $0.
+2.  **Duflo (Grand Bargain) :** Tous les pays du monde paient une taxe selon leur catégorie de revenu ($10, $30, $50), sauf les pays à haut revenu (HIC) qui paient $0 au niveau national (leur taxe correspond à un transfert non modélisé dans le script).
+
+J'ai ensuite calculé le niveau de bien-être NPV de chaque pays.
+
+Ensuite, on bascule vers un régime de prix uniforme mondial (Cap-and-Share), avec distribution de droits d'émission initiaux.
+
+J'utilise une méthode par dichotomie pour trouver le multiplicateur $\rho_i$ pour chaque pays :
+*   La formule d'allocation est : $\text{Droits}_i = \rho_i \times \text{Part de la population}_i \times \text{Plafond Mondial}$
+*   Si $\rho_i = 1$, le pays reçoit ses droits strictement au prorata de sa population
+*   Le code ajuste $\rho_i$ jusqu'à ce que le bien-être du pays sous le régime de prix unique soit exactement égal à son bien-être sous le scénario d'autarcie.
+
+Puisque le code calcule les $\rho_i$ pays par pays (en supposant que le reste du monde se partage le reste des droits au prorata de leurs émissions historiques), on rassemble ensuite tous les $\rho_i$ trouvés dans une même matrice pour une simulation simultanée.
+*   On applique tous les $\rho_i$ en même temps. On observe si le budget carbone mondial est respecté et quel impact sur la température globale en 2100
+*   On réajuste année par année pour s'assurer que la somme des droits distribués est égale au plafond d'émissions mondiales. On mesure ensuite le gain de bien-être mondial généré par le passage au prix unique.
+
 
 ### Résultat
 
@@ -46,26 +66,25 @@ Récupérer/inférer les trajectoires d'émissions de CO2 annuelles de la Chine 
 
 Données historiques (1990–2023) : utilisation du fichier `emissions_co2_fossil_territorial_pc.csv` (exprimé en tCO2/habitant), qui comptabilise les émissions territoriales de CO2 fossile (source : Global Carbon Project via Our World in Data).
 
-Objectif 2030 (NDC de l'UE) : l'objectif est une réduction nette de −55% des gaz à effet de serre (GES) d'ici 2030 par rapport aux niveaux de 1990, déposé auprès de la CCNUCC (UNFCCC). Cet objectif global est ventilé par pays en s'appuyant sur la Réglementation sur le partage de l'effort (ESR) :
-
-    - Référence : Règlement (UE) 2023/857, Annexe I — Pourcentage de variation des GES hors système d'échange de quotas d'émission (non-ETS) d'ici 2030 par rapport à 2005.
+Objectif 2030 (NDC de l'UE) : l'objectif est une réduction nette de −55% des gaz à effet de serre (GES) d'ici 2030 par rapport aux niveaux de 1990, déposé auprès de la CCNUCC (UNFCCC). Cet objectif global est distribué par pays en s'appuyant sur la Réglementation sur le partage de l'effort (ESR) :
+    - Référence : Règlement (UE) 2023/857, Annexe I — Pourcentage de variation des GES hors système d'échange de quotas d'émission (non-ETS) d'ici 2030 par rapport à 2005
     - Hypothèse sous-jacente : les cibles de l'ESR (qui ne concernent que les secteurs non-ETS) sont utilisées ici comme des proxys de l'ambition globale de réduction du CO2 par pays. La somme des trajectoires nationales obtenues est ensuite réajustée proportionnellement pour correspondre exactement à la cible agrégée de la NDC européenne.
 
 Objectif 2040 : inspiré de l'amendement à la loi européenne sur le climat (réduction nette de −90% des GES par rapport à 1990), basé sur la communication COM(2025). Cet effort est distribué entre les pays proportionnellement à leurs parts d'émissions respectives calculées pour 2030.
 
-Objectif 2050 : neutralité climatique (émissions nettes de CO2 = 0).
+Objectif 2050 : neutralité climatique (émissions nettes de CO2 = 0)
 
 Données de population issues du fichier `5530a383-d6a3-4d54-8f7a-5ad1ab4a6ce6_Data.csv` (source : Banque mondiale, indicateur : SP.POP.TOTL).
 
 2. Chine
 
-Source des données : Du et al. (2026), scénario : neutralité CO2, ligne : émissions totales de CO2, unité d'origine : centaines de millions de tonnes de CO2 (10^8 tCO2). Les valeurs sont divisées par 10 pour être converties en Gigatonnes (GtCO2).
+Source des données : Du et al. (2026), scénario : neutralité CO2, ligne : émissions totales de CO2, unité d'origine : centaines de millions de tonnes de CO2 (10^8 tCO2).
 
-Période 2020–2060 : l'étude de Du et al. fournit des projections par paliers de 5 ans, une interpolation linéaire est donc appliquée pour obtenir les valeurs annuelles.
+Période 2020–2060 : l'étude de Du et al. fournit des projections par paliers de 5 ans, j'ai donc interpolé linéairement pour obtenir les valeurs annuelles.
 
-Période 2061–2070 : interpolation linéaire pour passer de la valeur de 2060 à 0 (approche cohérente avec l'objectif politique de la Chine d'atteindre la neutralité carbone d'ici 2060) ; les émissions résiduelles d'environ 0,9 GtCO2 observées en 2060 reflètent la part des secteurs industriels difficiles à décarboner.
+Période 2061–2070 : interpolation linéaire pour passer de la valeur de 2060 à 0 (objectif politique de la Chine d'atteindre la neutralité carbone d'ici 2060) ; les émissions résiduelles d'environ 0,9 GtCO2 observées en 2060 reflètent la part des secteurs industriels difficiles à décarboner.
 
-Période 2071–2300 : émissions maintenues strictement à zéro.
+Période 2071–2300 : émissions à zéro
 
 3. Règles d'interpolation temporelle
 
@@ -78,7 +97,6 @@ Les trajectoires annuelles sont construites comme cela :
 - 2050–2300 : émissions maintenues à zéro (à partir de 2060 pour la Chine)
 
 ### Résultat
-
 
 ## 3. Modéliser un phase-in
 L'idée est de faire démarrer le prix carbone mondial progressivement. Vérifier si cette tâche n'a pas déjà été codée.
