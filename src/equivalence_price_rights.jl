@@ -15,6 +15,7 @@
 ###############################################################################
 # change this line to the path of the NICE2020 project
 cd("/Users/constance/Documents/stage/NICE2020")
+cd("C:/Users/fabre/Documents/www/NICE2020/src")
 
 using Pkg
 Pkg.activate(joinpath(@__DIR__, ".."))
@@ -72,6 +73,7 @@ run(cs_ref)
 # using this as recycle_share makes each quintile receive back exactly what it paid,
 # neutralising within-country redistribution so the heatmap reflects only
 # inter-country welfare differences
+# TODO does it neutralise though? 'cause the country won't receive exactly what it pays (outside autarky), so there are transfers, and emissions-proportional isn't enough, it should also account for marginal utilities
 let burden_df = getdataframe(cs_ref, :quantile_recycle => :tax_burden_distr)
     global all_quantiles          = sort(unique(burden_df.quantile))
     global nb_quantile_val        = length(all_quantiles)
@@ -105,6 +107,7 @@ global_pop = [sum(filter(r -> r.time == y, pop_df).l)             for y in uniqu
 # This preserves the initial consumption ranking (regressive: richer quintiles
 # receive proportionally more). Weights are computed from the reference run
 # consumption before tax recycling, averaged over 2025–2035.
+# TODO include this reditribution and the previous one in the model
 
 # elasticity of marginal utility of consumption
 η_welfare = try Float64(Mimi.get_param(base_model, :welfare, :elasmu)) catch; 1.5 end

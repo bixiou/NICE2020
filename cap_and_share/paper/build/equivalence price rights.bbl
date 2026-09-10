@@ -1,0 +1,76 @@
+\begin{thebibliography}{9}
+\providecommand{\natexlab}[1]{#1}
+\providecommand{\url}[1]{\texttt{#1}}
+\expandafter\ifx\csname urlstyle\endcsname\relax
+  \providecommand{\doi}[1]{doi: #1}\else
+  \providecommand{\doi}{doi: \begingroup \urlstyle{rm}\Url}\fi
+
+\bibitem[Anthoff and Emmerling(2022)]{anthoff2022}
+David Anthoff and Johannes Emmerling.
+\newblock Inequality and the social cost of carbon.
+\newblock \emph{Journal of the Association of Environmental and Resource
+  Economists}, 6\penalty0 (2):\penalty0 243--273, 2022.
+\newblock \doi{10.1086/701900}.
+
+\bibitem[Babiker(2005)]{babiker2005}
+Mustafa~H. Babiker.
+\newblock Climate change policy, market structure, and carbon leakage.
+\newblock \emph{Journal of International Economics}, 65\penalty0 (2):\penalty0
+  421--445, 2005.
+\newblock \doi{10.1016/j.jinteco.2004.01.003}.
+
+\bibitem[Banerjee et~al.(2025)Banerjee, Duflo, and Greenstone]{duflo2025}
+Abhijit Banerjee, Esther Duflo, and Michael Greenstone.
+\newblock A grand bargain for climate mitigation, adaptation and compensation.
+\newblock Technical report, COP30 Ad Hoc committee, 2025.
+
+\bibitem[Bauer et~al.(2020)Bauer, Bertram, and Schultes]{bauer2020}
+N.~Bauer, C.~Bertram, and A.~Schultes.
+\newblock Quantification of an efficiency–sovereignty trade-off in climate
+  policy.
+\newblock \emph{Nature}, 588:\penalty0 261--266, 2020.
+\newblock \doi{10.1038/s41586-020-2982-5}.
+
+\bibitem[Boeters(2014)]{boeters2014}
+Stefan Boeters.
+\newblock Optimally differentiated carbon prices for unilateral climate policy.
+\newblock \emph{Energy Economics}, 45:\penalty0 304--312, 2014.
+\newblock \doi{10.1016/j.eneco.2014.07.015}.
+
+\bibitem[Diamond and Mirrleess(1971)]{diamond1971optimal}
+Peter~A. Diamond and James~A. Mirrleess.
+\newblock Optimal taxation and public production.
+\newblock \emph{American Economic Review}, 61\penalty0 (1):\penalty0 8--27,
+  1971.
+
+\bibitem[Olhoff et~al.(2025)Olhoff, Lamb, Kuramochi, Rogelj, den Elzen,
+  Christensen, Fransen, Pathak, and Tong]{unepgap2025}
+A.~Olhoff, W.~Lamb, T.~Kuramochi, J.~Rogelj, M.~den Elzen, J.~Christensen,
+  T.~Fransen, M.~Pathak, and D.~Tong.
+\newblock Emissions gap report 2025: Off target -- continued collective
+  inaction puts global temperature goal at risk.
+\newblock Technical report, United Nations Environment Programme, 2025.
+
+\bibitem[Wolfram et~al.(2025)Wolfram, Aldy, Bracher, Chaturvedi, Clausing,
+  Gollier, Jotzo, Medeiros, Muthitacharoen, Ockenfels, Pangestu, Sembene,
+  Somanathan, Tingley, and Winter]{wolfram2025}
+Catherine Wolfram, Joseph Aldy, Candido Bracher, Vaibhav Chaturvedi, Kimberly
+  Clausing, Christian Gollier, Frank Jotzo, Marcelo~PL Medeiros, Athiphat
+  Muthitacharoen, Axel Ockenfels, Mari Pangestu, Daouda Sembene, E.~Somanathan,
+  Dustin Tingley, and Jennifer Winter.
+\newblock Building a climate coalition: Aligning carbon pricing, trade, and
+  development.
+\newblock Technical report, Global Climate Policy Project (GCPP) Working Group
+  on Climate Coalitions, 2025.
+
+\bibitem[Young-Brun et~al.(2025)Young-Brun, Dennig, Errickson, Feindt, Méjean,
+  and Zuber]{youngbrun2025}
+Marie Young-Brun, Francis Dennig, Franck Errickson, Simon Feindt, Aurélie
+  Méjean, and Stéphane Zuber.
+\newblock Within-country inequality and the shaping of a just global climate
+  policy.
+\newblock \emph{Proceedings of the National Academy of Sciences}, 122\penalty0
+  (39), 2025.
+\newblock \doi{10.1073/pnas.2505239122}.
+
+\end{thebibliography}
