@@ -1,17 +1,16 @@
 # Fdb version 3
-["pdflatex"] 1789059197 "c:/Users/fabre/Documents/www/NICE2020/cap_and_share/presentation/prez_price_rights.tex" "build/prez_price_rights.pdf" "prez_price_rights" 1789059203
+["pdflatex"] 1789146811 "c:/Users/fabre/Documents/www/NICE2020/cap_and_share/presentation/prez_price_rights.tex" "build/prez_price_rights.pdf" "prez_price_rights" 1789146817
   "../paper/figures/Welfare_Heatmap_CHN (pdfresizer.com)-2.pdf" 1789044557 113957 de5b0fa62327ffc4c31578553605027f ""
   "../paper/figures/Welfare_Heatmap_COD (pdfresizer.com)-2.pdf" 1789044557 86848 12941e9fe668d01eb34645288eed0cfa ""
   "../paper/figures/Welfare_Heatmap_EU27 (pdfresizer.com)-3.pdf" 1789044557 70594 ec6bb64990affb9e1a1524d65722ae78 ""
   "../paper/figures/Welfare_Heatmap_IND (pdfresizer.com)-3.pdf" 1789044557 173612 5b2fd792f46e79c7b028c02abcf0aac7 ""
   "../paper/figures/Welfare_Heatmap_NGA (pdfresizer.com)-3.pdf" 1789044557 116845 00fd005fd111e197d79715e28c8b9786 ""
   "../paper/figures/Welfare_Heatmap_RUS (pdfresizer.com)-3.pdf" 1789044557 161821 8bc0198935cabea27248cfa0e58b8350 ""
-  "../paper/figures/Welfare_Heatmap_TUR (pdfresizer.com)-3.pdf" 1789044557 160151 bf9952dc8580b070acab22e0ddf5409c ""
   "../paper/figures/Welfare_Heatmap_USA (pdfresizer.com)-3.pdf" 1789044557 161991 945eabca00c27e3eff81f5ec0fe46961 ""
-  "build/prez_price_rights.aux" 1789059203 9439 2030ef08d3506ede135a133a9b4a851d "pdflatex"
-  "build/prez_price_rights.nav" 1789059203 4332 0c8daf4daaf71553920da2526fa2894d "pdflatex"
-  "build/prez_price_rights.out" 1789059203 784 e4b5ac08359c8278bfb108609c71fd5d "pdflatex"
-  "c:/Users/fabre/Documents/www/NICE2020/cap_and_share/presentation/prez_price_rights.tex" 1789059051 31234 5bae8938372eb58a38f4dbc51dc8a77c ""
+  "build/prez_price_rights.aux" 1789146816 9222 6db86f91bde65da0fcf6a613840a8064 "pdflatex"
+  "build/prez_price_rights.nav" 1789146816 4238 8acdece96a55d726752bd8502b0e540f "pdflatex"
+  "build/prez_price_rights.out" 1789146816 977 79a98cfa94424a2dea0a5667d630f677 "pdflatex"
+  "c:/Users/fabre/Documents/www/NICE2020/cap_and_share/presentation/prez_price_rights.tex" 1789146774 40006 79960c83e2cacbef9c849e514710bec3 ""
   "c:/texlive/2022/texmf-dist/fonts/enc/dvips/base/8r.enc" 1663542048 4850 80dc9bab7f31fb78a000ccfed0e27cab ""
   "c:/texlive/2022/texmf-dist/fonts/map/fontname/texfonts.map" 1663542332 3524 cb3e574dea2d1052e39280babc910dc8 ""
   "c:/texlive/2022/texmf-dist/fonts/tfm/adobe/palatino/pplr7t.tfm" 1663543501 1804 7b5f73028f6509167f47ace9d69509ed ""
@@ -307,8 +306,8 @@
   "c:/texlive/2022/texmf-var/fonts/map/pdftex/updmap/pdftex.map" 1663544966 4635069 7677ee69604aae14ed48b153c111a7f7 ""
   "c:/texlive/2022/texmf-var/web2c/pdftex/pdflatex.fmt" 1663545077 3059215 8f99df6ed72caaaf55d8f9d041927bea ""
   "c:/texlive/2022/texmf.cnf" 1663544940 713 e69b156964470283e0530f5060668171 ""
-  "preamble_slides.tex" 1751537408 17558 12a9974c21bf85d6fb4d62c5ef0c1e5d ""
-  "prez_price_rights.tex" 1789059051 31234 5bae8938372eb58a38f4dbc51dc8a77c ""
+  "preamble_slides.tex" 1789141166 17643 ed5c323799d46b8e99ef1271897a2d62 ""
+  "prez_price_rights.tex" 1789146774 40006 79960c83e2cacbef9c849e514710bec3 ""
   (generated)
   "build/prez_price_rights.aux"
   "build/prez_price_rights.log"

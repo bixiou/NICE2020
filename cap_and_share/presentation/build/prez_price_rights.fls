@@ -1889,13 +1889,7 @@ INPUT c:/texlive/2022/texmf-dist/fonts/tfm/public/wasy/wasy6.tfm
 INPUT c:/texlive/2022/texmf-dist/fonts/tfm/adobe/times/ptmr8t.tfm
 INPUT c:/texlive/2022/texmf-dist/fonts/tfm/adobe/times/ptmri8t.tfm
 INPUT c:/texlive/2022/texmf-dist/fonts/tfm/adobe/times/ptmri8t.tfm
-INPUT c:/texlive/2022/texmf-dist/tex/latex/psnfss/ts1ptm.fd
-INPUT c:/texlive/2022/texmf-dist/tex/latex/psnfss/ts1ptm.fd
-INPUT c:/texlive/2022/texmf-dist/tex/latex/psnfss/ts1ptm.fd
-INPUT c:/texlive/2022/texmf-dist/tex/latex/psnfss/ts1ptm.fd
-INPUT c:/texlive/2022/texmf-dist/fonts/tfm/adobe/times/ptmr8c.tfm
 INPUT c:/texlive/2022/texmf-dist/fonts/tfm/adobe/times/ptmr8t.tfm
-INPUT c:/texlive/2022/texmf-dist/fonts/tfm/adobe/times/ptmri8t.tfm
 INPUT c:/texlive/2022/texmf-dist/fonts/tfm/adobe/times/ptmr8t.tfm
 INPUT c:/texlive/2022/texmf-dist/fonts/tfm/adobe/times/ptmb8t.tfm
 INPUT c:/texlive/2022/texmf-dist/fonts/tfm/adobe/times/ptmr8t.tfm
@@ -1903,17 +1897,8 @@ INPUT c:/texlive/2022/texmf-dist/fonts/vf/adobe/times/ptmr8t.vf
 INPUT c:/texlive/2022/texmf-dist/fonts/tfm/adobe/times/ptmr8r.tfm
 INPUT c:/texlive/2022/texmf-dist/fonts/vf/adobe/times/ptmb8t.vf
 INPUT c:/texlive/2022/texmf-dist/fonts/tfm/adobe/times/ptmb8r.tfm
-INPUT c:/texlive/2022/texmf-dist/fonts/vf/adobe/times/ptmr8c.vf
-INPUT c:/texlive/2022/texmf-dist/fonts/vf/public/mathpazo/zplmr7y.vf
-INPUT c:/texlive/2022/texmf-dist/fonts/tfm/public/cm/cmsy10.tfm
-INPUT c:/texlive/2022/texmf-dist/fonts/tfm/public/mathpazo/fplmr.tfm
-INPUT c:/texlive/2022/texmf-dist/fonts/tfm/adobe/palatino/pplr8r.tfm
 INPUT c:/texlive/2022/texmf-dist/fonts/vf/adobe/times/ptmr8t.vf
 INPUT c:/texlive/2022/texmf-dist/fonts/tfm/adobe/times/ptmr8r.tfm
-INPUT c:/texlive/2022/texmf-dist/fonts/vf/adobe/times/ptmr8t.vf
-INPUT c:/texlive/2022/texmf-dist/fonts/tfm/adobe/times/ptmr8r.tfm
-INPUT c:/texlive/2022/texmf-dist/fonts/vf/adobe/times/ptmri8t.vf
-INPUT c:/texlive/2022/texmf-dist/fonts/tfm/adobe/times/ptmri8r.tfm
 INPUT c:/texlive/2022/texmf-dist/fonts/vf/adobe/times/ptmr8t.vf
 INPUT c:/texlive/2022/texmf-dist/fonts/tfm/adobe/times/ptmr8r.tfm
 INPUT c:/texlive/2022/texmf-dist/fonts/tfm/adobe/palatino/pplr7t.tfm
@@ -1933,83 +1918,65 @@ INPUT c:/texlive/2022/texmf-dist/fonts/tfm/public/mathpazo/zplmr7t.tfm
 INPUT c:/texlive/2022/texmf-dist/fonts/tfm/public/wasy/wasy10.tfm
 INPUT c:/texlive/2022/texmf-dist/fonts/tfm/adobe/times/ptmr8t.tfm
 INPUT c:/texlive/2022/texmf-dist/fonts/tfm/adobe/times/ptmri8t.tfm
+INPUT c:/texlive/2022/texmf-dist/fonts/tfm/adobe/times/ptmri8t.tfm
+INPUT c:/texlive/2022/texmf-dist/fonts/vf/public/mathpazo/zplmr7y.vf
+INPUT c:/texlive/2022/texmf-dist/fonts/tfm/public/cm/cmsy10.tfm
+INPUT c:/texlive/2022/texmf-dist/fonts/tfm/public/mathpazo/fplmr.tfm
+INPUT c:/texlive/2022/texmf-dist/fonts/tfm/adobe/palatino/pplr8r.tfm
+INPUT c:/texlive/2022/texmf-dist/fonts/tfm/adobe/times/ptmr8t.tfm
+INPUT c:/texlive/2022/texmf-dist/fonts/tfm/adobe/times/ptmr8t.tfm
+INPUT c:/texlive/2022/texmf-dist/fonts/tfm/adobe/times/ptmri8t.tfm
+INPUT c:/texlive/2022/texmf-dist/fonts/vf/adobe/times/ptmr8t.vf
+INPUT c:/texlive/2022/texmf-dist/fonts/tfm/adobe/times/ptmr8r.tfm
+INPUT c:/texlive/2022/texmf-dist/fonts/vf/adobe/times/ptmri8t.vf
+INPUT c:/texlive/2022/texmf-dist/fonts/tfm/adobe/times/ptmri8r.tfm
+INPUT c:/texlive/2022/texmf-dist/fonts/vf/adobe/times/ptmri8t.vf
+INPUT c:/texlive/2022/texmf-dist/fonts/tfm/adobe/times/ptmri8r.tfm
 INPUT c:/texlive/2022/texmf-dist/fonts/vf/public/mathpazo/zplmr7t.vf
+INPUT c:/texlive/2022/texmf-dist/fonts/tfm/public/mathpazo/fplmr.tfm
+INPUT c:/texlive/2022/texmf-dist/fonts/tfm/adobe/palatino/pplr8r.tfm
 INPUT c:/texlive/2022/texmf-dist/fonts/tfm/public/cm/cmr10.tfm
+INPUT c:/texlive/2022/texmf-dist/fonts/vf/public/mathpazo/zplmr7y.vf
+INPUT c:/texlive/2022/texmf-dist/fonts/tfm/public/cm/cmsy10.tfm
+INPUT c:/texlive/2022/texmf-dist/fonts/vf/adobe/palatino/pplr7t.vf
+INPUT c:/texlive/2022/texmf-dist/fonts/vf/public/mathpazo/zplmr7v.vf
+INPUT c:/texlive/2022/texmf-dist/fonts/tfm/public/cm/cmex10.tfm
+INPUT c:/texlive/2022/texmf-dist/fonts/tfm/public/cm/cmex10.tfm
+INPUT c:/texlive/2022/texmf-dist/fonts/tfm/public/cm/cmex10.tfm
+INPUT c:/texlive/2022/texmf-dist/fonts/tfm/public/mathpazo/fplmr.tfm
+INPUT c:/texlive/2022/texmf-dist/fonts/vf/public/mathpazo/zplmr7y.vf
+INPUT c:/texlive/2022/texmf-dist/fonts/tfm/public/cm/cmsy10.tfm
+INPUT c:/texlive/2022/texmf-dist/fonts/tfm/public/mathpazo/fplmr.tfm
+INPUT c:/texlive/2022/texmf-dist/fonts/tfm/adobe/palatino/pplr8r.tfm
+INPUT c:/texlive/2022/texmf-dist/fonts/vf/adobe/times/ptmri8t.vf
+INPUT c:/texlive/2022/texmf-dist/fonts/tfm/adobe/times/ptmri8r.tfm
 INPUT c:/texlive/2022/texmf-dist/fonts/vf/adobe/times/ptmri8t.vf
 INPUT c:/texlive/2022/texmf-dist/fonts/tfm/adobe/times/ptmri8r.tfm
 INPUT c:/texlive/2022/texmf-dist/fonts/vf/public/mathpazo/zplmr7y.vf
 INPUT c:/texlive/2022/texmf-dist/fonts/tfm/public/cm/cmsy10.tfm
 INPUT c:/texlive/2022/texmf-dist/fonts/tfm/public/mathpazo/fplmr.tfm
 INPUT c:/texlive/2022/texmf-dist/fonts/tfm/adobe/palatino/pplr8r.tfm
+INPUT c:/texlive/2022/texmf-dist/fonts/vf/public/mathpazo/zplmr7t.vf
+INPUT c:/texlive/2022/texmf-dist/fonts/tfm/public/cm/cmr10.tfm
+INPUT c:/texlive/2022/texmf-dist/fonts/vf/adobe/palatino/pplr7t.vf
+INPUT c:/texlive/2022/texmf-dist/fonts/vf/public/mathpazo/zplmr7v.vf
+INPUT c:/texlive/2022/texmf-dist/fonts/tfm/public/cm/cmex10.tfm
+INPUT c:/texlive/2022/texmf-dist/fonts/tfm/public/cm/cmex10.tfm
+INPUT c:/texlive/2022/texmf-dist/fonts/tfm/public/mathpazo/fplmr.tfm
+INPUT c:/texlive/2022/texmf-dist/fonts/vf/adobe/times/ptmri8t.vf
+INPUT c:/texlive/2022/texmf-dist/fonts/tfm/adobe/times/ptmri8r.tfm
 INPUT c:/texlive/2022/texmf-dist/fonts/vf/public/mathpazo/zplmr7m.vf
 INPUT c:/texlive/2022/texmf-dist/fonts/tfm/public/mathpazo/fplmri.tfm
 INPUT c:/texlive/2022/texmf-dist/fonts/tfm/public/cm/cmmi10.tfm
-INPUT c:/texlive/2022/texmf-dist/fonts/tfm/adobe/palatino/pplr8r.tfm
 INPUT c:/texlive/2022/texmf-dist/fonts/tfm/adobe/palatino/pplri8r.tfm
-INPUT c:/texlive/2022/texmf-dist/fonts/vf/adobe/times/ptmr8t.vf
-INPUT c:/texlive/2022/texmf-dist/fonts/tfm/adobe/times/ptmr8r.tfm
-INPUT c:/texlive/2022/texmf-dist/fonts/tfm/adobe/times/ptmr8t.tfm
-INPUT c:/texlive/2022/texmf-dist/fonts/tfm/adobe/times/ptmr8t.tfm
-INPUT c:/texlive/2022/texmf-dist/fonts/vf/adobe/times/ptmr8t.vf
-INPUT c:/texlive/2022/texmf-dist/fonts/tfm/adobe/times/ptmr8r.tfm
-INPUT c:/texlive/2022/texmf-dist/fonts/vf/public/mathpazo/zplmr7y.vf
-INPUT c:/texlive/2022/texmf-dist/fonts/tfm/public/cm/cmsy10.tfm
-INPUT c:/texlive/2022/texmf-dist/fonts/tfm/public/mathpazo/fplmr.tfm
-INPUT c:/texlive/2022/texmf-dist/fonts/vf/adobe/palatino/pplr7t.vf
-INPUT c:/texlive/2022/texmf-dist/fonts/vf/public/mathpazo/zplmr7v.vf
-INPUT c:/texlive/2022/texmf-dist/fonts/tfm/public/cm/cmex10.tfm
-INPUT c:/texlive/2022/texmf-dist/fonts/tfm/public/cm/cmex10.tfm
-INPUT c:/texlive/2022/texmf-dist/fonts/tfm/public/cm/cmex10.tfm
-INPUT c:/texlive/2022/texmf-dist/fonts/tfm/public/mathpazo/fplmr.tfm
-INPUT c:/texlive/2022/texmf-dist/fonts/vf/public/mathpazo/zplmr7y.vf
-INPUT c:/texlive/2022/texmf-dist/fonts/tfm/public/cm/cmsy10.tfm
-INPUT c:/texlive/2022/texmf-dist/fonts/tfm/public/mathpazo/fplmr.tfm
-INPUT c:/texlive/2022/texmf-dist/fonts/tfm/adobe/palatino/pplr8r.tfm
-INPUT c:/texlive/2022/texmf-dist/fonts/vf/public/mathpazo/zplmr7t.vf
-INPUT c:/texlive/2022/texmf-dist/fonts/tfm/public/cm/cmr10.tfm
-INPUT c:/texlive/2022/texmf-dist/fonts/vf/adobe/palatino/pplr7t.vf
-INPUT c:/texlive/2022/texmf-dist/fonts/vf/adobe/times/ptmri8t.vf
-INPUT c:/texlive/2022/texmf-dist/fonts/tfm/adobe/times/ptmri8r.tfm
-INPUT c:/texlive/2022/texmf-dist/fonts/vf/public/mathpazo/zplmr7v.vf
-INPUT c:/texlive/2022/texmf-dist/fonts/tfm/public/cm/cmex10.tfm
-INPUT c:/texlive/2022/texmf-dist/fonts/tfm/public/cm/cmex10.tfm
-INPUT c:/texlive/2022/texmf-dist/fonts/tfm/public/mathpazo/fplmr.tfm
-INPUT c:/texlive/2022/texmf-dist/fonts/vf/adobe/times/ptmri8t.vf
-INPUT c:/texlive/2022/texmf-dist/fonts/tfm/adobe/times/ptmri8r.tfm
 INPUT c:/texlive/2022/texmf-dist/fonts/vf/public/mathpazo/zplmr7t.vf
 INPUT c:/texlive/2022/texmf-dist/fonts/tfm/public/cm/cmr10.tfm
 INPUT c:/texlive/2022/texmf-dist/fonts/vf/public/mathpazo/zplmr7y.vf
 INPUT c:/texlive/2022/texmf-dist/fonts/tfm/public/cm/cmsy10.tfm
 INPUT c:/texlive/2022/texmf-dist/fonts/tfm/public/mathpazo/fplmr.tfm
 INPUT c:/texlive/2022/texmf-dist/fonts/tfm/adobe/palatino/pplr8r.tfm
-INPUT c:/texlive/2022/texmf-dist/fonts/tfm/adobe/palatino/pplr7t.tfm
-INPUT c:/texlive/2022/texmf-dist/fonts/tfm/adobe/palatino/pplr7t.tfm
-INPUT c:/texlive/2022/texmf-dist/fonts/tfm/public/mathpazo/zplmr7m.tfm
-INPUT c:/texlive/2022/texmf-dist/fonts/tfm/public/mathpazo/zplmr7m.tfm
-INPUT c:/texlive/2022/texmf-dist/fonts/tfm/public/mathpazo/zplmr7y.tfm
-INPUT c:/texlive/2022/texmf-dist/fonts/tfm/public/mathpazo/zplmr7y.tfm
-INPUT c:/texlive/2022/texmf-dist/fonts/tfm/public/mathpazo/zplmr7v.tfm
-INPUT c:/texlive/2022/texmf-dist/fonts/tfm/public/mathpazo/zplmr7v.tfm
-INPUT c:/texlive/2022/texmf-dist/fonts/tfm/public/amsfonts/symbols/msam10.tfm
-INPUT c:/texlive/2022/texmf-dist/fonts/tfm/public/amsfonts/symbols/msam10.tfm
-INPUT c:/texlive/2022/texmf-dist/fonts/tfm/public/amsfonts/symbols/msbm10.tfm
-INPUT c:/texlive/2022/texmf-dist/fonts/tfm/public/amsfonts/symbols/msbm10.tfm
-INPUT c:/texlive/2022/texmf-dist/fonts/tfm/public/mathpazo/zplmr7t.tfm
-INPUT c:/texlive/2022/texmf-dist/fonts/tfm/public/mathpazo/zplmr7t.tfm
-INPUT c:/texlive/2022/texmf-dist/fonts/tfm/public/wasy/wasy5.tfm
-INPUT c:/texlive/2022/texmf-dist/fonts/tfm/adobe/times/ptmr8t.tfm
-INPUT c:/texlive/2022/texmf-dist/fonts/tfm/adobe/times/ptmr8t.tfm
-INPUT c:/texlive/2022/texmf-dist/fonts/tfm/adobe/times/ptmri8t.tfm
-INPUT c:/texlive/2022/texmf-dist/fonts/tfm/adobe/times/ptmri8t.tfm
-INPUT c:/texlive/2022/texmf-dist/fonts/tfm/adobe/palatino/pplr7t.tfm
-INPUT c:/texlive/2022/texmf-dist/fonts/tfm/public/mathpazo/zplmr7m.tfm
-INPUT c:/texlive/2022/texmf-dist/fonts/tfm/public/mathpazo/zplmr7y.tfm
-INPUT c:/texlive/2022/texmf-dist/fonts/tfm/public/mathpazo/zplmr7v.tfm
-INPUT c:/texlive/2022/texmf-dist/fonts/tfm/public/amsfonts/symbols/msam10.tfm
-INPUT c:/texlive/2022/texmf-dist/fonts/tfm/public/amsfonts/symbols/msbm10.tfm
-INPUT c:/texlive/2022/texmf-dist/fonts/tfm/public/mathpazo/zplmr7t.tfm
-INPUT c:/texlive/2022/texmf-dist/fonts/tfm/adobe/times/ptmr8t.tfm
-INPUT c:/texlive/2022/texmf-dist/fonts/tfm/adobe/times/ptmri8t.tfm
+INPUT c:/texlive/2022/texmf-dist/fonts/vf/adobe/times/ptmr8t.vf
+INPUT c:/texlive/2022/texmf-dist/fonts/tfm/adobe/times/ptmr8r.tfm
 INPUT c:/texlive/2022/texmf-dist/fonts/vf/public/mathpazo/zplmr7m.vf
 INPUT c:/texlive/2022/texmf-dist/fonts/tfm/public/mathpazo/fplmri.tfm
 INPUT c:/texlive/2022/texmf-dist/fonts/tfm/public/cm/cmmi10.tfm
@@ -2021,6 +1988,12 @@ INPUT c:/texlive/2022/texmf-dist/fonts/vf/public/mathpazo/zplmr7m.vf
 INPUT c:/texlive/2022/texmf-dist/fonts/tfm/public/mathpazo/fplmri.tfm
 INPUT c:/texlive/2022/texmf-dist/fonts/tfm/public/cm/cmmi10.tfm
 INPUT c:/texlive/2022/texmf-dist/fonts/tfm/adobe/palatino/pplri8r.tfm
+INPUT c:/texlive/2022/texmf-dist/fonts/vf/adobe/times/ptmr8t.vf
+INPUT c:/texlive/2022/texmf-dist/fonts/tfm/adobe/times/ptmr8r.tfm
+INPUT c:/texlive/2022/texmf-dist/tex/latex/psnfss/ts1ptm.fd
+INPUT c:/texlive/2022/texmf-dist/tex/latex/psnfss/ts1ptm.fd
+INPUT c:/texlive/2022/texmf-dist/tex/latex/psnfss/ts1ptm.fd
+INPUT c:/texlive/2022/texmf-dist/tex/latex/psnfss/ts1ptm.fd
 INPUT c:/texlive/2022/texmf-dist/fonts/tfm/adobe/times/ptmr8c.tfm
 INPUT c:/texlive/2022/texmf-dist/fonts/vf/adobe/times/ptmr8c.vf
 INPUT ../paper/figures/Welfare_Heatmap_USA (pdfresizer.com)-3.pdf
@@ -2028,86 +2001,97 @@ INPUT ../paper/figures/Welfare_Heatmap_USA (pdfresizer.com)-3.pdf
 INPUT ../paper/figures/Welfare_Heatmap_USA (pdfresizer.com)-3.pdf
 INPUT ../paper/figures/Welfare_Heatmap_USA (pdfresizer.com)-3.pdf
 INPUT ../paper/figures/Welfare_Heatmap_USA (pdfresizer.com)-3.pdf
+INPUT ../paper/figures/Welfare_Heatmap_USA (pdfresizer.com)-3.pdf
+INPUT ../paper/figures/Welfare_Heatmap_USA (pdfresizer.com)-3.pdf
+INPUT ../paper/figures/Welfare_Heatmap_USA (pdfresizer.com)-3.pdf
+INPUT ../paper/figures/Welfare_Heatmap_USA (pdfresizer.com)-3.pdf
+INPUT ../paper/figures/Welfare_Heatmap_USA (pdfresizer.com)-3.pdf
+INPUT ../paper/figures/Welfare_Heatmap_USA (pdfresizer.com)-3.pdf
+INPUT ../paper/figures/Welfare_Heatmap_USA (pdfresizer.com)-3.pdf
+INPUT ../paper/figures/Welfare_Heatmap_USA (pdfresizer.com)-3.pdf
+INPUT ../paper/figures/Welfare_Heatmap_USA (pdfresizer.com)-3.pdf
+INPUT ../paper/figures/Welfare_Heatmap_USA (pdfresizer.com)-3.pdf
+INPUT ../paper/figures/Welfare_Heatmap_USA (pdfresizer.com)-3.pdf
+INPUT ../paper/figures/Welfare_Heatmap_USA (pdfresizer.com)-3.pdf
+INPUT c:/texlive/2022/texmf-dist/fonts/tfm/adobe/times/ptmb8t.tfm
+INPUT c:/texlive/2022/texmf-dist/fonts/vf/adobe/times/ptmb8t.vf
+INPUT c:/texlive/2022/texmf-dist/fonts/tfm/adobe/times/ptmb8r.tfm
+INPUT ../paper/figures/Welfare_Heatmap_RUS (pdfresizer.com)-3.pdf
+INPUT ../paper/figures/Welfare_Heatmap_RUS (pdfresizer.com)-3.pdf
+INPUT ../paper/figures/Welfare_Heatmap_RUS (pdfresizer.com)-3.pdf
+INPUT ../paper/figures/Welfare_Heatmap_RUS (pdfresizer.com)-3.pdf
+INPUT ../paper/figures/Welfare_Heatmap_RUS (pdfresizer.com)-3.pdf
+INPUT ../paper/figures/Welfare_Heatmap_CHN (pdfresizer.com)-2.pdf
+INPUT ../paper/figures/Welfare_Heatmap_CHN (pdfresizer.com)-2.pdf
+INPUT ../paper/figures/Welfare_Heatmap_CHN (pdfresizer.com)-2.pdf
+INPUT ../paper/figures/Welfare_Heatmap_CHN (pdfresizer.com)-2.pdf
+INPUT ../paper/figures/Welfare_Heatmap_CHN (pdfresizer.com)-2.pdf
+INPUT ../paper/figures/Welfare_Heatmap_EU27 (pdfresizer.com)-3.pdf
+INPUT ../paper/figures/Welfare_Heatmap_EU27 (pdfresizer.com)-3.pdf
+INPUT ../paper/figures/Welfare_Heatmap_EU27 (pdfresizer.com)-3.pdf
+INPUT ../paper/figures/Welfare_Heatmap_EU27 (pdfresizer.com)-3.pdf
+INPUT ../paper/figures/Welfare_Heatmap_EU27 (pdfresizer.com)-3.pdf
+INPUT ../paper/figures/Welfare_Heatmap_IND (pdfresizer.com)-3.pdf
+INPUT ../paper/figures/Welfare_Heatmap_IND (pdfresizer.com)-3.pdf
+INPUT ../paper/figures/Welfare_Heatmap_IND (pdfresizer.com)-3.pdf
+INPUT ../paper/figures/Welfare_Heatmap_IND (pdfresizer.com)-3.pdf
+INPUT ../paper/figures/Welfare_Heatmap_IND (pdfresizer.com)-3.pdf
+INPUT ../paper/figures/Welfare_Heatmap_NGA (pdfresizer.com)-3.pdf
+INPUT ../paper/figures/Welfare_Heatmap_NGA (pdfresizer.com)-3.pdf
+INPUT ../paper/figures/Welfare_Heatmap_NGA (pdfresizer.com)-3.pdf
+INPUT ../paper/figures/Welfare_Heatmap_NGA (pdfresizer.com)-3.pdf
+INPUT ../paper/figures/Welfare_Heatmap_NGA (pdfresizer.com)-3.pdf
+INPUT ../paper/figures/Welfare_Heatmap_COD (pdfresizer.com)-2.pdf
+INPUT ../paper/figures/Welfare_Heatmap_COD (pdfresizer.com)-2.pdf
+INPUT ../paper/figures/Welfare_Heatmap_COD (pdfresizer.com)-2.pdf
+INPUT ../paper/figures/Welfare_Heatmap_COD (pdfresizer.com)-2.pdf
+INPUT ../paper/figures/Welfare_Heatmap_COD (pdfresizer.com)-2.pdf
+INPUT c:/texlive/2022/texmf-dist/fonts/tfm/adobe/times/ptmr8c.tfm
+INPUT c:/texlive/2022/texmf-dist/fonts/tfm/adobe/palatino/pplr7t.tfm
+INPUT c:/texlive/2022/texmf-dist/fonts/tfm/public/mathpazo/zplmr7m.tfm
+INPUT c:/texlive/2022/texmf-dist/fonts/tfm/public/mathpazo/zplmr7y.tfm
+INPUT c:/texlive/2022/texmf-dist/fonts/tfm/public/mathpazo/zplmr7v.tfm
+INPUT c:/texlive/2022/texmf-dist/fonts/tfm/public/amsfonts/symbols/msam10.tfm
+INPUT c:/texlive/2022/texmf-dist/fonts/tfm/public/amsfonts/symbols/msbm10.tfm
+INPUT c:/texlive/2022/texmf-dist/fonts/tfm/public/mathpazo/zplmr7t.tfm
+INPUT c:/texlive/2022/texmf-dist/fonts/tfm/public/wasy/wasy5.tfm
 INPUT c:/texlive/2022/texmf-dist/fonts/tfm/adobe/times/ptmr8t.tfm
+INPUT c:/texlive/2022/texmf-dist/fonts/tfm/adobe/times/ptmri8t.tfm
+INPUT c:/texlive/2022/texmf-dist/fonts/vf/adobe/times/ptmr8c.vf
+INPUT c:/texlive/2022/texmf-dist/fonts/vf/public/mathpazo/zplmr7t.vf
+INPUT c:/texlive/2022/texmf-dist/fonts/tfm/public/cm/cmr10.tfm
+INPUT c:/texlive/2022/texmf-dist/fonts/vf/public/mathpazo/zplmr7m.vf
+INPUT c:/texlive/2022/texmf-dist/fonts/tfm/public/mathpazo/fplmri.tfm
+INPUT c:/texlive/2022/texmf-dist/fonts/tfm/public/cm/cmmi10.tfm
+INPUT c:/texlive/2022/texmf-dist/fonts/tfm/adobe/palatino/pplri8r.tfm
+INPUT c:/texlive/2022/texmf-dist/fonts/tfm/adobe/palatino/pplr7t.tfm
 INPUT c:/texlive/2022/texmf-dist/fonts/tfm/adobe/palatino/pplr7t.tfm
 INPUT c:/texlive/2022/texmf-dist/fonts/tfm/adobe/palatino/pplr7t.tfm
 INPUT c:/texlive/2022/texmf-dist/fonts/tfm/public/mathpazo/zplmr7m.tfm
 INPUT c:/texlive/2022/texmf-dist/fonts/tfm/public/mathpazo/zplmr7m.tfm
+INPUT c:/texlive/2022/texmf-dist/fonts/tfm/public/mathpazo/zplmr7m.tfm
+INPUT c:/texlive/2022/texmf-dist/fonts/tfm/public/mathpazo/zplmr7y.tfm
 INPUT c:/texlive/2022/texmf-dist/fonts/tfm/public/mathpazo/zplmr7y.tfm
 INPUT c:/texlive/2022/texmf-dist/fonts/tfm/public/mathpazo/zplmr7y.tfm
 INPUT c:/texlive/2022/texmf-dist/fonts/tfm/public/mathpazo/zplmr7v.tfm
 INPUT c:/texlive/2022/texmf-dist/fonts/tfm/public/mathpazo/zplmr7v.tfm
+INPUT c:/texlive/2022/texmf-dist/fonts/tfm/public/mathpazo/zplmr7v.tfm
+INPUT c:/texlive/2022/texmf-dist/fonts/tfm/public/amsfonts/symbols/msam10.tfm
 INPUT c:/texlive/2022/texmf-dist/fonts/tfm/public/amsfonts/symbols/msam10.tfm
 INPUT c:/texlive/2022/texmf-dist/fonts/tfm/public/amsfonts/symbols/msam10.tfm
 INPUT c:/texlive/2022/texmf-dist/fonts/tfm/public/amsfonts/symbols/msbm10.tfm
 INPUT c:/texlive/2022/texmf-dist/fonts/tfm/public/amsfonts/symbols/msbm10.tfm
+INPUT c:/texlive/2022/texmf-dist/fonts/tfm/public/amsfonts/symbols/msbm10.tfm
 INPUT c:/texlive/2022/texmf-dist/fonts/tfm/public/mathpazo/zplmr7t.tfm
 INPUT c:/texlive/2022/texmf-dist/fonts/tfm/public/mathpazo/zplmr7t.tfm
+INPUT c:/texlive/2022/texmf-dist/fonts/tfm/public/mathpazo/zplmr7t.tfm
+INPUT c:/texlive/2022/texmf-dist/fonts/tfm/public/wasy/wasy10.tfm
 INPUT c:/texlive/2022/texmf-dist/fonts/tfm/public/wasy/wasy9.tfm
 INPUT c:/texlive/2022/texmf-dist/fonts/tfm/public/wasy/wasy7.tfm
 INPUT c:/texlive/2022/texmf-dist/fonts/tfm/adobe/times/ptmr8t.tfm
+INPUT c:/texlive/2022/texmf-dist/fonts/tfm/adobe/times/ptmr8t.tfm
 INPUT c:/texlive/2022/texmf-dist/fonts/tfm/adobe/times/ptmri8t.tfm
 INPUT c:/texlive/2022/texmf-dist/fonts/tfm/adobe/times/ptmri8t.tfm
-INPUT c:/texlive/2022/texmf-dist/fonts/tfm/adobe/times/ptmb8t.tfm
-INPUT c:/texlive/2022/texmf-dist/fonts/vf/adobe/times/ptmb8t.vf
-INPUT c:/texlive/2022/texmf-dist/fonts/tfm/adobe/times/ptmb8r.tfm
-INPUT c:/texlive/2022/texmf-dist/fonts/vf/public/mathpazo/zplmr7m.vf
-INPUT c:/texlive/2022/texmf-dist/fonts/tfm/public/mathpazo/fplmri.tfm
-INPUT c:/texlive/2022/texmf-dist/fonts/tfm/public/cm/cmmi10.tfm
-INPUT c:/texlive/2022/texmf-dist/fonts/tfm/adobe/palatino/pplr8r.tfm
-INPUT c:/texlive/2022/texmf-dist/fonts/tfm/adobe/palatino/pplri8r.tfm
-INPUT c:/texlive/2022/texmf-dist/fonts/vf/adobe/times/ptmr8t.vf
-INPUT c:/texlive/2022/texmf-dist/fonts/tfm/adobe/times/ptmr8r.tfm
-INPUT c:/texlive/2022/texmf-dist/fonts/vf/adobe/times/ptmr8t.vf
-INPUT c:/texlive/2022/texmf-dist/fonts/tfm/adobe/times/ptmr8r.tfm
-INPUT c:/texlive/2022/texmf-dist/fonts/vf/public/mathpazo/zplmr7y.vf
-INPUT c:/texlive/2022/texmf-dist/fonts/tfm/public/cm/cmsy10.tfm
-INPUT c:/texlive/2022/texmf-dist/fonts/tfm/public/mathpazo/fplmr.tfm
-INPUT c:/texlive/2022/texmf-dist/fonts/vf/public/mathpazo/zplmr7t.vf
-INPUT c:/texlive/2022/texmf-dist/fonts/tfm/public/cm/cmr10.tfm
-INPUT c:/texlive/2022/texmf-dist/fonts/vf/adobe/palatino/pplr7t.vf
-INPUT c:/texlive/2022/texmf-dist/fonts/vf/adobe/times/ptmri8t.vf
-INPUT c:/texlive/2022/texmf-dist/fonts/tfm/adobe/times/ptmri8r.tfm
-INPUT c:/texlive/2022/texmf-dist/fonts/vf/public/mathpazo/zplmr7y.vf
-INPUT c:/texlive/2022/texmf-dist/fonts/tfm/public/cm/cmsy10.tfm
-INPUT c:/texlive/2022/texmf-dist/fonts/tfm/public/mathpazo/fplmr.tfm
-INPUT c:/texlive/2022/texmf-dist/fonts/tfm/adobe/palatino/pplr8r.tfm
-INPUT c:/texlive/2022/texmf-dist/fonts/vf/adobe/times/ptmri8t.vf
-INPUT c:/texlive/2022/texmf-dist/fonts/tfm/adobe/times/ptmri8r.tfm
-INPUT ../paper/figures/Welfare_Heatmap_CHN (pdfresizer.com)-2.pdf
-INPUT ../paper/figures/Welfare_Heatmap_CHN (pdfresizer.com)-2.pdf
-INPUT ../paper/figures/Welfare_Heatmap_CHN (pdfresizer.com)-2.pdf
-INPUT ../paper/figures/Welfare_Heatmap_CHN (pdfresizer.com)-2.pdf
-INPUT ../paper/figures/Welfare_Heatmap_CHN (pdfresizer.com)-2.pdf
-INPUT ../paper/figures/Welfare_Heatmap_EU27 (pdfresizer.com)-3.pdf
-INPUT ../paper/figures/Welfare_Heatmap_EU27 (pdfresizer.com)-3.pdf
-INPUT ../paper/figures/Welfare_Heatmap_EU27 (pdfresizer.com)-3.pdf
-INPUT ../paper/figures/Welfare_Heatmap_EU27 (pdfresizer.com)-3.pdf
-INPUT ../paper/figures/Welfare_Heatmap_EU27 (pdfresizer.com)-3.pdf
-INPUT c:/texlive/2022/texmf-dist/fonts/tfm/adobe/times/ptmr8c.tfm
-INPUT c:/texlive/2022/texmf-dist/fonts/vf/adobe/times/ptmr8c.vf
-INPUT c:/texlive/2022/texmf-dist/fonts/tfm/adobe/times/ptmb8t.tfm
-INPUT c:/texlive/2022/texmf-dist/fonts/tfm/adobe/times/ptmr8c.tfm
-INPUT c:/texlive/2022/texmf-dist/fonts/vf/adobe/times/ptmb8t.vf
-INPUT c:/texlive/2022/texmf-dist/fonts/tfm/adobe/times/ptmb8r.tfm
-INPUT c:/texlive/2022/texmf-dist/fonts/vf/public/mathpazo/zplmr7t.vf
-INPUT c:/texlive/2022/texmf-dist/fonts/tfm/public/cm/cmr10.tfm
-INPUT c:/texlive/2022/texmf-dist/fonts/vf/public/mathpazo/zplmr7m.vf
-INPUT c:/texlive/2022/texmf-dist/fonts/tfm/public/mathpazo/fplmri.tfm
-INPUT c:/texlive/2022/texmf-dist/fonts/tfm/public/cm/cmmi10.tfm
-INPUT c:/texlive/2022/texmf-dist/fonts/tfm/adobe/palatino/pplri8r.tfm
-INPUT c:/texlive/2022/texmf-dist/fonts/vf/adobe/times/ptmr8c.vf
-INPUT c:/texlive/2022/texmf-dist/fonts/tfm/adobe/times/ptmb8t.tfm
-INPUT c:/texlive/2022/texmf-dist/fonts/vf/adobe/times/ptmb8t.vf
-INPUT c:/texlive/2022/texmf-dist/fonts/tfm/adobe/times/ptmb8r.tfm
-INPUT c:/texlive/2022/texmf-dist/fonts/tfm/adobe/palatino/pplr7t.tfm
-INPUT c:/texlive/2022/texmf-dist/fonts/tfm/public/mathpazo/zplmr7m.tfm
-INPUT c:/texlive/2022/texmf-dist/fonts/tfm/public/mathpazo/zplmr7y.tfm
-INPUT c:/texlive/2022/texmf-dist/fonts/tfm/public/mathpazo/zplmr7v.tfm
-INPUT c:/texlive/2022/texmf-dist/fonts/tfm/public/amsfonts/symbols/msam10.tfm
-INPUT c:/texlive/2022/texmf-dist/fonts/tfm/public/amsfonts/symbols/msbm10.tfm
-INPUT c:/texlive/2022/texmf-dist/fonts/tfm/public/mathpazo/zplmr7t.tfm
-INPUT c:/texlive/2022/texmf-dist/fonts/tfm/public/wasy/wasy10.tfm
 INPUT c:/texlive/2022/texmf-dist/fonts/tfm/adobe/times/ptmri8t.tfm
 INPUT c:/texlive/2022/texmf-dist/fonts/vf/public/mathpazo/zplmr7m.vf
 INPUT c:/texlive/2022/texmf-dist/fonts/tfm/public/mathpazo/fplmri.tfm
@@ -2119,43 +2103,6 @@ INPUT c:/texlive/2022/texmf-dist/fonts/tfm/public/mathpazo/fplmr.tfm
 INPUT c:/texlive/2022/texmf-dist/fonts/tfm/public/cm/cmr10.tfm
 INPUT c:/texlive/2022/texmf-dist/fonts/vf/adobe/times/ptmr8t.vf
 INPUT c:/texlive/2022/texmf-dist/fonts/tfm/adobe/times/ptmr8r.tfm
-INPUT ../paper/figures/Welfare_Heatmap_USA (pdfresizer.com)-3.pdf
-INPUT ../paper/figures/Welfare_Heatmap_USA (pdfresizer.com)-3.pdf
-INPUT ../paper/figures/Welfare_Heatmap_USA (pdfresizer.com)-3.pdf
-INPUT ../paper/figures/Welfare_Heatmap_USA (pdfresizer.com)-3.pdf
-INPUT ../paper/figures/Welfare_Heatmap_RUS (pdfresizer.com)-3.pdf
-INPUT ../paper/figures/Welfare_Heatmap_RUS (pdfresizer.com)-3.pdf
-INPUT ../paper/figures/Welfare_Heatmap_RUS (pdfresizer.com)-3.pdf
-INPUT ../paper/figures/Welfare_Heatmap_RUS (pdfresizer.com)-3.pdf
-INPUT ../paper/figures/Welfare_Heatmap_RUS (pdfresizer.com)-3.pdf
-INPUT ../paper/figures/Welfare_Heatmap_CHN (pdfresizer.com)-2.pdf
-INPUT ../paper/figures/Welfare_Heatmap_CHN (pdfresizer.com)-2.pdf
-INPUT ../paper/figures/Welfare_Heatmap_CHN (pdfresizer.com)-2.pdf
-INPUT ../paper/figures/Welfare_Heatmap_CHN (pdfresizer.com)-2.pdf
-INPUT ../paper/figures/Welfare_Heatmap_TUR (pdfresizer.com)-3.pdf
-INPUT ../paper/figures/Welfare_Heatmap_TUR (pdfresizer.com)-3.pdf
-INPUT ../paper/figures/Welfare_Heatmap_TUR (pdfresizer.com)-3.pdf
-INPUT ../paper/figures/Welfare_Heatmap_TUR (pdfresizer.com)-3.pdf
-INPUT ../paper/figures/Welfare_Heatmap_TUR (pdfresizer.com)-3.pdf
-INPUT ../paper/figures/Welfare_Heatmap_EU27 (pdfresizer.com)-3.pdf
-INPUT ../paper/figures/Welfare_Heatmap_EU27 (pdfresizer.com)-3.pdf
-INPUT ../paper/figures/Welfare_Heatmap_EU27 (pdfresizer.com)-3.pdf
-INPUT ../paper/figures/Welfare_Heatmap_EU27 (pdfresizer.com)-3.pdf
-INPUT ../paper/figures/Welfare_Heatmap_IND (pdfresizer.com)-3.pdf
-INPUT ../paper/figures/Welfare_Heatmap_IND (pdfresizer.com)-3.pdf
-INPUT ../paper/figures/Welfare_Heatmap_IND (pdfresizer.com)-3.pdf
-INPUT ../paper/figures/Welfare_Heatmap_IND (pdfresizer.com)-3.pdf
-INPUT ../paper/figures/Welfare_Heatmap_IND (pdfresizer.com)-3.pdf
-INPUT ../paper/figures/Welfare_Heatmap_NGA (pdfresizer.com)-3.pdf
-INPUT ../paper/figures/Welfare_Heatmap_NGA (pdfresizer.com)-3.pdf
-INPUT ../paper/figures/Welfare_Heatmap_NGA (pdfresizer.com)-3.pdf
-INPUT ../paper/figures/Welfare_Heatmap_NGA (pdfresizer.com)-3.pdf
-INPUT ../paper/figures/Welfare_Heatmap_NGA (pdfresizer.com)-3.pdf
-INPUT ../paper/figures/Welfare_Heatmap_COD (pdfresizer.com)-2.pdf
-INPUT ../paper/figures/Welfare_Heatmap_COD (pdfresizer.com)-2.pdf
-INPUT ../paper/figures/Welfare_Heatmap_COD (pdfresizer.com)-2.pdf
-INPUT ../paper/figures/Welfare_Heatmap_COD (pdfresizer.com)-2.pdf
-INPUT ../paper/figures/Welfare_Heatmap_COD (pdfresizer.com)-2.pdf
 OUTPUT build/prez_price_rights.nav
 OUTPUT build/prez_price_rights.toc
 OUTPUT build/prez_price_rights.snm
