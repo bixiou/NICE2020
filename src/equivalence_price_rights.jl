@@ -13,9 +13,10 @@
 #
 # Heatmap: relative NPV consumption EDE = (NPV_U − NPV_A) / |NPV_A| × 100
 ###############################################################################
-# change this line to the path of the NICE2020 project
-cd("/Users/constance/Documents/stage/NICE2020")
-cd("C:/Users/fabre/Documents/www/NICE2020/src")
+# Run from anywhere: the script locates the project from its own path.
+# (The two hard-coded cd() calls that used to live here threw on any machine
+# but their author's, so the file could only be stepped through in a REPL.)
+cd(@__DIR__)
 
 using Pkg
 Pkg.activate(joinpath(@__DIR__, ".."))
@@ -920,6 +921,20 @@ function avg_uniform_price(sd::ScenarioData, p_star_path::Vector{Float64})
     return denom != 0 ? num / denom : NaN
 end
 
+####################################################################################################################
+# SUPERSEDED for the published Wolfram/Duflo tables -- see src/equivalent_rights_proposals.jl.
+#
+# Two problems with the blocks below:
+#  1. revenue_recycle.jl renormalises rights_proposed to actual club emissions, so only the SHARES
+#     of the rights matrix matter. rescale_rights_to_match_cap() multiplies each year by a scalar,
+#     which cancels exactly: the "B2" run is bit-identical to "B1", and rescaling the rights can
+#     never "recover the proposal's emissions". Making the rights act as a cap requires
+#     recalibrating the uniform price path, which the new script does.
+#  2. The proposals are run through control_regime = 4, the only regime that neither caps the price
+#     at pbacktime nor clamps the abatement rate to 1 (abatement.jl:95-99). A 5%/year schedule passes
+#     the backstop around 2068, after which the proposal scenario books unbounded negative emissions
+#     while the uniform-price alternative it is compared with is held to 100% abatement.
+####################################################################################################################
 ####################################################################################################################
 # WOLFRAM: "Building a Climate Coalition" — $25/t LIC & LMIC, $50/t UMIC, $75/t HIC for 2025-30 within the coalition, then +5%/year
 #####################################################################################################################

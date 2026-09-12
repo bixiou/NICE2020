@@ -3,44 +3,47 @@ Capacity: max_strings=200000, hash_size=200000, hash_prime=170003
 The top-level auxiliary file: equivalence price rights.aux
 The style file: plainnat.bst
 Database file #1: references.bib
-You've used 9 entries,
+Warning--empty journal in blanchard_major_2021
+Warning--empty journal in fabre_global_2025
+You've used 24 entries,
             2773 wiz_defined-function locations,
-            652 strings with 6905 characters,
-and the built_in function-call counts, 4871 in all, are:
-= -- 413
-> -- 401
-< -- 4
-+ -- 135
-- -- 126
-* -- 442
-:= -- 810
-add.period$ -- 32
-call.type$ -- 9
-change.case$ -- 72
-chr.to.int$ -- 9
-cite$ -- 18
-duplicate$ -- 169
-empty$ -- 301
-format.name$ -- 139
-if$ -- 974
-int.to.chr$ -- 1
+            773 strings with 11285 characters,
+and the built_in function-call counts, 12344 in all, are:
+= -- 1111
+> -- 878
+< -- 13
++ -- 299
+- -- 273
+* -- 1097
+:= -- 1999
+add.period$ -- 109
+call.type$ -- 24
+change.case$ -- 166
+chr.to.int$ -- 22
+cite$ -- 50
+duplicate$ -- 469
+empty$ -- 841
+format.name$ -- 305
+if$ -- 2514
+int.to.chr$ -- 3
 int.to.str$ -- 1
-missing$ -- 6
-newline$ -- 58
-num.names$ -- 36
-pop$ -- 114
+missing$ -- 16
+newline$ -- 164
+num.names$ -- 97
+pop$ -- 286
 preamble$ -- 1
-purify$ -- 60
+purify$ -- 139
 quote$ -- 0
-skip$ -- 150
+skip$ -- 380
 stack$ -- 0
-substring$ -- 118
-swap$ -- 6
-text.length$ -- 0
+substring$ -- 301
+swap$ -- 44
+text.length$ -- 2
 text.prefix$ -- 0
 top$ -- 0
-type$ -- 99
-warning$ -- 0
-while$ -- 33
+type$ -- 259
+warning$ -- 2
+while$ -- 95
 width$ -- 0
-write$ -- 134
+write$ -- 384
+(There were 2 warnings)

@@ -219,7 +219,7 @@ We received funding from the Agence Nationale de la Recherche (ANR-24-CE03-7110)
 
 There is a shortfall of ambition in global climate policy. Meeting the Paris Agreement's goal of limiting warming to the 1.5--2\textdegree C range would require far deeper emission cuts than current policies and pledges deliver. How much of that shortfall is attributable to any given country is far harder to establish, because governments have never agreed on precise rules for allocating the burden of mitigation. They have endorsed the principle of common but differentiated responsibilities and respective capabilities (CBDR-RC), and they have accepted that developed countries should provide climate finance to developing ones; but, unable to agree on specific amounts, they retained full autonomy over their national climate strategies under the Paris Agreement. Overcoming the resulting collective action problem, and delivering the climate finance that has been promised, requires greater international coordination.
 
-There is broad agreement, on the principles of ability to pay and of responsibility for past emissions, that the poorer or the greener a country is, the smaller the abatement burden it should bear. Prominent economists and international institutions have translated this precept into a concrete proposal: internationally coordinated carbon prices, differentiated on the basis of national income. Each country would commit to applying a minimum carbon price, increasing with its income level, and would retain the carbon price revenues in full~\citep{parry2021, wolfram2025, duflo2025}.
+There is broad agreement, on the principles of ability to pay and of responsibility for past emissions, that the poorer or the greener a country is, the smaller the abatement burden it should bear. Prominent economists and international institutions have translated this precept into a concrete proposal: internationally coordinated carbon prices, differentiated on the basis of national income. Participating countries would commit to applying a minimum carbon price, increasing with their income level, and would retain the carbon price revenues in full, so that no carbon revenue is shared across borders~\citep{parry2021, wolfram2025, duflo2025}. The schedules are not identical in scope: \citet{parry2021} and \citet{wolfram2025} ask a floor of every coalition member, whereas under \citet{duflo2025} only low- and middle-income countries price carbon, high-income countries instead financing the damage compensation that makes the bargain attractive---a transfer we do not model.
 
 However, according to standard economic theory, efficiency requires a uniform price, and equity concerns should be resolved through transfers rather than through the price itself. While this argument is standard --- or perhaps because it is --- it has never been studied in detail. That is the endeavour we tackle here.
 
@@ -741,39 +741,96 @@ Autarky is costly relative to the uniform-price regime across nearly the full ra
 \section{Equivalent rights for recent price proposals}
 \label{sec:proposals}
 
-Two recent proposals offer differentiated carbon-price schedules that can be fed directly into the NICE model as country-level $\pi_i$ inputs. \citet{wolfram2025} propose a voluntary coalition of countries that would align on a tiered carbon-pricing schedule, with higher-income members facing higher price floors, paired with a shared carbon border adjustment mechanism. The report estimates that the coalition could raise close to \$200 billion per year in domestic carbon-tax revenue. \citet{duflo2025} propose a "grand bargain" in which low-and middle-income countries become eligible for climate-damage compensation, conditional on adopting a graduated domestic carbon price: \$10/tCO$_2$ for low-income countries, \$30 for lower-middle-income countries, and \$50 for upper-middle-income countries. Because the two proposals define $\pi_i$ differently by construction (a shared coalition schedule in one case, an income-conditional compensation mechanism in the other), the resulting country-level price factors, and hence the $\rho$ needed to match them, diverge substantially across proposals for the same country.
+Two recent proposals offer differentiated carbon-price schedules that can be fed directly into the NICE model as country-level $\pi_i$ inputs. \citet{wolfram2025} propose a voluntary coalition of 22 members (the European Union counting as one) that would align on a tiered carbon-price floor---\$75/tCO$_2$ for high-income members, \$50 for upper-middle-income members and \$25 for low- and lower-middle-income members---paired with a common border adjustment set at \$75/t for imports from non-members. The report estimates that the coalition could raise close to \$200 billion per year in domestic carbon-tax revenue. Its floors are meant to apply to four emissions-intensive industries only (steel, aluminium, cement and fertilisers, together above 20\% of global CO$_2$), whereas NICE2020 has no sectoral disaggregation; we therefore apply the floors economy-wide to coalition members, which makes the scenario we simulate considerably more stringent than the one the report models. \citet{duflo2025} propose a ``grand bargain'' in which low- and middle-income countries become eligible for climate-damage compensation, conditional on adopting a graduated economy-wide carbon price: \$10/tCO$_2$ for low-income countries, \$30 for lower-middle-income countries and \$50 for upper-middle-income countries. High-income countries are asked for no domestic price under that bargain; they fund the compensation instead, through instruments we do not model. Neither report specifies how its floors evolve after the initial period, so both schedules are held at their announced level through 2030 and grown at 5\% a year thereafter. Because the two proposals define $\pi_i$ differently by construction (a shared coalition schedule in one case, an income-conditional compensation mechanism in the other), the resulting country-level price factors, and hence the $\rho$ needed to match them, diverge substantially across proposals for the same country.
 
-\begin{table}[h]
+We look for the allocation of emission rights that, combined with a uniform world carbon price, would leave every country exactly as well off as under each proposal. Writing country $i$'s allocation as
+\begin{equation}
+r_i(t) \;=\; \rho_i\, n_i(t)\, \bar e_S(t), \qquad \bar e_S(t) = \frac{E_S(t)}{\sum_j n_j(t)},
+\label{eq:rho_def}
+\end{equation}
+$\rho_i = 1$ means an equal per capita share of the emissions the proposal itself delivers, $\rho_i > 1$ a more generous allocation, and $\rho_i < 0$ a country that is better off under uniform pricing even while paying a net fee for the privilege.
+
+The equivalence of Section~\ref{sec:static} holds \emph{at a given global cap}: it compares a differentiated-price regime with a uniform-price regime that delivers the same world emissions, so that only the structure of prices differs. The uniform price against which $\rho_i$ is solved is therefore not the 1.8\textdegree C path $p^*$ used in the rest of this paper, but the price $p^{\mathrm{ref}}_S$ that reproduces each proposal's own emission path. That price is far lower than $p^*$---\$18.5/tCO$_2$ in 2030 under the Wolfram schedule and \$19.8 under the Duflo schedule, against \$42.6 for $p^*$---because both proposals are much less ambitious than a 1.8\textdegree C budget. Solving against $p^*$ instead would load the difference in ambition onto $\rho$, which is exactly what the exercise holds fixed: doing so requires handing out 13\% \emph{more} rights than the proposal's own emissions merely to keep every country indifferent, and the efficiency gain disappears.
+
+We solve for $\rho$ in two ways. Under \emph{option A}, each country's $\rho_i$ is found on its own, with every other country grandfathered on its proposal-scenario emissions and hence facing no net transfer; this is a partial-equilibrium device, and it is the method used for the country-by-country results of Section~\ref{sec:empirics}. Under \emph{option B}, all $\rho_i$ are solved jointly: one allocation, one model run, every country's welfare gap read from it, and a damped secant step on each $\rho_i$ until all countries simultaneously reach their proposal welfare. Option B also lets the allocation set the cap and the cap set the price at every iteration, which both closes the general-equilibrium loop that option A cuts and pins down the overall level of the rights.
+
+Each set of ratios is then read in two variants. In \emph{variant 1} the allocation is taken at face value: world rights add up to $\sum_i \rho_i n_i \bar e_S$, that total is the cap, and the uniform price is recalibrated to deliver it. Because the equivalent allocation is worth less in aggregate than the proposal's own emissions, the cap tightens and the world ends the century cooler at no welfare cost to anyone. In \emph{variant 2} the same allocation is rescaled so that world rights equal the proposal's emissions exactly; temperature is then held fixed and the whole difference shows up as welfare.
+
+\begin{table}[htbp]
 \centering
 \small
-\caption{Uniform-price rights ratio $\rho_i$ equivalent to the Wolfram and Duflo autarky scenarios}
-\renewcommand{\arraystretch}{1.2}
-\begin{tabular}{lcccccc}
+\caption{Uniform-price rights ratios $\rho_i$ equivalent to the Wolfram and Duflo proposals --- option A (per-country solve)}
+\renewcommand{\arraystretch}{1.15}
+\begin{tabular}{lcccc}
   \toprule
-  & \multicolumn{3}{c}{\textbf{Wolfram}} & \multicolumn{3}{c}{\textbf{Duflo}} \\
-  \cmidrule(lr){2-4} \cmidrule(lr){5-7}
-  \textbf{Country} & $\Delta$ \textbf{T} & \textbf{Welfare} & $\rho_{\text{Wolfram}}$ & $\Delta$ \textbf{T} & \textbf{Welfare} & $\rho_{\text{Duflo}}$ \\
+  & \multicolumn{2}{c}{\textbf{Wolfram}} & \multicolumn{2}{c}{\textbf{Duflo}} \\
+  \cmidrule(lr){2-3} \cmidrule(lr){4-5}
+  \textbf{Country} & $\Delta p_i$ \textbf{2030 (\$/t)} & $\rho_i$ & $\Delta p_i$ \textbf{2030 (\$/t)} & $\rho_i$ \\
   \midrule
-  CHN & +7.4 & 529.46 & 1.306 & +7.4 & 530.02 & 1.514 \\
-  COD &  &  &  & -32.6 & 165.56 & $<$ 0.0001 \\
-  EU27 & +32.4 & 1247.15 & $<$ 0.0001 & -42.6 & 1247.5 & 0.043 \\
-  IND & -17.6 & 255.88 & 1.266 & -12.6 & 254.58 & 0.836 \\
-  NGA &  &  &  & -12.6 & 265.86 & $<$ 0.0001 \\
-  RUS &  &  &  & -42.6 & 857.24 & 8.043 \\
-  TUR &  &  &  & +7.4 & 760.05 & 0.574 \\
-  USA &  &  &  & -42.6 & 1171.3 & 11.04 \\
+  USA & $-$18.5 & 6.68 & $-$19.8 & 7.779 \\
+  EU27 & 56.5 & $-$0.029 & $-$19.8 & 0.242 \\
+  CHN & 31.5 & $-$0.096 & 30.2 & 0.138 \\
+  IND & 6.5 & $-$0.067 & 10.2 & 0.575 \\
+  RUS & $-$18.5 & 4.442 & $-$19.8 & 5.299 \\
+  TUR & $-$18.5 & 2.621 & 30.2 & $-$0.348 \\
+  NGA & $-$18.5 & 0.305 & 10.2 & 0.096 \\
+  COD & $-$18.5 & 0.055 & $-$9.8 & 0.05 \\
+  BRA & 31.5 & $-$1.303 & 30.2 & $-$0.296 \\
+  IDN & 31.5 & $-$2.238 & 30.2 & $-$0.28 \\
   \midrule
-  \textbf{World rights reallocation (\%)} & \multicolumn{3}{c}{50.19\%} & \multicolumn{3}{c}{48.25\%} \\
-  \textbf{World temp. 2100} & \multicolumn{3}{c}{\multirow{2}{*}{2.14 $\to$ 1.757}} & \multicolumn{3}{c}{\multirow{2}{*}{1.984 $\to$ 1.757}} \\  Autarky $\to$ uniform ($^\circ$C) & \multicolumn{3}{c}{} & \multicolumn{3}{c}{} \\
-  \textbf{World welfare gain (\%)} & \multicolumn{3}{c}{0.26\%} & \multicolumn{3}{c}{3.2\%} \\
+  \multicolumn{5}{l}{\textit{Variant 1 --- unscaled rights (the allocation sets the cap)}} \\
+  \quad Gain in rights (\% of proposal's) & \multicolumn{2}{c}{34.8\%} & \multicolumn{2}{c}{21.8\%} \\
+  \quad World temperature 2100 ($^\circ$C) & \multicolumn{2}{c}{2.16 $\to$ 1.91} & \multicolumn{2}{c}{2.02 $\to$ 1.89} \\
+  \midrule
+  \multicolumn{5}{l}{\textit{Variant 2 --- rights rescaled to the proposal's emissions}} \\
+  \quad World welfare gain (\%) & \multicolumn{2}{c}{0.12\%} & \multicolumn{2}{c}{0.09\%} \\
   \bottomrule
 \end{tabular}
-\label{tab:equivalent_rights}
+\label{tab:equiv_rights_A}
 \\[4pt]
-{\footnotesize Note: '$<$' (resp. '$>$') indicates that welfare under uniform pricing already exceeds (resp. never reaches) the autarky benchmark over the tested raw $\rho$ range; the true equivalent ratio lies below (resp. above) the reported bound. $\Delta$ T represents the difference between the domestic autarky tax and the global uniform price in 2030.}
+{\footnotesize Note: $\rho_i$ is the country's allocation as a multiple of an equal-per-capita share of the proposal's world emissions; the EU27 figure aggregates its members' rights. $\Delta p_i$ is the proposal's national price minus the uniform price in 2030 (negative: the uniform regime prices the country more heavily). $\rho_i < 0$ means the country prefers the uniform regime even while paying a net fee for its allocation. Variant 1 lets the equivalent allocation set the cap, so the uniform price is recalibrated to deliver exactly those rights; variant 2 rescales the same allocation to the proposal's own emissions, so temperature is held fixed and only allocative efficiency remains. Both proposals are priced from 2025 and capped at the backstop price.}
 \end{table}
 
-Applying the two proposals' price schedules as $\pi_i$ inputs to the NICE model yields non-losing rights allocation each country would need to be indifferent to trading its proposal-specific price for uniform pricing, reported in Table~\ref{tab:equivalent_rights}.
+\begin{table}[htbp]
+\centering
+\small
+\caption{Uniform-price rights ratios $\rho_i$ equivalent to the Wolfram and Duflo proposals --- option B (simultaneous solve)}
+\renewcommand{\arraystretch}{1.15}
+\begin{tabular}{lcccc}
+  \toprule
+  & \multicolumn{2}{c}{\textbf{Wolfram}} & \multicolumn{2}{c}{\textbf{Duflo}} \\
+  \cmidrule(lr){2-3} \cmidrule(lr){4-5}
+  \textbf{Country} & $\Delta p_i$ \textbf{2030 (\$/t)} & $\rho_i$ & $\Delta p_i$ \textbf{2030 (\$/t)} & $\rho_i$ \\
+  \midrule
+  USA & $-$18.5 & 5.401 & $-$19.8 & 6.736 \\
+  EU27 & 56.5 & 0.355 & $-$19.8 & 0.471 \\
+  CHN & 31.5 & 0.511 & 30.2 & 0.543 \\
+  IND & 6.5 & 0.211 & 10.2 & 0.437 \\
+  RUS & $-$18.5 & 3.95 & $-$19.8 & 4.802 \\
+  TUR & $-$18.5 & 1.92 & 30.2 & 0.801 \\
+  NGA & $-$18.5 & $-$0.319 & 10.2 & $-$0.223 \\
+  COD & $-$18.5 & $-$0.179 & $-$9.8 & $-$0.113 \\
+  BRA & 31.5 & $-$0.339 & 30.2 & $-$0.157 \\
+  IDN & 31.5 & $-$0.009 & 30.2 & 0.187 \\
+  \midrule
+  \multicolumn{5}{l}{\textit{Variant 1 --- unscaled rights (the allocation sets the cap)}} \\
+  \quad Gain in rights (\% of proposal's) & \multicolumn{2}{c}{33.4\%} & \multicolumn{2}{c}{20.5\%} \\
+  \quad World temperature 2100 ($^\circ$C) & \multicolumn{2}{c}{2.16 $\to$ 1.92} & \multicolumn{2}{c}{2.02 $\to$ 1.90} \\
+  \midrule
+  \multicolumn{5}{l}{\textit{Variant 2 --- rights rescaled to the proposal's emissions}} \\
+  \quad World welfare gain (\%) & \multicolumn{2}{c}{$-$0.01\%} & \multicolumn{2}{c}{$-$0.01\%} \\
+  \bottomrule
+\end{tabular}
+\label{tab:equiv_rights_B}
+\\[4pt]
+{\footnotesize Note: $\rho_i$ is the country's allocation as a multiple of an equal-per-capita share of the proposal's world emissions; the EU27 figure aggregates its members' rights. $\Delta p_i$ is the proposal's national price minus the uniform price in 2030 (negative: the uniform regime prices the country more heavily). $\rho_i < 0$ means the country prefers the uniform regime even while paying a net fee for its allocation. Variant 1 lets the equivalent allocation set the cap, so the uniform price is recalibrated to deliver exactly those rights; variant 2 rescales the same allocation to the proposal's own emissions, so temperature is held fixed and only allocative efficiency remains. Both proposals are priced from 2025 and capped at the backstop price. The joint solve is iterated until no country's welfare differs from its proposal value by more than 0.5\% of that value; it stops at 0.49\% for Wolfram and 0.19\% for Duflo. Its aggregate stringency is held at option A's, because the indifference conditions pin the distribution of rights but barely constrain their overall level (see text).}
+\end{table}
+
+The two methods agree on the aggregate. The equivalent allocation is worth 34.8\% (option A) or 33.4\% (option B) less than the emissions the Wolfram schedule itself delivers, and 21.8\% or 20.5\% less for the Duflo schedule; the implied 2100 temperatures differ between methods by 0.01\textdegree C. Solving each country in isolation is therefore a good approximation for world totals, even though individual ratios move appreciably once the allocations are allowed to interact through the global recycling of rights: the joint solve raises China from $-0.10$ to $0.51$ and the EU27 from $-0.03$ to $0.36$, and lowers the United States from $6.68$ to $5.40$.
+
+What the ratios sort on is the change in the carbon price each country actually faces, not its emissions per capita. Under the Wolfram coalition the United States and Russia are non-members and price nothing at all; moving them to a uniform \$18.5/tCO$_2$ in 2030 is costly for them, and they require four to seven times an equal per capita share before they will accept it. The EU27, China, Brazil and Indonesia pay \$50--75 under their income tier, well above the equivalent uniform price, so they need little or nothing---and Nigeria, the DRC and Brazil come out with \emph{negative} ratios, meaning they would hand over a net fee and still prefer the uniform regime, because cheaper abatement and lower damages outweigh what they give up in transfers. The static per capita formula, which predicts $0.23$--$0.80$ for all of these countries alike, cannot see any of this.
+
+The policy-relevant result is the aggregate one. Every country can be held at exactly the welfare it obtains under a proposal while the world's carbon budget is cut by a fifth to a third, which takes 2100 warming down by 0.24\textdegree C under the Wolfram schedule and 0.12\textdegree C under the Duflo schedule. In variant 2, where the allocation is rescaled so that emissions match the proposal exactly, the world welfare difference is essentially nil ($-0.01\%$ under option B). That is not a failure of the argument but its arithmetic counterpart: over 2030--2100 discounted at 3\%, the higher abatement cost and the lower damages of a tighter cap very nearly offset in the aggregate, so the efficiency dividend of uniform pricing is legible as climate ambition at constant welfare rather than as welfare at constant ambition. The same near-cancellation means the overall stringency of the equivalent allocation is only weakly identified by the indifference conditions themselves, which is why option B holds the aggregate level at option A's value and solves the distribution.
 
 \section{Concluding remarks}
 \label{sec:conclusion}

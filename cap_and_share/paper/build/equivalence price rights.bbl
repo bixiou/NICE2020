@@ -1,41 +1,93 @@
-\begin{thebibliography}{9}
+\begin{thebibliography}{24}
 \providecommand{\natexlab}[1]{#1}
 \providecommand{\url}[1]{\texttt{#1}}
 \expandafter\ifx\csname urlstyle\endcsname\relax
   \providecommand{\doi}[1]{doi: #1}\else
   \providecommand{\doi}{doi: \begingroup \urlstyle{rm}\Url}\fi
 
-\bibitem[Anthoff and Emmerling(2022)]{anthoff2022}
-David Anthoff and Johannes Emmerling.
-\newblock Inequality and the social cost of carbon.
-\newblock \emph{Journal of the Association of Environmental and Resource
-  Economists}, 6\penalty0 (2):\penalty0 243--273, 2022.
-\newblock \doi{10.1086/701900}.
+\bibitem[Aldy and Stavins(2012)]{aldy_promise_2012}
+Joseph~E. Aldy and Robert~N. Stavins.
+\newblock The {{Promise}} and {{Problems}} of {{Pricing Carbon}}: {{Theory}}
+  and {{Experience}}.
+\newblock \emph{The Journal of Environment \& Development}, 21\penalty0
+  (2):\penalty0 152--180, June 2012.
+\newblock ISSN 1070-4965.
+\newblock \doi{10.1177/1070496512442508}.
+\newblock URL \url{https://doi.org/10.1177/1070496512442508}.
 
-\bibitem[Babiker(2005)]{babiker2005}
-Mustafa~H. Babiker.
-\newblock Climate change policy, market structure, and carbon leakage.
-\newblock \emph{Journal of International Economics}, 65\penalty0 (2):\penalty0
-  421--445, 2005.
-\newblock \doi{10.1016/j.jinteco.2004.01.003}.
+\bibitem[Anthoff et~al.(2021)Anthoff, Dennig, and
+  Emmerling]{anthoff_differentiated_2021}
+David Anthoff, Francis Dennig, and Johannes Emmerling.
+\newblock On {{Differentiated Carbon Prices}} and {{Discount Rates}}, 2021.
+\newblock URL \url{https://papers.ssrn.com/abstract=3906413}.
+
+\bibitem[Babiker et~al.(2004)Babiker, Reilly, and Viguier]{babiker_is_2004}
+Mustafa Babiker, John Reilly, and Laurent Viguier.
+\newblock Is {{International Emissions Trading Always Beneficial}}?
+\newblock \emph{The Energy Journal}, 25\penalty0 (2):\penalty0 33--56, April
+  2004.
+\newblock ISSN 0195-6574.
+\newblock \doi{10.5547/ISSN0195-6574-EJ-Vol25-No2-2}.
+\newblock URL \url{https://doi.org/10.5547/ISSN0195-6574-EJ-Vol25-No2-2}.
 
 \bibitem[Banerjee et~al.(2025)Banerjee, Duflo, and Greenstone]{duflo2025}
 Abhijit Banerjee, Esther Duflo, and Michael Greenstone.
 \newblock A grand bargain for climate mitigation, adaptation and compensation.
 \newblock Technical report, COP30 Ad Hoc committee, 2025.
 
-\bibitem[Bauer et~al.(2020)Bauer, Bertram, and Schultes]{bauer2020}
-N.~Bauer, C.~Bertram, and A.~Schultes.
-\newblock Quantification of an efficiency–sovereignty trade-off in climate
+\bibitem[Bauer et~al.(2020)Bauer, Bertram, Schultes, Klein, Luderer, Kriegler,
+  Popp, and Edenhofer]{bauer_quantification_2020}
+Nico Bauer, Christoph Bertram, Anselm Schultes, David Klein, Gunnar Luderer,
+  Elmar Kriegler, Alexander Popp, and Ottmar Edenhofer.
+\newblock Quantification of an efficiency--sovereignty trade-off in climate
   policy.
-\newblock \emph{Nature}, 588:\penalty0 261--266, 2020.
+\newblock \emph{Nature}, 588\penalty0 (7837):\penalty0 261--266, December 2020.
+\newblock ISSN 1476-4687.
 \newblock \doi{10.1038/s41586-020-2982-5}.
+\newblock URL \url{https://www.nature.com/articles/s41586-020-2982-5}.
 
-\bibitem[Boeters(2014)]{boeters2014}
+\bibitem[Bertram(1992)]{bertram_tradeable_1992}
+Geoffrey Bertram.
+\newblock Tradeable emission permits and the control of greenhouse gases.
+\newblock \emph{The Journal of Development Studies}, 28\penalty0 (3):\penalty0
+  423--446, April 1992.
+\newblock ISSN 0022-0388.
+\newblock \doi{10.1080/00220389208422240}.
+\newblock URL \url{https://doi.org/10.1080/00220389208422240}.
+
+\bibitem[Blanchard and Tirole(2021)]{blanchard_major_2021}
+Olivier Blanchard and Jean Tirole.
+\newblock Major {{Future Economic Challenges}}.
+\newblock page 444, 2021.
+\newblock URL
+  \url{https://www.strategie.gouv.fr/publications/grands-defis-economiques-commission-internationale-blanchard-tirole}.
+
+\bibitem[Boeters(2014)]{boeters_optimally_2014}
 Stefan Boeters.
 \newblock Optimally differentiated carbon prices for unilateral climate policy.
-\newblock \emph{Energy Economics}, 45:\penalty0 304--312, 2014.
+\newblock \emph{Energy Economics}, 45:\penalty0 304--312, September 2014.
+\newblock ISSN 0140-9883.
 \newblock \doi{10.1016/j.eneco.2014.07.015}.
+\newblock URL
+  \url{https://www.sciencedirect.com/science/article/pii/S0140988314001728}.
+
+\bibitem[Chateau et~al.(2024)Chateau, Jaumotte, and
+  Schwerhoff]{chateau_global_2024}
+Jean Chateau, Florence Jaumotte, and Gregor Schwerhoff.
+\newblock Global climate policy with differentiated carbon price floors.
+\newblock \emph{Climate Policy}, 24\penalty0 (4):\penalty0 515--528, April
+  2024.
+\newblock ISSN 1469-3062.
+\newblock \doi{10.1080/14693062.2023.2205376}.
+\newblock URL \url{https://doi.org/10.1080/14693062.2023.2205376}.
+
+\bibitem[Cramton et~al.(2017)Cramton, MacKay, and
+  Ockenfels]{cramton_global_2017}
+Peter~C. Cramton, David J.~C. MacKay, and Axel Ockenfels, editors.
+\newblock \emph{Global Carbon Pricing: The Path to Climate Cooperation}.
+\newblock MIT Press, Cambridge, MA, 2017.
+\newblock ISBN 978-0-262-03626-9.
+\newblock URL \url{https://libgen.li/edition.php?id=146679213}.
 
 \bibitem[Diamond and Mirrleess(1971)]{diamond1971optimal}
 Peter~A. Diamond and James~A. Mirrleess.
@@ -43,17 +95,91 @@ Peter~A. Diamond and James~A. Mirrleess.
 \newblock \emph{American Economic Review}, 61\penalty0 (1):\penalty0 8--27,
   1971.
 
-\bibitem[Olhoff et~al.(2025)Olhoff, Lamb, Kuramochi, Rogelj, den Elzen,
-  Christensen, Fransen, Pathak, and Tong]{unepgap2025}
-A.~Olhoff, W.~Lamb, T.~Kuramochi, J.~Rogelj, M.~den Elzen, J.~Christensen,
-  T.~Fransen, M.~Pathak, and D.~Tong.
-\newblock Emissions gap report 2025: Off target -- continued collective
-  inaction puts global temperature goal at risk.
-\newblock Technical report, United Nations Environment Programme, 2025.
+\bibitem[Fabre(2024)]{fabre_global_2024}
+Adrien Fabre.
+\newblock The {{Global Climate Plan}}: {{A Global Plan}} to {{End Climate
+  Change}} and {{Extreme Poverty}}, June 2024.
+\newblock URL \url{https://papers.ssrn.com/abstract=4850808}.
 
-\bibitem[Wolfram et~al.(2025)Wolfram, Aldy, Bracher, Chaturvedi, Clausing,
-  Gollier, Jotzo, Medeiros, Muthitacharoen, Ockenfels, Pangestu, Sembene,
-  Somanathan, Tingley, and Winter]{wolfram2025}
+\bibitem[Fabre(2025)]{fabre_global_2025}
+Adrien Fabre.
+\newblock From {{Global Policies}} to {{Phase Out Fossil Fuels To}} a
+  {{Sustainable Union}}.
+\newblock 2025.
+\newblock URL
+  \url{https://github.com/bixiou/global\_tax\_attitudes/raw/main/paper/global\_climate\_policies.pdf}.
+
+\bibitem[Fabre et~al.(2025)Fabre, Douenne, and Mattauch]{fabre_majority_2025}
+Adrien Fabre, Thomas Douenne, and Linus Mattauch.
+\newblock Majority support for global redistributive and climate policies.
+\newblock \emph{Nature Human Behaviour}, pages 1--12, June 2025.
+\newblock ISSN 2397-3374.
+\newblock \doi{10.1038/s41562-025-02175-9}.
+\newblock URL \url{https://www.nature.com/articles/s41562-025-02175-9}.
+
+\bibitem[Gollier and Tirole(2015)]{gollier_negotiating_2015}
+Christian Gollier and Jean Tirole.
+\newblock Negotiating {{Effective Institutions Against Climate Change}}.
+\newblock \emph{Economics of Energy \& Environmental Policy}, 4\penalty0
+  (2):\penalty0 5--28, 2015.
+\newblock ISSN 2160-5882.
+\newblock URL \url{https://www.jstor.org/stable/26189377}.
+
+\bibitem[Grubb(1990)]{grubb_greenhouse_1990}
+Michael Grubb.
+\newblock The {{Greenhouse Effect}}: {{Negotiating Targets}}.
+\newblock \emph{International Affairs (Royal Institute of International Affairs
+  1944-)}, 66\penalty0 (1):\penalty0 67--89, 1990.
+\newblock ISSN 0020-5850.
+\newblock \doi{10.2307/2622190}.
+\newblock URL \url{https://www.jstor.org/stable/2622190}.
+
+\bibitem[Jamieson(2001)]{jamieson_climate_2001}
+Dale Jamieson.
+\newblock Climate {{Change}} and {{Global Environmental Justice}}.
+\newblock In \emph{Changing the {{Atmosphere}}}. MIT Press, 2001.
+\newblock ISBN 10.7551/mitpress/1789.003.0012.
+\newblock URL
+  \url{https://direct.mit.edu/books/book/2661/chapter/72114/Climate-Change-and-Global-Environmental-Justice}.
+
+\bibitem[Parry et~al.(2021{\natexlab{a}})Parry, Black, and Roaf]{parry2021}
+Ian Parry, Simon Black, and James Roaf.
+\newblock Proposal for an international carbon price floor among large
+  emitters.
+\newblock Technical report, International Monetary Fund (IMF),
+  2021{\natexlab{a}}.
+
+\bibitem[Parry et~al.(2021{\natexlab{b}})Parry, Black, and
+  Roaf]{parry_proposal_2021}
+Ian Parry, Simon Black, and James Roaf.
+\newblock Proposal for an {{International Carbon Price Floor Among Large
+  Emitters}}.
+\newblock Technical report, IMF, 2021{\natexlab{b}}.
+\newblock URL
+  \url{https://www.imf.org/en/Publications/staff-climate-notes/Issues/2021/06/15/Proposal-for-an-International-Carbon-Price-Floor-Among-Large-Emitters-460468}.
+
+\bibitem[Rajan(2021)]{rajan_global_2021}
+Raghuram~G. Rajan.
+\newblock A {{Global Incentive}} to {{Reduce Emissions}}, May 2021.
+\newblock URL
+  \url{https://www.project-syndicate.org/commentary/global-carbon-incentive-for-reducing-emissions-by-raghuram-rajan-2021-05}.
+
+\bibitem[Wolfram et~al.(2025{\natexlab{a}})Wolfram, Aldy, Bracher, Chaturvedi,
+  Clausing, Gollier, Jotzo, Medeiros, Muthitacharoen, Ockenfels, Pangestu,
+  Sembene, Somanathan, Tingley, Winter, Black, and
+  Fischer]{wolfram_building_2025}
+Catherine Wolfram, Joseph Aldy, Candido Bracher, Vaibhav Chaturvedi, Kimberly
+  Clausing, Christian Gollier, Frank Jotzo, Marcelo Medeiros, Athiphat
+  Muthitacharoen, Axel Ockenfels, Mari Pangestu, Daouda Sembene, E.~Somanathan,
+  Dustin Tingley, Jennifer Winter, Simon Black, and Carolyn Fischer.
+\newblock Building a {{Climate Coalition}}: {{Aligning Carbon Pricing}},
+  {{Trade}}, and {{Development}}, 2025{\natexlab{a}}.
+\newblock URL
+  \url{https://ceepr.mit.edu/wp-content/uploads/2025/09/Full-Report-Building-a-Climate-Coalition.pdf}.
+
+\bibitem[Wolfram et~al.(2025{\natexlab{b}})Wolfram, Aldy, Bracher, Chaturvedi,
+  Clausing, Gollier, Jotzo, Medeiros, Muthitacharoen, Ockenfels, Pangestu,
+  Sembene, Somanathan, Tingley, and Winter]{wolfram2025}
 Catherine Wolfram, Joseph Aldy, Candido Bracher, Vaibhav Chaturvedi, Kimberly
   Clausing, Christian Gollier, Frank Jotzo, Marcelo~PL Medeiros, Athiphat
   Muthitacharoen, Axel Ockenfels, Mari Pangestu, Daouda Sembene, E.~Somanathan,
@@ -61,7 +187,7 @@ Catherine Wolfram, Joseph Aldy, Candido Bracher, Vaibhav Chaturvedi, Kimberly
 \newblock Building a climate coalition: Aligning carbon pricing, trade, and
   development.
 \newblock Technical report, Global Climate Policy Project (GCPP) Working Group
-  on Climate Coalitions, 2025.
+  on Climate Coalitions, 2025{\natexlab{b}}.
 
 \bibitem[Young-Brun et~al.(2025)Young-Brun, Dennig, Errickson, Feindt, Méjean,
   and Zuber]{youngbrun2025}
@@ -72,5 +198,16 @@ Marie Young-Brun, Francis Dennig, Franck Errickson, Simon Feindt, Aurélie
 \newblock \emph{Proceedings of the National Academy of Sciences}, 122\penalty0
   (39), 2025.
 \newblock \doi{10.1073/pnas.2505239122}.
+
+\bibitem[{Young-Brun} et~al.(2025){Young-Brun}, Dennig, Errickson, Feindt,
+  M{\'e}jean, and Zuber]{young-brun_within-country_2025}
+Marie {Young-Brun}, Francis Dennig, Frank Errickson, Simon Feindt, Aur{\'e}lie
+  M{\'e}jean, and St{\'e}phane Zuber.
+\newblock Within-country inequality and the shaping of a just global climate
+  policy.
+\newblock \emph{Proceedings of the National Academy of Sciences}, 122\penalty0
+  (39):\penalty0 e2505239122, September 2025.
+\newblock \doi{10.1073/pnas.2505239122}.
+\newblock URL \url{https://www.pnas.org/doi/10.1073/pnas.2505239122}.
 
 \end{thebibliography}

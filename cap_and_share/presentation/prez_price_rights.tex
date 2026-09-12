@@ -91,8 +91,9 @@ CNRS, CIRED \quad --- \quad CIRED \\ \quad \\ \quad \\
 \ip Broad agreement on \blue{ability to pay} and \blue{responsibility} for past emissions: the \green{poorer or greener} a country, the \green{smaller the abatement burden} it should bear.
 \ip Prominent economists and institutions have turned that precept into a concrete proposal --- \rose{differentiated carbon prices}:
   \bbvsp
-  \ip Each country commits to a \blue{carbon price floor, increasing with its income level} and fully retains its carbon revenue: so there is \blue{no international transfer}. \\
+  \ip Countries commit to a \blue{carbon price floor, increasing with their income level}, and each fully retains its own carbon revenue: \blue{no revenue is shared across borders}. \\
   \quad (Parry, Black \& Zhunussova, IMF, 2021; Wolfram et al., 2025; Banerjee, Duflo \& Greenstone, 2025)
+  \ip \rose{Caveat}: in Banerjee et al., only low- and middle-income countries price; high-income ones instead fund damage compensation --- \rose{that transfer is the bargain}, and we do not model it. \\
   \ee
 \ip However \rose{efficiency requires a uniform price}, and equity concerns can be settled by \rose{transfers}. % rather than through the price itself.
 % \ip While this argument is standard --- or perhaps \textit{because} it is --- it has \rose{never been studied in detail}. That is the endeavour we tackle here.
@@ -484,13 +485,13 @@ a first-order Taylor expansion. %\rose{Whether it predicts well is an empirical 
 \bbvsp
 \ip \blue{IMF; Working Group on Climate Coalitions propose} a coalition of the willing with % members price carbon \blue{nationally}, with \rose{no cross-country revenue sharing}, under
  \blue{price floors differentiated by income}: \\ ~\blue{\$75/tCO$_\text{2}$ high-income}, \green{\$50/t upper-middle}, \red{\$25/t lower-income} (Parry et al., 2021; Wolfram et al., 2025).
-\ip \blue{Wolfram et al.\ (2025)} narrow it further --- \blue{only carbon-intensive manufacturing} (steel, aluminium, cement), with a \blue{CBAM at the coalition's border} (at \$75/t):
+\ip \blue{Wolfram et al.\ (2025)} narrow it further --- \blue{only carbon-intensive manufacturing} (steel, aluminium, cement, fertilisers --- $>$20\% of global CO$_\text{2}$), with a \blue{CBAM at the coalition's border} (at \$75/t):
   \bbvsp
   \ip The deal: the \green{EU renounces its own CBAM} in exchange for \green{China pricing its manufacturing emissions}, raising the price of Chinese final goods (Ch\^ateau et al., 2024).
   \ee
-\ip Effect on global CO$_2$ emissions: \green{$-$2\%}.
-\ip \green{Little chance of being implemented}: China has \green{$\sim$70\% of emissions covered} by the coalition, and appears unwilling to commit to \$50/t.
-\ip \blue{Banerjee, Duflo \& Greenstone (2025) propose} a grand bargain with \red{\$10 LICs}, \green{\$30 lower-MICs}, \blue{\$50 upper-MICs and HICs}. \\ Pricing gives right to climate-damage compensation paid by global taxes on wealth and profit (not modelled here). % TODO: check
+\ip Effect on global CO$_2$ emissions: \green{$-$1.7 to $-$2\%} (1.0--1.5\% of global GHG).
+\ip \green{Little chance of being implemented}: China is $\sim$70\% of the \green{industrial emissions the coalition would cover}, yet appears unwilling to commit to \$50/t. (Economy-wide, members are $\sim$48\% of global CO$_\text{2}$, China $\sim$55\% of that.)
+\ip \blue{Banerjee, Duflo \& Greenstone (2025) propose} a grand bargain with \red{\$10 LICs}, \green{\$30 lower-MICs}, \blue{\$50 upper-MICs} (\rose{no domestic price asked of HICs}). \\ Pricing gives right to climate-damage compensation, funded by HICs through global taxes on wealth and profit (not modelled here).
 \ee
 \end{frame}
 
@@ -503,31 +504,34 @@ a first-order Taylor expansion. %\rose{Whether it predicts well is an empirical 
 % \ip Fed into NICE as country-level $\pi_i$; we solve for the $\rho_i$ making each country \rose{indifferent} to trading its proposal price for uniform pricing.
 % \ee
 % \vspace{-.3cm}
-\centering %\scriptsize
-\renewcommand{\arraystretch}{0.9}
+\centering
+\scriptsize
+\renewcommand{\arraystretch}{0.92}
 \begin{tabular}{lcccccc}
   \toprule
   & \multicolumn{3}{c}{\textbf{Wolfram}} & \multicolumn{3}{c}{\textbf{Duflo}} \\
   \cmidrule(lr){2-4} \cmidrule(lr){5-7}
-  \textbf{Country} & $\Delta$\textbf{T} & \textbf{Welfare} & $\rho_{\text{Wolfram}}$ & $\Delta$\textbf{T} & \textbf{Welfare} & $\rho_{\text{Duflo}}$ \\
+  \textbf{Country} & $\Delta p_i$ & $\rho^{A}$ & $\rho^{B}$ & $\Delta p_i$ & $\rho^{A}$ & $\rho^{B}$ \\
   \midrule
-  CHN & $+$7.4 & 529.46 & 1.306 & $+$7.4 & 530.02 & 1.514 \\
-  COD & & & & $-$32.6 & 165.56 & $<$0.0001 \\
-  EU27 & $+$32.4 & 1247.15 & $<$0.0001 & $-$42.6 & 1247.5 & 0.043 \\
-  IND & $-$17.6 & 255.88 & 1.266 & $-$12.6 & 254.58 & 0.836 \\
-  NGA & & & & $-$12.6 & 265.86 & $<$0.0001 \\
-  RUS & & & & $-$42.6 & 857.24 & 8.043 \\
-  TUR & & & & $+$7.4 & 760.05 & 0.574 \\
-  USA & & & & $-$42.6 & 1171.3 & 11.04 \\
+  USA & $-$18.5 & 6.68 & 5.40 & $-$19.8 & 7.78 & 6.74 \\
+  RUS & $-$18.5 & 4.44 & 3.95 & $-$19.8 & 5.30 & 4.80 \\
+  TUR & $-$18.5 & 2.62 & 1.92 & 30.2 & $-$0.35 & 0.80 \\
+  EU27 & 56.5 & $-$0.03 & 0.35 & $-$19.8 & 0.24 & 0.47 \\
+  CHN & 31.5 & $-$0.10 & 0.51 & 30.2 & 0.14 & 0.54 \\
+  IND & 6.5 & $-$0.07 & 0.21 & 10.2 & 0.57 & 0.44 \\
+  IDN & 31.5 & $-$2.24 & $-$0.01 & 30.2 & $-$0.28 & 0.19 \\
+  BRA & 31.5 & $-$1.30 & $-$0.34 & 30.2 & $-$0.30 & $-$0.16 \\
+  NGA & $-$18.5 & 0.30 & $-$0.32 & 10.2 & 0.10 & $-$0.22 \\
+  COD & $-$18.5 & 0.06 & $-$0.18 & $-$9.8 & 0.05 & $-$0.11 \\
   \midrule
-  \textbf{World rights reallocation} & \multicolumn{3}{c}{\rose{50.2\%}} & \multicolumn{3}{c}{\rose{48.3\%}} \\
-  \textbf{World temp.\ 2100, autarky $\to$ uniform} & \multicolumn{3}{c}{\rose{2.14 $\to$ 1.757\textdegree{}C}} & \multicolumn{3}{c}{\rose{1.984 $\to$ 1.757\textdegree{}C}} \\
-  \textbf{World welfare gain} & \multicolumn{3}{c}{0.26\%} & \multicolumn{3}{c}{\rose{3.2\%}} \\
+  \textbf{Gain in rights} (variant 1) & \multicolumn{3}{c}{\rose{35\% / 33\%}} & \multicolumn{3}{c}{\rose{22\% / 20\%}} \\
+  \textbf{World temp.~2100} & \multicolumn{3}{c}{\rose{2.16 $\to$ 1.91 / 1.92\textdegree{}C}} & \multicolumn{3}{c}{\rose{2.02 $\to$ 1.89 / 1.90\textdegree{}C}} \\
+  \textbf{World welfare gain} (variant 2) & \multicolumn{3}{c}{0.12\% / $-$0.01\%} & \multicolumn{3}{c}{0.09\% / $-$0.01\%} \\
   \bottomrule
 \end{tabular}
 
-\vspace{-.1cm}
-{\scriptsize $\Delta$T: gap between domestic autarky tax and global uniform price in 2030. `$<$': uniform welfare already beats autarky over the tested $\rho$ range.}
+\vspace{.2cm}
+{\tiny \parbox{0.88\textwidth}{$\Delta p_i$: proposal price minus the equivalent uniform price in 2030 (\$/t). $\rho_i$: allocation as a multiple of an equal-per-capita share of the proposal's emissions; $\rho^{A}$ solves each country alone, $\rho^{B}$ all jointly. Variant 1 lets the rights set the cap; variant 2 rescales them to the proposal's emissions.}}
 \normalsize
 \end{frame}
 
