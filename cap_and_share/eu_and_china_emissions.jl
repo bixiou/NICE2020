@@ -45,9 +45,16 @@
 #   2050–2300 : zero
 ################################################################################
 
-using Pkg
-Pkg.activate(joinpath(@__DIR__, ".."))
-Pkg.instantiate()
+# Activating and instantiating the project only makes sense when this file is
+# run as a script. It is also included by data/parameters.jl, i.e. on every
+# model load, where it is a slow no-op at best -- and at worst it aborts the
+# whole load, since Pkg.instantiate() errors as soon as Project.toml and
+# Manifest.toml disagree about any dependency, related to this file or not.
+if abspath(PROGRAM_FILE) == @__FILE__
+    using Pkg
+    Pkg.activate(joinpath(@__DIR__, ".."))
+    Pkg.instantiate()
+end
 
 using CSV, DataFrames, JSON, CSVFiles
 

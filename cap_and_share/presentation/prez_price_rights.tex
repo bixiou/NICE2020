@@ -8,13 +8,28 @@
 \documentclass[aspectratio=169,xcolor=dvipsnames, 11pt,mathserif]{beamer}
 \input{preamble_slides.tex}
 
-% Tight but non-overlapping spacing around display equations.
-\setlength{\abovedisplayskip}{3pt}
-\setlength{\belowdisplayskip}{3pt}
-\setlength{\abovedisplayshortskip}{1pt}
-\setlength{\belowdisplayshortskip}{1pt}
+% Tight spacing around display equations, with no space at all below them.
+% The font-size commands reset these four lengths (\small is used in most
+% frames), so they have to be re-applied every time the size changes.
+\usepackage{etoolbox}
+\newcommand{\tightdisplayskips}{%
+  \setlength{\abovedisplayskip}{3pt}%
+  \setlength{\belowdisplayskip}{0pt}%
+  \setlength{\abovedisplayshortskip}{1pt}%
+  \setlength{\belowdisplayshortskip}{0pt}}
+\tightdisplayskips
+
+% \eed: closes a list that ends on a display equation. Plain \ee leaves the
+% usual inter-list seam (2\topsep + \parskip + \medskip of the next \bbvs*),
+% i.e. ~24pt of white below the equation; this cancels it.
+\newcommand{\eed}{\ee\vspace{-\dimexpr 2\topsep+\parskip+\medskipamount-3pt\relax}}
+\apptocmd{\normalsize}{\tightdisplayskips}{}{}
+\apptocmd{\small}{\tightdisplayskips}{}{}
+\apptocmd{\footnotesize}{\tightdisplayskips}{}{}
+\apptocmd{\scriptsize}{\tightdisplayskips}{}{}
 
 \newcommand{\figpath}{../paper/figures}
+\newcommand{\tabpath}{../output}
 
 \begin{document}
 
@@ -27,7 +42,8 @@
 \thispagestyle{empty}
 \begin{center}
 \begin{LARGE}
-\textcolor{blue}{Differentiated Carbon Prices}\\~\vspace{.2cm}~\textcolor{magenta}{or International Transfers?} \end{LARGE}
+\textcolor{blue}{Differentiated Carbon Prices}\\[.45cm]
+\textcolor{magenta}{or International Transfers?} \end{LARGE}
 \vspace{1cm}
 
 
@@ -168,7 +184,7 @@ LICs allocated more rights than emissions: they clearly gain.
 \ip %Countries $i$, one period, no uncertainty. 
 Country $i$ produces $y_i$, consumes $c_i$, and at carbon price $p_i$ faces abatement cost $a_i$:
 \[ c_i = y_i - a_i + t_i, \qquad t_i \text{ = international transfer}. \]
-\ee
+\eed
 \bbvs
 \ip Welfare $u_i$ depends on $c_i$ and on \rose{global emissions} $E=\sum_j e_j n_j$, \rose{fixed at $E^*$} 
 \bbvs \ip $n_i$ is population, $e_i$ emissions p.c. \ee
@@ -189,23 +205,22 @@ Country $i$ produces $y_i$, consumes $c_i$, and at carbon price $p_i$ faces abat
 \small
 \bbvs
 \ip $V_i(p_i)$: the lump sum transfer which makes $i$ as well off with the global price as in autarky:
-\ee
 \[ u_i\bigl(V_i(p_i),\,p^*\bigr) = u_i(0,\,p_i) \qquad\Longrightarrow\qquad V_i(p_i) = c_i^a - c_i^* = a_i^* - a_i. \]
-\vspace{-.2cm}
+\eed
 \bbvsp
 \ip Optimising country sets $\frac{da_i}{de}(e_i^*)=-p^*$: Therefore, a first-order Taylor expansion around $e_i^*$ gives:
-\ee
 \[ \;V_i(p_i) \;\approx\; (e_i-e_i^*)\,p^* \]
+\eed
 \bbvsp
 \ip Denoting $\varepsilon^*=-\tfrac{de_i/e_i^*}{dp/p^*} > 0$ the price elasticity at $p^*$, we have:
-\ee
 \[ \boxed{\;V_i(p_i)=\; (p^*-p_i)\,e_i^*\,\varepsilon^*\;}\]
+\eed
 \bbvsp
 % \ip Sign is intuitive: if $p_i<p^*$, $i$ abates less in autarky $\Rightarrow$ moving it to $p^*$ requires \rose{compensation $V_i>0$}.
 \ip Compensation needed is larger when \blue{price gap} is large, \blue{baseline emissions} are high, emissions are \blue{elastic}.
 \ip \blue{Equivalent transfer $g_i^s$} of an arbitrary situation $s=(t_i,p_i)$, relative to the benchmark:
-\ee
 \[ g_i^s = \underbrace{t_i}_{\text{cash received}} + \underbrace{V_i(p_i)}_{\text{gain from facing } p_i \neq p^*} \]
+\ee
 % \bbvsp
 % \ip One money-metric number at a common price $\Rightarrow$ comparable across regimes differing in \textit{both} $t$ and $p$. \hyperlink{equivalent_price}{\beamergotobutton{Why not an equivalent price?}}
 % \ee
@@ -216,19 +231,17 @@ Country $i$ produces $y_i$, consumes $c_i$, and at carbon price $p_i$ faces abat
 \small
 \bbvs
 \ip Cap-and-trade at $p^*$, each person in $i$ endowed with rights $r_i$. Net monetary transfer to $i$:
-\ee
 \[ t_i^* = (r_i - e_i^*)\,p^* %\qquad (\text{$i$ \textit{sells} if } r_i>e_i^*, \text{ \textit{buys} otherwise}) 
 \qquad\Longrightarrow\qquad g_i^* = t_i^*. \]
-\vspace{-.2cm}
+\eed
 \bbvsp
 \ip Autarky, from Step 1: $\;g_i^a = V_i(p_i) \approx (p^*-p_i)\,e_i^*\,\varepsilon^*$. \quad Setting $g_i^*=g_i^a$:
-\ee
 \[ \rose{\boxed{(r_i-e_i^*)\,p^* \;\approx\; (p^*-p_i)\,e_i^*\,\varepsilon^*}} \]
 \[ \Longleftrightarrow\qquad
    \blue{r_i \approx \Bigl(1+\bigl(1-\tfrac{p_i}{p^*}\bigr)\varepsilon^*\Bigr)e_i^*}
    \qquad\Longleftrightarrow\qquad
    p_i \approx \Bigl(1+\tfrac{e_i^*-r_i}{e_i^*\varepsilon^*}\Bigr)p^*. \]
-\vspace{-.2cm}
+\eed
 \bbvsp
 \ip \rose{The key formula for policy design}: rights $r_i$ under uniform price equivalent to  autarky price $p_i$
   \bbvs
@@ -245,15 +258,13 @@ Country $i$ produces $y_i$, consumes $c_i$, and at carbon price $p_i$ faces abat
 \bbvs
 \ip Give country $i$ rights equal to its \textit{autarky} emissions, $r_i = e_i$. Net transfer $\tilde t_i = (e_i-e_i^*)p^*$.
 \ip \rose{Convexity} of abatement costs implies:
-\ee
 \[ a_i - a_i^* \;\geq\; (e_i-e_i^*)\tfrac{da_i^*}{de} = -(e_i-e_i^*)p^*
 \qquad\Longrightarrow\qquad \tilde t_i \;\geq\; a_i^*-a_i = V_i(p_i) = g_i^a. \]
-\vspace{-.2cm}
+\eed
 \bbvsp
 \ip Hence, consumption increases \textit{in every country} when trading is allowed and prices equalize:
-\ee
 \[ \boxed{\;\tilde c_i = y_i + \tilde t_i - a_i^* \;\geq\; y_i - a_i = c_i^a\;}  \]
-\vspace{-.2cm}
+\eed
 \bbvsp
 % \ip \blue{Mechanism}: in autarky a lower price cuts abatement costs, but \textit{at a diminishing rate}. Selling the spare permits instead earns the \rose{full market price $p^*$} on every tonne --- always at least as good a deal. % TODO: put back?
 % \ip Strict dominance whenever abatement costs are strictly convex and prices differ across countries.
@@ -267,9 +278,8 @@ Country $i$ produces $y_i$, consumes $c_i$, and at carbon price $p_i$ faces abat
 \ip Add time $t$; each variable becomes a trajectory. $\beta_t$ = discount factor, $R_i=\sum_t r_{it}$ = $i$'s carbon budget.
 \bbvs \ip $G_i = \sum_t g_{it}\beta_t$ : total discounted equivalent gain \ee
 \ip Welfare equivalence now requires equality of \textit{entire discounted streams}, $G_i^U = G_i^{\mathcal{A}}$:
-\ee
 \[ \sum_t \beta_t\,(r_{it}-e_{it}^*)\,p_t^* \;\approx\; \sum_t \beta_t\,(p_t^*-p_{it})\,e_{it}^*\,\varepsilon_t^*. \]
-\vspace{-.2cm}
+\eed
 \bbvsp
 \ip In the static case $p^*$ was a \textit{common factor} and cancelled. Here it does not: the timing of allocation matters.
   \bbvs
@@ -277,10 +287,9 @@ Country $i$ produces $y_i$, consumes $c_i$, and at carbon price $p_i$ faces abat
   \ip $\Rightarrow$ \rose{No direct correspondence between the intertemporal carbon budget $R_i$ and welfare}. %Timing matters, and timing depends on the full trajectory $(p_t^*)_t$.
   \ee
 \ip \blue{Special case 1} --- homothetic prices, fixed emission rights shares: \rose{$p_{it}=\pi_i p_t^*$} and \rose{$r_{it}=\rho_i r_t$}
-\ee
 \[ \mathcal{B}:=\sum_t r_t\,\beta_t\,p_t^* \qquad  \rho_i\,\mathcal{B} - \sum_t e_{it}^*p_t^*\beta_t \;\approx\; (1-\pi_i)\sum_t e_{it}^*\varepsilon_t^*p_t^*\beta_t,  \]
-\vspace{-.2cm}
-\bbvs
+\eed
+\bbvsp
 \ip Analogous to static formula, but $\mathcal{B}$ still requires the full price path $\Rightarrow$ \rose{not tractable without a model}.
 \ee
 \end{frame}
@@ -290,9 +299,8 @@ Country $i$ produces $y_i$, consumes $c_i$, and at carbon price $p_i$ faces abat
 \bbvs
 \ip Hotelling rule: Fixed aggregate carbon budget + perfect foresight + efficient capital markets \\ $\Rightarrow$ \blue{carbon price rises at the rate of return on capital}. Discounting at that same rate, \rose{$\beta_t p_t^*=p_0$} is constant.
 \ip $\beta_t p_t^*$ then factors out of both sums, and the dynamic condition collapses to:
-\ee
 \[ \boxed{\;R_i - E_i^* \;\approx\; (1-\pi_i)\sum_t e_{it}^*\,\varepsilon_t^*\;} \qquad E_i^*=\sum_t e_{it}^*\]
-\vspace{-.2cm}
+\eed
 \bbvsp
 \ip \rose{Structurally identical to the static formula}: the intertemporal carbon budget $R_i$ plays the role of the single-period allocation, and the homothetic price factor $\pi_i$ the role of $p_i/p^*$.
 \ip Timing of the allocation no longer matters: every period carries the same discounted price.
@@ -382,7 +390,7 @@ a first-order Taylor expansion. %\rose{Whether it predicts well is an empirical 
 \only<+>{\textbf{European Union (EU27)} \\ \includegraphics[height=.85\textheight]{\figpath/Welfare_Heatmap_EU27 (pdfresizer.com)-3.pdf}}
 \only<+>{\textbf{India} \\ \includegraphics[height=.85\textheight]{\figpath/Welfare_Heatmap_IND (pdfresizer.com)-3.pdf}}
 \only<+>{\textbf{Nigeria} \\ \includegraphics[height=.85\textheight]{\figpath/Welfare_Heatmap_NGA (pdfresizer.com)-3.pdf}}
-\only<+>{\textbf{Democratic Republic of Congo} \\ \includegraphics[height=.85\textheight]{\figpath/Welfare_Heatmap_COD (pdfresizer.com)-2.pdf}}
+\only<+>{\textbf{Democratic Republic of the Congo} \\ \includegraphics[height=.85\textheight]{\figpath/Welfare_Heatmap_COD (pdfresizer.com)-2.pdf}}
 \end{frame}
 % TODO show that while for any price, there is an equivalent rights, the reverse does not hold
 
@@ -492,6 +500,9 @@ a first-order Taylor expansion. %\rose{Whether it predicts well is an empirical 
 \ip Effect on global CO$_2$ emissions: \green{$-$1.7 to $-$2\%} (1.0--1.5\% of global GHG).
 \ip \green{Little chance of being implemented}: China is $\sim$70\% of the \green{industrial emissions the coalition would cover}, yet appears unwilling to commit to \$50/t. (Economy-wide, members are $\sim$48\% of global CO$_\text{2}$, China $\sim$55\% of that.)
 \ip \blue{Banerjee, Duflo \& Greenstone (2025) propose} a grand bargain with \red{\$10 LICs}, \green{\$30 lower-MICs}, \blue{\$50 upper-MICs} (\rose{no domestic price asked of HICs}). \\ Pricing gives right to climate-damage compensation, funded by HICs through global taxes on wealth and profit (not modelled here).
+  \bbvsp
+  \ip \rose{We price HICs at \$75/t} (Wolfram's top tier): unpriced HICs would make the ``bargain'' a \textit{cut} in world ambition. Original reading kept as a legacy scenario.
+  \ee
 \ee
 \end{frame}
 
@@ -504,34 +515,12 @@ a first-order Taylor expansion. %\rose{Whether it predicts well is an empirical 
 % \ip Fed into NICE as country-level $\pi_i$; we solve for the $\rho_i$ making each country \rose{indifferent} to trading its proposal price for uniform pricing.
 % \ee
 % \vspace{-.3cm}
-\centering
-\scriptsize
-\renewcommand{\arraystretch}{0.92}
-\begin{tabular}{lcccccc}
-  \toprule
-  & \multicolumn{3}{c}{\textbf{Wolfram}} & \multicolumn{3}{c}{\textbf{Duflo}} \\
-  \cmidrule(lr){2-4} \cmidrule(lr){5-7}
-  \textbf{Country} & $\Delta p_i$ & $\rho^{A}$ & $\rho^{B}$ & $\Delta p_i$ & $\rho^{A}$ & $\rho^{B}$ \\
-  \midrule
-  USA & $-$18.5 & 6.68 & 5.40 & $-$19.8 & 7.78 & 6.74 \\
-  RUS & $-$18.5 & 4.44 & 3.95 & $-$19.8 & 5.30 & 4.80 \\
-  TUR & $-$18.5 & 2.62 & 1.92 & 30.2 & $-$0.35 & 0.80 \\
-  EU27 & 56.5 & $-$0.03 & 0.35 & $-$19.8 & 0.24 & 0.47 \\
-  CHN & 31.5 & $-$0.10 & 0.51 & 30.2 & 0.14 & 0.54 \\
-  IND & 6.5 & $-$0.07 & 0.21 & 10.2 & 0.57 & 0.44 \\
-  IDN & 31.5 & $-$2.24 & $-$0.01 & 30.2 & $-$0.28 & 0.19 \\
-  BRA & 31.5 & $-$1.30 & $-$0.34 & 30.2 & $-$0.30 & $-$0.16 \\
-  NGA & $-$18.5 & 0.30 & $-$0.32 & 10.2 & 0.10 & $-$0.22 \\
-  COD & $-$18.5 & 0.06 & $-$0.18 & $-$9.8 & 0.05 & $-$0.11 \\
-  \midrule
-  \textbf{Gain in rights} (variant 1) & \multicolumn{3}{c}{\rose{35\% / 33\%}} & \multicolumn{3}{c}{\rose{22\% / 20\%}} \\
-  \textbf{World temp.~2100} & \multicolumn{3}{c}{\rose{2.16 $\to$ 1.91 / 1.92\textdegree{}C}} & \multicolumn{3}{c}{\rose{2.02 $\to$ 1.89 / 1.90\textdegree{}C}} \\
-  \textbf{World welfare gain} (variant 2) & \multicolumn{3}{c}{0.12\% / $-$0.01\%} & \multicolumn{3}{c}{0.09\% / $-$0.01\%} \\
-  \bottomrule
-\end{tabular}
+% Table generated by src/equivalent_rights_proposals.jl; regenerate it there,
+% do not edit the numbers here.
+\IfFileExists{\tabpath/equivalent_rights_beamer.tex}{\input{\tabpath/equivalent_rights_beamer.tex}}{}
 
 \vspace{.2cm}
-{\tiny \parbox{0.88\textwidth}{$\Delta p_i$: proposal price minus the equivalent uniform price in 2030 (\$/t). $\rho_i$: allocation as a multiple of an equal-per-capita share of the proposal's emissions; $\rho^{A}$ solves each country alone, $\rho^{B}$ all jointly. Variant 1 lets the rights set the cap; variant 2 rescales them to the proposal's emissions.}}
+{\tiny \parbox{0.88\textwidth}{The comparison regime prices the proposal's own members at a single price (\$49.2/t Wolfram et al., \$55.8/t Banerjee et al.\ in 2030) and leaves non-members unpriced, as the proposal does. $p_i$: the price the proposal asks of $i$ in 2030 (\$/t); a country it does not price is shown at $p_i=0$ with no equivalent allocation (`--'). $\rho_i$: allocation as a multiple of an equal-per-capita share of the club's emissions; $\rho^{A}$ solves each country alone, $\rho^{B}$ all jointly (distribution solved to 0.03--0.05\%, level held at option A's). Variant 1 lets the rights set the cap, so the temperature row is the change from the proposal's own 2100 warming (2.16\textdegree{}C Wolfram et al., 1.80\textdegree{}C Banerjee et al.); variants 2--4 return the surplus as rights so club emissions match the proposal's, sharing it by uniform scaling (2), after a floor on option A's allocation (3), and by marginal utility (4).}}
 \normalsize
 \end{frame}
 
@@ -557,7 +546,7 @@ a first-order Taylor expansion. %\rose{Whether it predicts well is an empirical 
 \ip But the heatmaps show a \rose{striking asymmetry}: the \red{red} region below the indifference curve is barely visible, rarely a few percentage points of EDE consumption NPV, while the \blue{blue} region above it reaches the scale ceiling for Nigeria and the DRC.
   \bbvsp \ip Being \textit{slightly} below the curve costs little; a generous allocation gains a lot, especially for low emitters. \rose{There is room for negotiated compromise at small efficiency cost.} \ee
 \ip \blue{Caveats}: a first-best result, one deviating country at a time, RoW aggregated and grandfathered. \hyperlink{limitations}{\beamergotobutton{Limitations}}
-\ip \begin{center} \textbf{Thank you for your attention!} \\ \blue{adrien.fabre@cnrs.fr} \quad --- \quad \blue{constance.gorge@cired.fr} \end{center}
+\ip \begin{center} \textbf{Thank you for your attention!} \\ \blue{adrien.fabre@cnrs.fr} \quad \quad \quad \blue{constance.gorge@cired.fr} \end{center}
 \ee
 \end{frame}
 
@@ -572,9 +561,8 @@ a first-order Taylor expansion. %\rose{Whether it predicts well is an empirical 
 \ip \blue{2. Negative emission rights} ($\rho_i>1/pop_i$): granting $i$ its multiplier uses more than the whole global budget, forcing the RoW into \rose{negative rights}. Binds for large populations: countries above 10\% of world population (China, India) trigger it for any $\rho_i>10$.
 \ip \rule{\linewidth}{0.4pt}
 \ip \blue{RoW price identity}, the starting point of the root-finding:
-\ee
 \[ p^* = \omega_i p_i + (1-\omega_i)p_{-i}, \quad \omega_i = e_i/E^* \qquad\Longrightarrow\qquad p_{-i} = p^*\,(E^*-e_i\pi_i)/e_{-i}. \]
-\vspace{-.2cm}
+\eed
 \bbvs
 \ip This linear approximation assumes emission-weighted price averaging delivers the same global abatement --- false with non-linear MACs, hence the \blue{Newton--Raphson} correction to $<0.1\%$ relative error on the cap.
 \ee
@@ -606,9 +594,8 @@ a first-order Taylor expansion. %\rose{Whether it predicts well is an empirical 
 \begin{frame}{The equivalent price, and why we do not use it \label{equivalent_price} \hyperlink{equivalent_variation}{\beamergotobutton{Go back}}}
 \bbvs
 \ip One could instead define an \blue{equivalent price} $p_i^*$ such that $(0,p_i^*)$ is welfare-equivalent to $(t_i,p_i)$:
-\ee
 \[ t_i + (p^*-p_i)e_i^*\varepsilon^* \approx (p^*-p_i^*)e_i^*\varepsilon^* \qquad\Longrightarrow\qquad p_i^* \approx p_i - \frac{t_i}{e_i^*\varepsilon^*}. \]
-\vspace{-.2cm}
+\eed
 \bbvs
 \ip \rose{Problem}: $p_i^*$ can be \textit{negative} when the transfer is large, which has no natural interpretation as a carbon price.
 \ip The equivalent transfer $g_i^s$ does not share this limitation $\Rightarrow$ we use it as the primary welfare metric.

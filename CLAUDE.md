@@ -31,4 +31,4 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 - Before writing 500+ lines of code, provide a summary of the logic first.
 - After completing a TODO item, tick its checkbox in `TODO.md`.
-- Don't compile .tex files in `/papers` but in `papers/build/`: there should be no auxiliary files in `/papers`.
+- Don't compile .tex files in the folder where the .tex sits but in the subfolder `build/`: there should be no auxiliary files in the .tex folder, just the PDF (copied from `build/`).

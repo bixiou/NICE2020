@@ -1070,6 +1070,9 @@ tax_lmic_duflo = 30.0  # $/tCO2, 2025-2030
 tax_umic_duflo = 50.0  # $/tCO2, 2025-2030
 # HIC: no tax under this proposal (they are assumed to pay via other instruments/transfers which are not modelled here
 # since this table focuses on the autarky-vs-uniform comparison)
+# NOTE: this unpriced-HIC reading is the *legacy* one. The published scenario in
+# src/equivalent_rights_proposals.jl now prices high-income countries at $75/t
+# (`duflo_rate`); the version below is kept there as `duflo_legacy_rate`.
 
 nice2020_duflo = MimiNICE2020.create_nice2020()
 years     = collect(dim_keys(nice2020_duflo, :time))
