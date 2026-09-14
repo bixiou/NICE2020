@@ -58,6 +58,13 @@ end
 
 using CSV, DataFrames, JSON, CSVFiles
 
+# These CSVs are regenerated only when missing or older than this script. Several
+# worker processes load this file concurrently (see src/equivalent_rights_proposals.jl),
+# and a rewrite on every load means one process can read a file another has just
+# truncated -- which surfaces downstream as "column E_gtco2 not found".
+_needs_write(path) = !isfile(path) || filesize(path) == 0 || mtime(path) < mtime(@__FILE__)
+
+
 
 # ── French name → ISO3 for EU-27 ──────────────────────────────────────────────
 const FR_TO_ISO3 = Dict(
@@ -223,7 +230,7 @@ sort!(df_countries, [:country, :time])
 
 # ── Save per-country trajectories ─────────────────────────────────────────────
 out_countries = joinpath(@__DIR__, "data", "input", "eu_ndc_trajectories.csv")
-CSV.write(out_countries, df_countries)
+_needs_write(out_countries) && CSV.write(out_countries, df_countries)
 println("Written: $out_countries  ($(nrow(df_countries)) rows)")
 
 # ── Save EU aggregate ─────────────────────────────────────────────────────────
@@ -231,7 +238,7 @@ df_agg = combine(groupby(df_countries, :time), :E_gtco2 => sum => :E_gtco2)
 sort!(df_agg, :time)
 
 out_agg = joinpath(@__DIR__, "data", "input", "E_Union_NDC_2020_2300.csv")
-CSV.write(out_agg, df_agg)
+_needs_write(out_agg) && CSV.write(out_agg, df_agg)
 println("Written: $out_agg  ($(nrow(df_agg)) rows)")
 
 # ── Sanity checks ─────────────────────────────────────────────────────────────
@@ -300,6 +307,6 @@ df_combined = vcat(df_eu, df_china)
 sort!(df_combined, [:country, :time])
 
 out_path = joinpath(@__DIR__, "data", "input", "ndc_trajectories.csv")
-CSV.write(out_path, df_combined)
+_needs_write(out_path) && CSV.write(out_path, df_combined)
 println("\nWritten: $out_path  ($(nrow(df_combined)) rows, $(length(unique(df_combined.country))) countries)")
 

@@ -1497,18 +1497,8 @@ INPUT build/equivalence price rights.aux
 INPUT build/equivalence price rights.aux
 OUTPUT build/equivalence price rights.aux
 INPUT c:/texlive/2022/texmf-dist/tex/latex/graphics/color.sty
-INPUT build/equivalence price rights.out
-INPUT build/equivalence price rights.out
-INPUT build/equivalence price rights.out
-INPUT build/equivalence price rights.out
-INPUT build/equivalence price rights.out
-INPUT build/equivalence price rights.out
-INPUT build/equivalence price rights.out
-INPUT build/equivalence price rights.out
-OUTPUT build/equivalence price rights.pdf
-INPUT build/equivalence price rights.out
-INPUT build/equivalence price rights.out
 OUTPUT build/equivalence price rights.out
+OUTPUT build/equivalence price rights.pdf
 INPUT c:/texlive/2022/texmf-dist/tex/latex/graphics/graphicx.sty
 INPUT c:/texlive/2022/texmf-dist/tex/context/base/mkii/supp-pdf.mkii
 INPUT c:/texlive/2022/texmf-dist/tex/context/base/mkii/supp-pdf.mkii
@@ -1632,9 +1622,32 @@ INPUT c:/texlive/2022/texmf-dist/fonts/tfm/adobe/palatino/pplr8c.tfm
 INPUT c:/texlive/2022/texmf-dist/fonts/tfm/adobe/palatino/pplr7t.tfm
 INPUT c:/texlive/2022/texmf-dist/fonts/tfm/adobe/palatino/pplb7t.tfm
 INPUT c:/texlive/2022/texmf-dist/fonts/tfm/adobe/palatino/pplb7t.tfm
-INPUT build/equivalence price rights.toc
-INPUT build/equivalence price rights.toc
-INPUT build/equivalence price rights.toc
+OUTPUT build/equivalence price rights.toc
+INPUT c:/texlive/2022/texmf-dist/fonts/vf/adobe/palatino/pplr7t.vf
+INPUT c:/texlive/2022/texmf-dist/fonts/tfm/adobe/palatino/pplr8r.tfm
+INPUT c:/texlive/2022/texmf-var/fonts/map/pdftex/updmap/pdftex.map
+INPUT c:/texlive/2022/texmf-dist/fonts/vf/adobe/palatino/pplr7t.vf
+INPUT c:/texlive/2022/texmf-dist/fonts/tfm/adobe/palatino/pplr8r.tfm
+INPUT c:/texlive/2022/texmf-dist/fonts/vf/adobe/palatino/pplr8c.vf
+INPUT c:/texlive/2022/texmf-dist/fonts/tfm/adobe/palatino/pplr8r.tfm
+INPUT c:/texlive/2022/texmf-dist/fonts/tfm/public/mathpazo/fplmr.tfm
+INPUT c:/texlive/2022/texmf-dist/fonts/vf/adobe/palatino/pplb7t.vf
+INPUT c:/texlive/2022/texmf-dist/fonts/tfm/adobe/palatino/pplb8r.tfm
+INPUT c:/texlive/2022/texmf-dist/fonts/vf/adobe/palatino/pplb7t.vf
+INPUT c:/texlive/2022/texmf-dist/fonts/tfm/adobe/palatino/pplb8r.tfm
+INPUT c:/texlive/2022/texmf-dist/fonts/vf/adobe/palatino/pplr7t.vf
+INPUT c:/texlive/2022/texmf-dist/fonts/tfm/adobe/palatino/pplr8r.tfm
+INPUT c:/texlive/2022/texmf-dist/fonts/vf/adobe/palatino/pplr8c.vf
+INPUT c:/texlive/2022/texmf-dist/fonts/tfm/adobe/palatino/pplr8r.tfm
+INPUT c:/texlive/2022/texmf-dist/fonts/tfm/public/mathpazo/fplmr.tfm
+INPUT c:/texlive/2022/texmf-dist/fonts/vf/adobe/palatino/pplr7t.vf
+INPUT c:/texlive/2022/texmf-dist/fonts/tfm/adobe/palatino/pplr7t.tfm
+INPUT c:/texlive/2022/texmf-dist/fonts/tfm/adobe/palatino/pplb7t.tfm
+INPUT c:/texlive/2022/texmf-dist/fonts/tfm/adobe/palatino/pplr8c.tfm
+INPUT c:/texlive/2022/texmf-dist/fonts/vf/adobe/palatino/pplb7t.vf
+INPUT c:/texlive/2022/texmf-dist/fonts/tfm/adobe/palatino/pplb8r.tfm
+INPUT c:/texlive/2022/texmf-dist/fonts/vf/adobe/palatino/pplr8c.vf
+INPUT c:/texlive/2022/texmf-dist/fonts/tfm/public/mathpazo/fplmr.tfm
 INPUT c:/texlive/2022/texmf-dist/fonts/tfm/adobe/palatino/pplr7t.tfm
 INPUT c:/texlive/2022/texmf-dist/fonts/tfm/adobe/palatino/pplr7t.tfm
 INPUT c:/texlive/2022/texmf-dist/fonts/tfm/public/mathpazo/zplmr7m.tfm
@@ -1671,32 +1684,6 @@ INPUT c:/texlive/2022/texmf-dist/fonts/tfm/public/amsfonts/symbols/msbm10.tfm
 INPUT c:/texlive/2022/texmf-dist/fonts/tfm/public/amsfonts/symbols/msbm10.tfm
 INPUT c:/texlive/2022/texmf-dist/fonts/tfm/adobe/palatino/pplr8c.tfm
 INPUT c:/texlive/2022/texmf-dist/fonts/tfm/adobe/palatino/pplr8c.tfm
-INPUT c:/texlive/2022/texmf-dist/fonts/tfm/adobe/palatino/pplr8c.tfm
-INPUT c:/texlive/2022/texmf-dist/fonts/vf/adobe/palatino/pplr7t.vf
-INPUT c:/texlive/2022/texmf-dist/fonts/tfm/adobe/palatino/pplr8r.tfm
-INPUT c:/texlive/2022/texmf-var/fonts/map/pdftex/updmap/pdftex.map
-INPUT c:/texlive/2022/texmf-dist/fonts/vf/adobe/palatino/pplr7t.vf
-INPUT c:/texlive/2022/texmf-dist/fonts/tfm/adobe/palatino/pplr8r.tfm
-INPUT c:/texlive/2022/texmf-dist/fonts/vf/adobe/palatino/pplr8c.vf
-INPUT c:/texlive/2022/texmf-dist/fonts/tfm/adobe/palatino/pplr8r.tfm
-INPUT c:/texlive/2022/texmf-dist/fonts/tfm/public/mathpazo/fplmr.tfm
-INPUT c:/texlive/2022/texmf-dist/fonts/vf/adobe/palatino/pplb7t.vf
-INPUT c:/texlive/2022/texmf-dist/fonts/tfm/adobe/palatino/pplb8r.tfm
-INPUT c:/texlive/2022/texmf-dist/fonts/vf/adobe/palatino/pplb7t.vf
-INPUT c:/texlive/2022/texmf-dist/fonts/tfm/adobe/palatino/pplb8r.tfm
-INPUT c:/texlive/2022/texmf-dist/fonts/vf/adobe/palatino/pplr7t.vf
-INPUT c:/texlive/2022/texmf-dist/fonts/tfm/adobe/palatino/pplr8r.tfm
-INPUT c:/texlive/2022/texmf-dist/fonts/vf/adobe/palatino/pplr8c.vf
-INPUT c:/texlive/2022/texmf-dist/fonts/tfm/adobe/palatino/pplr8r.tfm
-INPUT c:/texlive/2022/texmf-dist/fonts/tfm/public/mathpazo/fplmr.tfm
-INPUT c:/texlive/2022/texmf-dist/fonts/vf/adobe/palatino/pplr7t.vf
-OUTPUT build/equivalence price rights.toc
-INPUT c:/texlive/2022/texmf-dist/fonts/tfm/adobe/palatino/pplr7t.tfm
-INPUT c:/texlive/2022/texmf-dist/fonts/tfm/adobe/palatino/pplb7t.tfm
-INPUT c:/texlive/2022/texmf-dist/fonts/vf/adobe/palatino/pplb7t.vf
-INPUT c:/texlive/2022/texmf-dist/fonts/tfm/adobe/palatino/pplb8r.tfm
-INPUT c:/texlive/2022/texmf-dist/fonts/vf/adobe/palatino/pplr8c.vf
-INPUT c:/texlive/2022/texmf-dist/fonts/tfm/public/mathpazo/fplmr.tfm
 INPUT c:/texlive/2022/texmf-dist/fonts/vf/adobe/palatino/pplb7t.vf
 INPUT c:/texlive/2022/texmf-dist/fonts/tfm/adobe/palatino/pplb8r.tfm
 INPUT c:/texlive/2022/texmf-dist/fonts/vf/adobe/palatino/pplr7t.vf
@@ -1809,6 +1796,20 @@ INPUT c:/texlive/2022/texmf-dist/fonts/tfm/adobe/palatino/pplb8r.tfm
 INPUT c:/texlive/2022/texmf-dist/fonts/vf/adobe/palatino/pplr7t.vf
 INPUT c:/texlive/2022/texmf-dist/fonts/tfm/adobe/palatino/pplri7t.tfm
 INPUT c:/texlive/2022/texmf-dist/fonts/vf/adobe/palatino/pplri7t.vf
+INPUT ../output/equivalent_rights_combined.tex
+INPUT ../output/equivalent_rights_combined.tex
+INPUT ../output/equivalent_rights_combined.tex
+INPUT ../output/equivalent_rights_combined.tex
+INPUT ../output/equivalent_rights_combined.tex
+INPUT ../output/equivalent_rights_combined.tex
+INPUT c:/texlive/2022/texmf-dist/fonts/tfm/adobe/palatino/pplb8c.tfm
+INPUT ../output/equivalent_rights_losers.tex
+INPUT ../output/equivalent_rights_losers.tex
+INPUT ../output/equivalent_rights_losers.tex
+INPUT ../output/equivalent_rights_losers.tex
+INPUT ../output/equivalent_rights_losers.tex
+INPUT ../output/equivalent_rights_losers.tex
+INPUT c:/texlive/2022/texmf-dist/fonts/tfm/adobe/palatino/pplri7t.tfm
 INPUT build/equivalence price rights.bbl
 INPUT build/equivalence price rights.bbl
 INPUT build/equivalence price rights.bbl
@@ -1820,6 +1821,16 @@ INPUT build/equivalence price rights.brf
 INPUT build/equivalence price rights.brf
 OUTPUT build/equivalence price rights.brf
 INPUT c:/texlive/2022/texmf-dist/fonts/tfm/public/cm/cmtt12.tfm
+INPUT c:/texlive/2022/texmf-dist/fonts/vf/public/mathpazo/zplmr7m.vf
+INPUT c:/texlive/2022/texmf-dist/fonts/tfm/public/mathpazo/fplmri.tfm
+INPUT c:/texlive/2022/texmf-dist/fonts/tfm/public/cm/cmmi10.tfm
+INPUT c:/texlive/2022/texmf-dist/fonts/tfm/adobe/palatino/pplri8r.tfm
+INPUT c:/texlive/2022/texmf-dist/fonts/vf/adobe/palatino/pplb8c.vf
+INPUT c:/texlive/2022/texmf-dist/fonts/tfm/public/mathpazo/fplmb.tfm
+INPUT c:/texlive/2022/texmf-dist/fonts/vf/public/mathpazo/zplmr7y.vf
+INPUT c:/texlive/2022/texmf-dist/fonts/tfm/public/cm/cmsy10.tfm
+INPUT c:/texlive/2022/texmf-dist/fonts/tfm/public/mathpazo/fplmr.tfm
+INPUT c:/texlive/2022/texmf-dist/fonts/vf/adobe/palatino/pplri7t.vf
 INPUT build/equivalence price rights.aux
 INPUT build/equivalence price rights.out
 INPUT build/equivalence price rights.out
