@@ -121,6 +121,12 @@ const REPORT_COUNTRIES = ["USA", "EU27", "CHN", "IND", "RUS", "TUR", "NGA", "COD
 # option A; the remaining small emitters take the closed-form prediction.
 const A_COVERAGE = parse(Float64, get(ENV, "NICE_A_COVERAGE", "0.98"))
 
+# NICE_FRESH=1 ignores everything a previous run left behind -- option-A
+# checkpoints and chunk files, the p_ref cache, saved rho vectors and the
+# variant results in the summary CSV -- and recomputes the lot from the model.
+const FRESH = get(ENV, "NICE_FRESH", "0") in ("1", "true")
+FRESH && @warn "NICE_FRESH: ignoring all stored results; everything is recomputed from scratch"
+
 mkpath(OUTPUT_BASE)
 
 # ──────────────────────────────────────────────────────────────────────────────
@@ -486,7 +492,7 @@ function cached_p_ref(f, name, tax, members, ce)
     key  = string(hash((round.(tax, digits = 6), members, round.(ce, digits = 8),
                         collect(CALIB_YEARS))), base = 16)
     path = joinpath(CACHE_DIR, "p_ref_$(lowercase(name))_$key.csv")
-    if get(ENV, "NICE_NO_CACHE", "0") == "0" && isfile(path)
+    if !FRESH && get(ENV, "NICE_NO_CACHE", "0") == "0" && isfile(path)
         df = CSV.read(path, DataFrame)
         if nrow(df) == NB_STEPS
             @info "p_ref from cache" name file = basename(path)
@@ -832,7 +838,7 @@ model country: solved for the ones that matter, predicted for the tail.
 Checkpoints after every country so a long run can be resumed or read early.
 """
 function solve_option_A(P::Proposal; checkpoint = nothing, coverage = A_COVERAGE,
-                        resume = true, entities = nothing, seed_chunks = true)
+                        resume = !FRESH, entities = nothing, seed_chunks = true)
     exact, cov = solve_A_order(P; coverage)
     # `entities` restricts the solve to one chunk's countries (see run_chunk), so
     # that several machines can split the club between them; the resulting chunk
@@ -1471,14 +1477,6 @@ function write_table(path::String, method::String, props, rhos, v1, v2, v3 = not
 end
 
 """
-    write_beamer_table(path, props)
-
-The slide version: no float, no caption, both methods in one tabular
-(price gap, rho^A, rho^B per proposal), so the presentation can input it
-instead of carrying a hand-typed copy. Cells for a method that has not run yet
-print "--", so the file is usable from the first completed option onwards.
-"""
-"""
     ab_tabular(io, props)
 
 The tabular both the slide and the paper use: one price column and one rho
@@ -1612,6 +1610,7 @@ its own results alone, dropping option A's rows, and the tables lose their A
 columns -- the outputs would silently narrow to whatever was solved last.
 """
 function load_prior_results!(props)
+    FRESH && return
     path = joinpath(OUTPUT_BASE, "equivalent_rights_variants.csv")
     isfile(path) || return
     df = CSV.read(path, DataFrame)
@@ -1673,6 +1672,7 @@ session start from A's answer instead of the closed-form prediction, which is
 what `main` does when both options run in one go.
 """
 function saved_rho_A(P::Proposal)
+    FRESH && return nothing
     path = joinpath(OUTPUT_BASE, "rho_A_$(lowercase(P.name)).csv")
     isfile(path) || return nothing
     d = Dict(String(r.country) => Float64(r.rho) for r in eachrow(CSV.read(path, DataFrame)))
@@ -1689,6 +1689,7 @@ variants be recomputed without re-solving rho, which is what changes when the
 definition of a variant changes rather than the equivalence itself.
 """
 function saved_rho(method::String, P::Proposal)
+    FRESH && return nothing
     path = joinpath(OUTPUT_BASE, "rho_$(lowercase(method))_$(lowercase(P.name)).csv")
     isfile(path) || return nothing
     d = Dict(String(r.country) => Float64(r.rho) for r in eachrow(CSV.read(path, DataFrame)))

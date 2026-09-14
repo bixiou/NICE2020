@@ -1,6 +1,6 @@
 # Fdb version 4
-["pdflatex"] 1789340494 "c:/Users/fabre/Documents/www/NICE2020/cap_and_share/presentation/prez_price_rights.tex" "build/prez_price_rights.pdf" "prez_price_rights" 1789340499 0
-  "../output/equivalent_rights_beamer.tex" 1789338243 1754 69a039b7cad18867ba93c7e1343ec605 ""
+["pdflatex"] 1789373691 "c:/Users/fabre/Documents/www/NICE2020/cap_and_share/presentation/prez_price_rights.tex" "build/prez_price_rights.pdf" "prez_price_rights" 1789373827 0
+  "../output/equivalent_rights_beamer.tex" 1789345021 1762 b11e60d1d7b09ffe39962cf0d1757334 ""
   "../paper/figures/Welfare_Heatmap_CHN (pdfresizer.com)-2.pdf" 1789216051 113957 de5b0fa62327ffc4c31578553605027f ""
   "../paper/figures/Welfare_Heatmap_COD (pdfresizer.com)-2.pdf" 1789216051 86848 12941e9fe668d01eb34645288eed0cfa ""
   "../paper/figures/Welfare_Heatmap_EU27 (pdfresizer.com)-3.pdf" 1789216051 70594 ec6bb64990affb9e1a1524d65722ae78 ""
@@ -8,9 +8,9 @@
   "../paper/figures/Welfare_Heatmap_NGA (pdfresizer.com)-3.pdf" 1789216051 116845 00fd005fd111e197d79715e28c8b9786 ""
   "../paper/figures/Welfare_Heatmap_RUS (pdfresizer.com)-3.pdf" 1789216051 161821 8bc0198935cabea27248cfa0e58b8350 ""
   "../paper/figures/Welfare_Heatmap_USA (pdfresizer.com)-3.pdf" 1789216051 161991 945eabca00c27e3eff81f5ec0fe46961 ""
-  "build/prez_price_rights.aux" 1789340498 9222 3fa7f3b7ea109dd272ab7525572c3f24 "pdflatex"
-  "build/prez_price_rights.nav" 1789340498 4238 5a802cf2e4c90290657100d32e87230d "pdflatex"
-  "build/prez_price_rights.out" 1789340498 977 79a98cfa94424a2dea0a5667d630f677 "pdflatex"
+  "build/prez_price_rights.aux" 1789373813 9222 3fa7f3b7ea109dd272ab7525572c3f24 "pdflatex"
+  "build/prez_price_rights.nav" 1789373814 4238 5a802cf2e4c90290657100d32e87230d "pdflatex"
+  "build/prez_price_rights.out" 1789373814 977 79a98cfa94424a2dea0a5667d630f677 "pdflatex"
   "c:/Users/fabre/Documents/www/NICE2020/cap_and_share/presentation/prez_price_rights.tex" 1789337158 41047 b5f7a9b8617857fc62a87fefd83f1330 ""
   "c:/texlive/2022/texmf-dist/fonts/enc/dvips/base/8r.enc" 1670336910 4850 80dc9bab7f31fb78a000ccfed0e27cab ""
   "c:/texlive/2022/texmf-dist/fonts/map/fontname/texfonts.map" 1670337557 3524 cb3e574dea2d1052e39280babc910dc8 ""
