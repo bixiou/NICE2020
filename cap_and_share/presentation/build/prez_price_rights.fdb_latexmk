@@ -1,6 +1,6 @@
 # Fdb version 4
-["pdflatex"] 1789426133 "c:/Users/fabre/Documents/www/NICE2020/cap_and_share/presentation/prez_price_rights.tex" "build/prez_price_rights.pdf" "prez_price_rights" 1789426137 0
-  "../output/equivalent_rights_simple.tex" 1789425452 2069 22efe2e7c7ac864e278724c5b4592ffe ""
+["pdflatex"] 1789653808 "prez_price_rights.tex" "build/prez_price_rights.pdf" "prez_price_rights" 1789653817 0
+  "../output/equivalent_rights_targets_er5_beamer.tex" 1789653741 2727 bb5273f7c9bd9c7dabb69b3e6fb9da0c ""
   "../paper/figures/Welfare_Heatmap_CHN (pdfresizer.com)-2.pdf" 1789216051 113957 de5b0fa62327ffc4c31578553605027f ""
   "../paper/figures/Welfare_Heatmap_COD (pdfresizer.com)-2.pdf" 1789216051 86848 12941e9fe668d01eb34645288eed0cfa ""
   "../paper/figures/Welfare_Heatmap_EU27 (pdfresizer.com)-3.pdf" 1789216051 70594 ec6bb64990affb9e1a1524d65722ae78 ""
@@ -8,10 +8,9 @@
   "../paper/figures/Welfare_Heatmap_NGA (pdfresizer.com)-3.pdf" 1789216051 116845 00fd005fd111e197d79715e28c8b9786 ""
   "../paper/figures/Welfare_Heatmap_RUS (pdfresizer.com)-3.pdf" 1789216051 161821 8bc0198935cabea27248cfa0e58b8350 ""
   "../paper/figures/Welfare_Heatmap_USA (pdfresizer.com)-3.pdf" 1789216051 161991 945eabca00c27e3eff81f5ec0fe46961 ""
-  "build/prez_price_rights.aux" 1789426137 8997 9641918f2ca200316aa96017df4bd410 "pdflatex"
-  "build/prez_price_rights.nav" 1789426137 4150 5fe555aab82ec32dfcab5040497939d2 "pdflatex"
-  "build/prez_price_rights.out" 1789426137 987 70ab56d7db804b5f599e40faa303aa2e "pdflatex"
-  "c:/Users/fabre/Documents/www/NICE2020/cap_and_share/presentation/prez_price_rights.tex" 1789425209 40817 d2e93c45332ddeddb31a7fbfbfd57f4a ""
+  "build/prez_price_rights.aux" 1789653816 9001 dc1a68f0e1fb537a071c78a0380ebb5c "pdflatex"
+  "build/prez_price_rights.nav" 1789653816 4150 94f7770d77d226de2fd731a94bff7178 "pdflatex"
+  "build/prez_price_rights.out" 1789653816 987 70ab56d7db804b5f599e40faa303aa2e "pdflatex"
   "c:/texlive/2022/texmf-dist/fonts/enc/dvips/base/8r.enc" 1670336910 4850 80dc9bab7f31fb78a000ccfed0e27cab ""
   "c:/texlive/2022/texmf-dist/fonts/map/fontname/texfonts.map" 1670337557 3524 cb3e574dea2d1052e39280babc910dc8 ""
   "c:/texlive/2022/texmf-dist/fonts/tfm/adobe/palatino/pplr7t.tfm" 1670341705 1804 7b5f73028f6509167f47ace9d69509ed ""
@@ -309,7 +308,7 @@
   "c:/texlive/2022/texmf-var/web2c/pdftex/pdflatex.fmt" 1670345276 3063323 6b2b6e0ebf0608d2b004d02eba85e55f ""
   "c:/texlive/2022/texmf.cnf" 1670344812 713 e69b156964470283e0530f5060668171 ""
   "preamble_slides.tex" 1789216051 17643 ed5c323799d46b8e99ef1271897a2d62 ""
-  "prez_price_rights.tex" 1789425209 40817 d2e93c45332ddeddb31a7fbfbfd57f4a ""
+  "prez_price_rights.tex" 1789546009 40886 6d5ea70f22d1c86fac5264af3ca7bc0a ""
   (generated)
   "build/prez_price_rights.aux"
   "build/prez_price_rights.log"

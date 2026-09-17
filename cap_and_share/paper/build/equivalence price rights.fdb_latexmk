@@ -1,21 +1,22 @@
 # Fdb version 4
-["bibtex build/equivalence price rights"] 0 "build/equivalence price rights.aux" "build/equivalence price rights.bbl" "build/equivalence price rights" 0 -1
+["bibtex build/equivalence price rights"] 1789644380 "build/equivalence price rights.aux" "build/equivalence price rights.bbl" "build/equivalence price rights" 1789653815 0
   "./references.bib" 1789216051 15676 b73e1f31aa072fe56217fbfac80399fe ""
-  "build/equivalence price rights.aux" 1789426424 11293 a896e4905e5b73e21fca4c6a8e039692 "pdflatex"
+  "build/equivalence price rights.aux" 1789653814 15354 2747d9f17b5ae7a39379c5e54791f456 "pdflatex"
   "c:/texlive/2022/texmf-dist/bibtex/bst/natbib/plainnat.bst" 1670341364 26816 ffe5423d2019860bad9f54bc402fac15 ""
   (generated)
   "build/equivalence price rights.bbl"
   "build/equivalence price rights.blg"
   (rewritten before read)
-["pdflatex"] 1789426422 "c:/Users/fabre/Documents/www/NICE2020/cap_and_share/paper/equivalence price rights.tex" "build/equivalence price rights.pdf" "equivalence price rights" 1789426425 2
-  "../output/equivalent_rights_combined.tex" 1789426149 3306 079ad1bc9c43494e25a4c59daa49802b ""
-  "../output/equivalent_rights_losers.tex" 1789426149 1520 7c455950d5435d31c3673b0f2da3e4be ""
-  "build/equivalence price rights.aux" 1789426424 11293 a896e4905e5b73e21fca4c6a8e039692 "pdflatex"
-  "build/equivalence price rights.bbl" 1789426417 9880 50877519e53a1db4e60cbf7a54454848 "bibtex build/equivalence price rights"
-  "build/equivalence price rights.brf" 1789426424 0 d41d8cd98f00b204e9800998ecf8427e "pdflatex"
-  "build/equivalence price rights.out" 1789426424 4415 0a7c7b24a8385bf08a0f9ea0b303b086 "pdflatex"
-  "build/equivalence price rights.toc" 1789426424 2546 07a335e14aa35cb94c589dbfed4ef626 "pdflatex"
-  "c:/Users/fabre/Documents/www/NICE2020/cap_and_share/paper/equivalence price rights.tex" 1789393307 101918 2a348397099ef6b77599a36eff8aecce ""
+["pdflatex"] 1789653807 "equivalence price rights.tex" "build/equivalence price rights.pdf" "equivalence price rights" 1789653815 0
+  "../output/equivalent_rights_combined.tex" 1789653740 3586 a1e16a4c657c5906bb9acaf0754a3732 ""
+  "../output/equivalent_rights_combined_er.tex" 1789653739 3642 28ceeaa67d0da5caf897db2c1ba420a1 ""
+  "../output/equivalent_rights_losers.tex" 1789653740 1539 18f8169c7b7146fa1e16171075565932 ""
+  "../output/equivalent_rights_targets_er5_losers.tex" 1789653741 4802 70deedab37ab87fdf23cfce9bf814eee ""
+  "build/equivalence price rights.aux" 1789653814 15354 2747d9f17b5ae7a39379c5e54791f456 "pdflatex"
+  "build/equivalence price rights.bbl" 1789644380 9880 50877519e53a1db4e60cbf7a54454848 "bibtex build/equivalence price rights"
+  "build/equivalence price rights.brf" 1789653814 1905 a89141f106a4bca7a1d1a5ff145eff1a "pdflatex"
+  "build/equivalence price rights.out" 1789653814 4835 0d05fc338ef2628484cefef4bc01fd3b "pdflatex"
+  "build/equivalence price rights.toc" 1789653814 2975 d51675c7ea2c722d2a11223bddf7fc8d "pdflatex"
   "c:/texlive/2022/texmf-dist/fonts/enc/dvips/base/8r.enc" 1670336910 4850 80dc9bab7f31fb78a000ccfed0e27cab ""
   "c:/texlive/2022/texmf-dist/fonts/map/fontname/texfonts.map" 1670337557 3524 cb3e574dea2d1052e39280babc910dc8 ""
   "c:/texlive/2022/texmf-dist/fonts/tfm/adobe/palatino/pplb7t.tfm" 1670341705 1616 371d1ee60c04b008c8fd760060cd34f1 ""
@@ -269,8 +270,7 @@
   "c:/texlive/2022/texmf-var/fonts/map/pdftex/updmap/pdftex.map" 1670344826 4662777 6d30ebd1f2949ad7a3d8a3b5cd0d9f7d ""
   "c:/texlive/2022/texmf-var/web2c/pdftex/pdflatex.fmt" 1670345276 3063323 6b2b6e0ebf0608d2b004d02eba85e55f ""
   "c:/texlive/2022/texmf.cnf" 1670344812 713 e69b156964470283e0530f5060668171 ""
-  "equivalence price rights.tex" 1789393307 101918 2a348397099ef6b77599a36eff8aecce ""
-  "equivalence price rights.toc" 0 -1 0 ""
+  "equivalence price rights.tex" 1789653426 107969 0c745e03ff40717af5f4ccbde0835c30 ""
   "figures/Welfare_Heatmap_CHN (pdfresizer.com)-2.pdf" 1789216051 113957 de5b0fa62327ffc4c31578553605027f ""
   "figures/Welfare_Heatmap_COD (pdfresizer.com)-2.pdf" 1789216051 86848 12941e9fe668d01eb34645288eed0cfa ""
   "figures/Welfare_Heatmap_EU27 (pdfresizer.com)-3.pdf" 1789216051 70594 ec6bb64990affb9e1a1524d65722ae78 ""
