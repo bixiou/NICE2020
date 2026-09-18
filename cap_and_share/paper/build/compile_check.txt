@@ -1,3 +1,21 @@
+Initial Win CP for (console input, console output, system): (CP437, CP437, CP1252)
+I changed them all to CP1252
+Rc files read:
+  NONE
+Latexmk: This is Latexmk, John Collins, 18 Nov. 2022. Version 4.78, version: 4.78.
+Latexmk: applying rule 'pdflatex'...
+Rule 'pdflatex':  Reasons for rerun
+Changed files or newly in use/created:
+  equivalence price rights.tex
+Category 'changed_user':
+  equivalence price rights.tex
+
+------------
+Run number 1 of rule 'pdflatex'
+------------
+------------
+Running 'pdflatex  -interaction=nonstopmode -recorder -output-directory="build"  "equivalence price rights.tex"'
+------------
 This is pdfTeX, Version 3.141592653-2.6-1.40.24 (TeX Live 2022) (preloaded format=pdflatex)
  restricted \write18 enabled.
 entering extended mode
@@ -223,14 +241,7 @@ Package breakurl Warning: You are using breakurl while processing via pdflatex.
 (c:/texlive/2022/texmf-dist/tex/latex/ragged2e/ragged2e.sty)
 (c:/texlive/2022/texmf-dist/tex/latex/psnfss/ot1ppl.fd)
 (c:/texlive/2022/texmf-dist/tex/latex/l3backend/l3backend-pdftex.def)
-(build/equivalence price rights.aux
-
-LaTeX Warning: Label `tab:equiv_rights' multiply defined.
-
-
-LaTeX Warning: Label `tab:equiv_rights_losers' multiply defined.
-
-)
+(build/equivalence price rights.aux)
 *geometry* driver: auto-detecting
 *geometry* detected driver: pdftex
 (build/equivalence price rights.out) (build/equivalence price rights.out)
@@ -258,78 +269,15 @@ zer.com)-2.pdf> <./figures/Welfare_Heatmap_TUR (pdfresizer.com)-3.pdf> <./figur
 es/Welfare_Heatmap_EU27 (pdfresizer.com)-3.pdf> <./figures/Welfare_Heatmap_IND 
 (pdfresizer.com)-3.pdf> <./figures/Welfare_Heatmap_NGA (pdfresizer.com)-3.pdf> 
 <./figures/Welfare_Heatmap_COD (pdfresizer.com)-2.pdf>] [16] [17] [18] [19]
-(../output/equivalent_rights_combined.tex
-../output/equivalent_rights_combined.tex:24: Undefined control sequence.
-l.24 ...Gain in rights, variant 1 (\%)} &  & \rose
-                                                  {9.9\%} & \rose{9.5\%} &  ...
-
-../output/equivalent_rights_combined.tex:24: Undefined control sequence.
-l.24 ... variant 1 (\%)} &  & \rose{9.9\%} & \rose
-                                                  {9.5\%} &  & \rose{9.1\%} ...
-
-../output/equivalent_rights_combined.tex:24: Undefined control sequence.
-l.24 ...  & \rose{9.9\%} & \rose{9.5\%} &  & \rose
-                                                  {9.1\%} & \rose{8.5\%} \\
-../output/equivalent_rights_combined.tex:24: Undefined control sequence.
-l.24 ...} & \rose{9.5\%} &  & \rose{9.1\%} & \rose
-                                                  {8.5\%} \\
-../output/equivalent_rights_combined.tex:25: Undefined control sequence.
-l.25 ...~2100, change (\textdegree{}C)} &  & \rose
-                                                  {$-$0.020} & \rose{$-$0.01...
-
-../output/equivalent_rights_combined.tex:25: Undefined control sequence.
-l.25 ...xtdegree{}C)} &  & \rose{$-$0.020} & \rose
-                                                  {$-$0.019} &  & \rose{$-$0...
-
-../output/equivalent_rights_combined.tex:25: Undefined control sequence.
-l.25 ...ose{$-$0.020} & \rose{$-$0.019} &  & \rose
-                                                  {$-$0.037} & \rose{$-$0.03...
-
-../output/equivalent_rights_combined.tex:25: Undefined control sequence.
-l.25 ...ose{$-$0.019} &  & \rose{$-$0.037} & \rose
-                                                  {$-$0.034} \\
-) (../output/equivalent_rights_losers.tex)
-(../output/equivalent_rights_combined_er.tex
-../output/equivalent_rights_combined_er.tex:24: Undefined control sequence.
-l.24 ...Gain in rights, variant 1 (\%)} &  & \rose
-                                                  {9.9\%} & \rose{9.5\%} &  ...
-
-../output/equivalent_rights_combined_er.tex:24: Undefined control sequence.
-l.24 ... variant 1 (\%)} &  & \rose{9.9\%} & \rose
-                                                  {9.5\%} &  & \rose{9.1\%} ...
-
-../output/equivalent_rights_combined_er.tex:24: Undefined control sequence.
-l.24 ...  & \rose{9.9\%} & \rose{9.5\%} &  & \rose
-                                                  {9.1\%} & \rose{8.5\%} &  ...
-
-../output/equivalent_rights_combined_er.tex:24: Undefined control sequence.
-l.24 ...} & \rose{9.5\%} &  & \rose{9.1\%} & \rose
-                                                  {8.5\%} &  & -- & -- &  & ...
-
-../output/equivalent_rights_combined_er.tex:25: Undefined control sequence.
-l.25 ...~2100, change (\textdegree{}C)} &  & \rose
-                                                  {$-$0.020} & \rose{$-$0.01...
-
-../output/equivalent_rights_combined_er.tex:25: Undefined control sequence.
-l.25 ...xtdegree{}C)} &  & \rose{$-$0.020} & \rose
-                                                  {$-$0.019} &  & \rose{$-$0...
-
-../output/equivalent_rights_combined_er.tex:25: Undefined control sequence.
-l.25 ...ose{$-$0.020} & \rose{$-$0.019} &  & \rose
-                                                  {$-$0.037} & \rose{$-$0.03...
-
-../output/equivalent_rights_combined_er.tex:25: Undefined control sequence.
-l.25 ...ose{$-$0.019} &  & \rose{$-$0.037} & \rose
-                                                  {$-$0.034} &  & -- & -- & ...
-
-
-Overfull \hbox (149.90977pt too wide) in paragraph at lines 7--37
- [][] 
-) (../output/equivalent_rights_losers_er.tex
-Overfull \hbox (88.90436pt too wide) in paragraph at lines 6--26
- [][] 
-) [20] [21] (build/equivalence price rights.bbl
-(build/equivalence price rights.brf) [22]
+(../output/equivalent_rights_targets_er5_losers.tex) [20] [21] [22]
+Underfull \hbox (badness 1014) in paragraph at lines 809--810
+ []\OT1/ppl/b/n/12 The Equal Right sched-ules.[] \OT1/ppl/m/n/12 Ta-ble [][]7[]
+[] re-ports the two Equal Right runs---its own
+(../output/equivalent_rights_combined_pred.tex)
+(../output/equivalent_rights_losers.tex)
+(../output/equivalent_rights_combined_er.tex)
+(build/equivalence price rights.bbl (build/equivalence price rights.brf)
+[23]
 Underfull \hbox (badness 10000) in paragraph at lines 64--64
 []\OT1/ppl/m/n/12 Olivier Blan-chard and Jean Ti-role.  Ma-jor Fu-ture Eco-nomi
 c Chal-lenges.
@@ -337,7 +285,7 @@ c Chal-lenges.
 Underfull \hbox (badness 10000) in paragraph at lines 64--64
 \OT1/ppl/m/n/12 page 444, 2021.  URL [][]$\OT1/cmtt/m/n/12 https : / / www . st
 rategie . gouv . fr / publications /
-
+[24]
 Underfull \hbox (badness 10000) in paragraph at lines 144--144
 []\OT1/ppl/m/n/12 Dale Jamieson.  Cli-mate Change and Global En-vi-ron-men-tal 
 Jus-tice.
@@ -349,7 +297,7 @@ Underfull \hbox (badness 10000) in paragraph at lines 144--144
 Underfull \hbox (badness 3989) in paragraph at lines 144--144
 \OT1/ppl/m/n/12 press/1789.003.0012.  URL [][]$\OT1/cmtt/m/n/12 https : / / dir
 ect . mit . edu / books / book / 2661 / chapter /
-[23]
+
 Underfull \hbox (badness 2865) in paragraph at lines 160--160
 []\OT1/ppl/m/n/12 Ian Parry, Si-mon Black, and James Roaf.  Pro-posal for an In
 -ter-na-tional Car-
@@ -366,9 +314,6 @@ Overfull \hbox (19.29509pt too wide) in paragraph at lines 160--160
 \OT1/cmtt/m/n/12 Proposal-[]for-[]an-[]International-[]Carbon-[]Price-[]Floor-[
 ]Among-[]Large-[]Emitters-[]460468$[][]\OT1/ppl/m/n/12 .
 
-Underfull \hbox (badness 10000) in paragraph at lines 160--160
-
-
 Underfull \hbox (badness 10000) in paragraph at lines 166--166
 []\OT1/ppl/m/n/12 Raghuram G. Ra-jan.  A Global In-cen-tive to Re-duce Emis-sio
 ns,
@@ -376,16 +321,11 @@ ns,
 Underfull \hbox (badness 10000) in paragraph at lines 166--166
 \OT1/ppl/m/n/12 May 2021.  URL [][]$\OT1/cmtt/m/n/12 https : / / www . project-
 []syndicate . org / commentary /
-) [24] [25] [26] [27] [28] (build/equivalence price rights.aux)
 
-LaTeX Warning: There were multiply-defined labels.
-
-
-Package rerunfilecheck Warning: File `"equivalence price rights".brf' has chang
-ed.
-(rerunfilecheck)                Rerun to get bibliographical references right.
-
- )
+Underfull \hbox (badness 10000) in paragraph at lines 166--166
+\OT1/cmtt/m/n/12 global-[]carbon-[]incentive-[]for-[]reducing-[]emissions-[]by-
+[]raghuram-[]rajan-[]2021-[]05$[][]\OT1/ppl/m/n/12 .
+[25]) [26] [27] [28] [29] [30] (build/equivalence price rights.aux) )
 (see the transcript file for additional information)
 pdfTeX warning (dest): name{Hfootnote.3} has been referenced but does not exist
 , replaced by a fixed one
@@ -409,6 +349,16 @@ mtt12.pfb><c:/texlive/2022/texmf-dist/fonts/type1/public/mathpazo/fplmr.pfb><c:
 ts/type1/urw/palatino/uplb8a.pfb><c:/texlive/2022/texmf-dist/fonts/type1/urw/pa
 latino/uplr8a.pfb><c:/texlive/2022/texmf-dist/fonts/type1/urw/palatino/uplri8a.
 pfb>
-Output written on "build/equivalence price rights.pdf" (28 pages, 1230150 bytes
+Output written on "build/equivalence price rights.pdf" (30 pages, 1238821 bytes
 ).
 Transcript written on "build/equivalence price rights.log".
+Latexmk: Getting log file 'build/equivalence price rights.log'
+Latexmk: Examining 'build/equivalence price rights.fls'
+Latexmk: Examining 'build/equivalence price rights.log'
+Latexmk: Found input bbl file 'build/equivalence price rights.bbl'
+Latexmk: Log file says output to 'build/equivalence price rights.pdf'
+Reverting Windows console CPs to (in,out) = (437,437)
+Latexmk: Found bibliography file(s):
+  ./references.bib
+Latexmk: All targets () are up-to-date
+

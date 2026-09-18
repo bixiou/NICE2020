@@ -1,0 +1,7 @@
+Highlights (JEEM: 3-5 bullets, max 85 characters each, uploaded as a separate file)
+
+- Differentiated carbon prices are transfers paid in forgone abatement
+- To first order, they equal a common price with rights to schedule-induced emissions
+- That allocation makes every country weakly better off at the same global cap
+- In NICE2020, the closed form explains 95-99% of numerically solved equivalent rights
+- A common price cuts coalition emissions by 6-7% with no country losing

@@ -884,6 +884,63 @@ function predicted_rho(idx::Vector{Int}, P::Proposal)
     return equal > 0 ? own / equal : 1.0
 end
 
+"""
+First-order prediction of rho for the paper's tables. The Taylor expansion of
+Section 3 gives V_i(t) ~ (e_i(t) - e*_i(t)) p(t), so equivalence holds when
+sum_t beta_t p(t) (r_i(t) - e_i(t)) = 0: the equivalent rights are the entity's
+own emissions under the proposal, valued at the discounted club price. With
+r_i(t) = rho pop_i(t) Ebar_S(t) this pins rho down. Unlike `predicted_rho`, which
+only discounts, it weights each year by the price at which rights trade in it.
+"""
+function predicted_rho_priced(entity::AbstractString, P::Proposal)
+    idx = intersect(entity_indices(entity), P.members)
+    isempty(idx) && return NaN
+    w     = NPV_DISC .* P.p_ref[NPV_IDX]
+    own   = vec(sum(P.emissions[:, idx], dims = 2))[NPV_IDX]
+    equal = (vec(sum(P.pop[:, idx], dims = 2)) .* P.ebar)[NPV_IDX]
+    den   = sum(equal .* w)
+    return den > 0 ? sum(own .* w) / den : NaN
+end
+
+"`predicted_rho` (discounted, not price-weighted) for a reporting entity."
+function predicted_rho_paper(entity::AbstractString, P::Proposal)
+    idx = intersect(entity_indices(entity), P.members)
+    return isempty(idx) ? NaN : predicted_rho(idx, P)
+end
+
+"Naive benchmark: 2025 emissions per capita over the world average in 2025."
+function predicted_rho_now(entity::AbstractString, P::Proposal)
+    idx = intersect(entity_indices(entity), P.members)
+    isempty(idx) && return NaN
+    t = YEAR_IDX[2025]
+    own = sum(P.emissions[t, idx]) / sum(P.pop[t, idx])
+    return own / (P.world_emissions[t] / P.world_pop[t])
+end
+
+"""
+`predicted_rho_now` for any entity, member of the club or not: a property of the
+country, not of the proposal, so the targets table gives it once, by the name.
+"""
+function rho_now_any(entity::AbstractString, P::Proposal)
+    idx = entity_indices(entity)
+    isempty(idx) && return NaN
+    t = YEAR_IDX[2025]
+    return (sum(P.emissions[t, idx]) / sum(P.pop[t, idx])) /
+           (P.world_emissions[t] / P.world_pop[t])
+end
+
+# The three predictions of rho the combined tables can carry, with the sentence
+# that defines each in the table note. `:formula` is the one the theory implies.
+const PREDICTORS = Dict(
+    :formula => (predicted_rho_priced,
+                 "the country's own emissions under the proposal over an equal-per-capita share of " *
+                 "the club's, each year weighted by the discounted club price over 2030--2100"),
+    :paper   => (predicted_rho_paper,
+                 "the country's own emissions under the proposal over an equal-per-capita share of " *
+                 "the club's, both discounted over 2030--2100"),
+    :now     => (predicted_rho_now,
+                 "the country's emissions per capita in 2025 over the world average"))
+
 function solve_rho_single(m, entity::String, P::Proposal;
                           tol_rho = 1e-3, max_iter = 14, verbose = true)
     idx    = entity_indices(entity)
@@ -1811,7 +1868,9 @@ The tabular both the slide and the paper use: one price column and one rho
 column per method for each proposal, then the outcome rows with each method's
 figure in its own column. Only methods that have produced results get a column.
 """
-function ab_tabular(io, props; color = false)
+# `predicted`: name of a proposal whose block opens with a column giving a
+# prediction of rho, left of its p_i; `pred_kind` picks it from PREDICTORS.
+function ab_tabular(io, props; color = false, predicted = nothing, pred_kind = :formula)
     got(m, P) = get(RESULTS, (m, P.name), nothing)
     # the paper's tables are printed black; only the slide version highlights
     paint(x) = color ? "\\rose{" * x * "}" : x
@@ -1823,9 +1882,12 @@ function ab_tabular(io, props; color = false)
     rho_head = nm == 1 ? "\$\\rho_i\$" :
                join(["\$\\rho^{$(solve_name(m))}\$" for m in ms], " & ")
     n = length(props)
+    haspred(P) = predicted !== nothing && P.name == predicted
+    width(P) = 1 + nm + haspred(P)
     function outcome(label, left, cell)
         cells = String[]
         for P in props
+            haspred(P) && push!(cells, "")
             push!(cells, left(P))
             for m in ms
                 r = got(m, P)
@@ -1834,16 +1896,19 @@ function ab_tabular(io, props; color = false)
         end
         return "  \\textbf{" * label * "} & " * join(cells, " & ") * " \\\\"
     end
-    println(io, "\\begin{tabular}{l", repeat("c"^(1 + nm), n), "}")
+    println(io, "\\begin{tabular}{l", join("c"^width(P) for P in props), "}")
     println(io, "  \\toprule")
-    println(io, "  & ", join(["\\multicolumn{$(1 + nm)}{c}{\\textbf{$(display_name(P.name))}}" for P in props], " & "), " \\\\")
-    println(io, "  ", join([let a = 2 + (i - 1) * (1 + nm); "\\cmidrule(lr){$a-$(a + nm)}" end for i in 1:n], " "))
-    println(io, "  \\textbf{Country} & ", join(repeat(["\$p_i\$ & " * rho_head], n), " & "), " \\\\")
+    println(io, "  & ", join(["\\multicolumn{$(width(P))}{c}{\\textbf{$(display_name(P.name))}}" for P in props], " & "), " \\\\")
+    starts = cumsum(vcat(2, [width(P) for P in props[1:end-1]]))
+    println(io, "  ", join(["\\cmidrule(lr){$a-$(a + width(P) - 1)}" for (a, P) in zip(starts, props)], " "))
+    println(io, "  \\textbf{Country} & ", join([(haspred(P) ? "\$\\hat\\rho_i\$ & " : "") * "\$p_i\$ & " * rho_head
+                                             for P in props], " & "), " \\\\")
     println(io, "  \\midrule")
     for e in report_order(props)
         cells = String[]
         for P in props
             idx = intersect(entity_indices(e), P.members)
+            haspred(P) && push!(cells, fmt(PREDICTORS[pred_kind][1](e, P); d = 2))
             if isempty(idx)
                 push!(cells, "0", fill("--", nm)...)
             else
@@ -1969,7 +2034,8 @@ function write_beamer_table(path::String, props)
 end
 
 "The paper version: the same tabular as a float, with caption, label and note."
-function write_combined_table(path::String, props; label = "tab:equiv_rights")
+function write_combined_table(path::String, props; label = "tab:equiv_rights", predicted = nothing,
+                              pred_kind = :formula)
     open(path, "w") do io
         println(io, "% Generated by src/equivalent_rights_proposals.jl -- do not edit by hand.")
         println(io, "\\begin{table}[htbp]")
@@ -1979,7 +2045,7 @@ function write_combined_table(path::String, props; label = "tab:equiv_rights")
                     join([display_name(P.name) for P in props], ", ", " and "), " proposals}")
         println(io, "\\renewcommand{\\arraystretch}{1.15}")
         println(io, "\\resizebox{\\textwidth}{!}{")   # two solves x two proposals is wide
-        ab_tabular(io, props)
+        ab_tabular(io, props; predicted, pred_kind)
         println(io, "}")
         println(io, "\\label{", label, "}")
         println(io, "\\\\[4pt]")
@@ -1992,6 +2058,9 @@ function write_combined_table(path::String, props; label = "tab:equiv_rights")
                     "country's allocation as a multiple of an equal-per-capita share of the club's emissions ",
                     "under the proposal, taken at face value in variant 1; \$\\rho^{\\mathrm{isolated}}\$ ",
                     "solves each country on its own, \$\\rho^{\\mathrm{joint}}\$ all of them jointly. ",
+                    predicted === nothing ? "" :
+                    string("\$\\hat\\rho_i\$ is the predicted \$\\rho_i\$ for the ",
+                           display_name(predicted), " schedule: ", PREDICTORS[pred_kind][2], ". "),
                     "The European Union figure aggregates its ",
                     "members' rights, and a country the proposal does not price is outside the club in both ",
                     "regimes, shown at \$p_i=0\$ with no equivalent allocation (`--'). Variant 1 lets the ",
@@ -2214,10 +2283,16 @@ each one leaves short on each measure.
 A proposal that has been solved on only one target keeps its other column at
 `--`; nothing is invented to fill it.
 """
+# `predicted`/`pred_kind` open that proposal's block on a prediction of rho, as in
+# `ab_tabular`; `now_col` puts the 2025 relative emissions right of the country.
 function write_targets_table(path::String, props, ede, cons;
                              losers = false, label = "tab:equiv_rights_targets",
-                             beamer = false)
+                             beamer = false, predicted = nothing, pred_kind = :paper,
+                             now_col = false)
     stores = (("EDE", ede), ("cons", cons))
+    haspred(P) = predicted !== nothing && P.name == predicted
+    width(P) = 3 + haspred(P)
+    lead = now_col ? [""] : String[]
     got(store, P) = get(store, ("B", P.name), nothing)
     # the dashes are only worth explaining when some column actually has them
     missing_any = any(P -> any(s -> got(s[2], P) === nothing, stores), props)
@@ -2225,7 +2300,7 @@ function write_targets_table(path::String, props, ede, cons;
         @warn "no option-B results on either target: not writing" path
         return
     end
-    n, ncol = length(props), 1 + 3 * length(props)
+    n, ncol = length(props), 1 + now_col + sum(width, props)
     # each scenario spans three columns: the price cell stays empty on summary
     # rows, so the two numbers sit under the rho column they were solved for
     # On a highlighted row the slide version prints the consumption solve -- the
@@ -2233,8 +2308,9 @@ function write_targets_table(path::String, props, ede, cons;
     function row(lbl, cell; rose = false)
         paint(x)      = rose ? "\\rose{" * x * "}" : x
         paint_cons(x) = rose && beamer ? "\\blue{" * x * "}" : paint(x)
-        cells = String[]
+        cells = copy(lead)
         for P in props
+            haspred(P) && push!(cells, "")
             push!(cells, "")
             for (which, st) in stores
                 r = got(st, P)
@@ -2245,8 +2321,9 @@ function write_targets_table(path::String, props, ede, cons;
         return "  " * paint(lbl) * " & " * join(cells, " & ") * " \\\\"
     end
     function losers_row(lbl, v, field)
-        cells = String[]
+        cells = copy(lead)
         for P in props
+            haspred(P) && push!(cells, "")
             push!(cells, "")
             for (_, st) in stores
                 r = got(st, P)
@@ -2259,8 +2336,9 @@ function write_targets_table(path::String, props, ede, cons;
     # the floor itself: what variant 2 maximises, and the number the losing-member
     # counts only summarise
     function floor_row(lbl, v, field)
-        cells = String[]
+        cells = copy(lead)
         for P in props
+            haspred(P) && push!(cells, "")
             push!(cells, "")
             for (_, st) in stores
                 r = got(st, P)
@@ -2286,20 +2364,24 @@ function write_targets_table(path::String, props, ede, cons;
             # three columns per proposal overflow the text block at \small
             println(io, "\\resizebox{\\textwidth}{!}{")
         end
-        println(io, "\\begin{tabular}{l", repeat("ccc", n), "}")
+        println(io, "\\begin{tabular}{l", now_col ? "c" : "", join("c"^width(P) for P in props), "}")
         println(io, "  \\toprule")
-        println(io, "  & ", join(["\\multicolumn{3}{c}{\\textbf{$(display_name(P.name))}}"
-                                  for P in props], " & "), " \\\\")
-        println(io, "  ", join([let a = 2 + 3 * (i - 1); "\\cmidrule(lr){$a-$(a + 2)}" end
-                                for i in 1:n], " "))
-        println(io, "  \\textbf{Country} & ",
-                    join(repeat(["\$p_i\$ & \$\\rho^{\\mathrm{EDE}}_i\$ & \$\\rho^{\\mathrm{cons}}_i\$"], n),
-                         " & "), " \\\\")
+        println(io, "  & ", now_col ? " & " : "",
+                    join(["\\multicolumn{$(width(P))}{c}{\\textbf{$(display_name(P.name))}}"
+                          for P in props], " & "), " \\\\")
+        starts = cumsum(vcat(2 + now_col, [width(P) for P in props[1:end-1]]))
+        println(io, "  ", join(["\\cmidrule(lr){$a-$(a + width(P) - 1)}"
+                                for (a, P) in zip(starts, props)], " "))
+        println(io, "  \\textbf{Country} & ", now_col ? "\$\\hat\\rho^{2025}_i\$ & " : "",
+                    join([(haspred(P) ? "\$\\hat\\rho_i\$ & " : "") *
+                          "\$p_i\$ & \$\\rho^{\\mathrm{EDE}}_i\$ & \$\\rho^{\\mathrm{cons}}_i\$"
+                          for P in props], " & "), " \\\\")
         println(io, "  \\midrule")
         for e in report_order(props)
-            cells = String[]
+            cells = now_col ? [fmt(rho_now_any(e, first(props)); d = 2)] : String[]
             for P in props
                 idx = intersect(entity_indices(e), P.members)
+                haspred(P) && push!(cells, fmt(PREDICTORS[pred_kind][1](e, P); d = 2))
                 if isempty(idx)
                     push!(cells, "0", "--", "--")
                 else
@@ -2371,7 +2453,13 @@ function write_targets_table(path::String, props, ede, cons;
                     "the solver targets its equally-distributed-equivalent consumption and its ",
                     "mean consumption per capita respectively, each as a multiple of an equal per ",
                     "capita share of the club's emissions under the proposal; every row below is ",
-                    "likewise read under both solves. The two columns are not a like-for-like ",
+                    "likewise read under both solves. ",
+                    predicted === nothing ? "" :
+                    string("\$\\hat\\rho_i\$ is the predicted \$\\rho_i\$ for the ",
+                           display_name(predicted), " schedule: ", PREDICTORS[pred_kind][2], ". "),
+                    now_col ? "\$\\hat\\rho^{2025}_i\$ is a naive prediction of \$\\rho_i\$, common to \
+                               all schedules: $(PREDICTORS[:now][2]). " : "",
+                    "The two columns are not a like-for-like ",
                     "comparison of aggregates: in variant 1 they imply different caps, so the world ",
                     "rows differ mainly through avoided damage, while in variant 2 the cap is common ",
                     "and each column raises the floor on its own measure, which a maximin does at ",
@@ -2420,9 +2508,26 @@ function write_target_tables(props)
     end
     # the slide version of the paper's main table: no float, no losing-member
     # counts, and the highlighted rows split rose (EDE) against blue (consumption)
+    # the paper's Table 4 and its two variants: `_pred` opens the Banerjee et al.
+    # block on the paper's predicted_rho, `_pred_formula` on the price-weighted
+    # first-order formula, `_pred_now` gives 2025 relative emissions by the country
+    if !isempty(er5) && any(P -> P.name == "Duflo", core)
+        write_pred_target_tables(vcat(core, er5), ede, cons)
+    end
     isempty(er5) || write_targets_table(
         joinpath(OUTPUT_BASE, "equivalent_rights_targets_er5_beamer.tex"),
         vcat(core, er5), ede, cons; beamer = true)
+end
+
+"The three predicted-rho versions of the paper's Table 4 (the `_er5_losers` table)."
+function write_pred_target_tables(props, ede, cons)
+    for (stem, kw) in (("pred", (predicted = "Duflo", pred_kind = :paper)),
+                       ("pred_formula", (predicted = "Duflo", pred_kind = :formula)),
+                       ("pred_now", (now_col = true,)))
+        write_targets_table(joinpath(OUTPUT_BASE, "equivalent_rights_targets_er5_losers_$(stem).tex"),
+                            props, ede, cons; losers = true,
+                            label = "tab:equiv_rights_targets_er5_losers", kw...)
+    end
 end
 
 is_equal_right(P::Proposal) = startswith(P.name, "EqualRight")
@@ -2509,6 +2614,16 @@ function write_table_set(props, suffix; combined_props = props)
                        method = "B")
     write_combined_table(joinpath(OUTPUT_BASE, "equivalent_rights_combined$(suffix)$(TAG).tex"),
                          combined_props; label = "tab:equiv_rights$(suffix)$(TAG)")
+    # the paper's versions: same table, with the Banerjee et al. block opening on
+    # a prediction of rho -- `_pred` the paper's predicted_rho, `_pred_formula`
+    # the price-weighted first-order formula, `_pred_now` 2025 relative emissions
+    if any(P -> P.name == "Duflo", combined_props)
+        for (kind, stem) in ((:paper, "pred"), (:formula, "pred_formula"), (:now, "pred_now"))
+            write_combined_table(joinpath(OUTPUT_BASE, "equivalent_rights_combined_$(stem)$(suffix)$(TAG).tex"),
+                                 combined_props; label = "tab:equiv_rights$(suffix)$(TAG)",
+                                 predicted = "Duflo", pred_kind = kind)
+        end
+    end
 
     summary = DataFrame(rows)
     # Writing an empty summary would overwrite a good one with nothing, which is
