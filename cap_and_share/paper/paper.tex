@@ -84,6 +84,8 @@
 \maketitle
 \vspace{-1cm}
 
+% TODO: is the paper (and in particular the main formulas it derive) sufficiently novel?
+
 \begin{abstract}
 \noindent Recent proposals for international carbon pricing differentiate national carbon prices by income. The usual justification is that cross-border transfers are politically infeasible. We show that differentiated prices are themselves equivalent to transfers. Any schedule of national prices is distributionally equivalent to a uniform price combined with a certain allocation of emission rights, equal to each country's emissions under the schedule at the first order. 
 In a dynamic setting, the rights are weighted by the discounted carbon price, and under Hotelling pricing they reduce to a carbon budget. Because abatement costs are convex, this allocation leaves every country weakly better off. % at the same global cap. 
@@ -214,14 +216,17 @@ We write $\pi_i \equiv p_i/\bar p$ for country $i$'s relative price, and $\varep
   B_i \equiv a_i(e^A_i) - a_i(\bar e_i) - a_i'(\bar e_i)\,(e^A_i-\bar e_i) \;\geq\; 0,
   \label{eq:bregman}
 \end{equation}
-which is the Harberger triangle between the country's marginal abatement cost curve and the uniform price, over the emissions it gives up by moving from $p_i$ to $\bar p$. The gap is nonnegative by convexity, and strictly positive if $a_i$ is strictly convex and $p_i\neq\bar p$.
+which is the Harberger triangle % TODO: is it really a Harberger triangle? It seems it doesn't have a triangle shape
+between the country's marginal abatement cost curve and the uniform price, over the emissions it gives up by moving from $p_i$ to $\bar p$. The gap is nonnegative by convexity, and strictly positive if $a_i$ is strictly convex and $p_i\neq\bar p$.
 
+% TODO consider removing all indices i from the formulas/notations: do it only if it makes sense
 \begin{proposition}[Equivalent rights]\label{prop:equiv}
 Country $i$ is exactly as well off under the uniform-price regime as under the differentiated regime if and only if it receives
 \begin{equation}
   r^{\mathrm{eq}}_i \;=\; e^A_i - \frac{B_i}{\bar p}.
   \label{eq:req_exact}
 \end{equation}
+% TODO: replace r^{\mathrm{eq}} by r^* throughout (if it is consistent with the other notations)
 To first order in the price gap, $r^{\mathrm{eq}}_i \approx e^A_i$. To second order, with $\varepsilon_i$ evaluated at $\bar p$,
 \begin{equation}
   r^{\mathrm{eq}}_i \;\approx\; e^A_i - \frac{(e^A_i-\bar e_i)^2}{2\,\varepsilon_i\,\bar e_i}
