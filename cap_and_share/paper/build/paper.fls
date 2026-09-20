@@ -1,8 +1,8 @@
-PWD c:/Users/fabre/Documents/www/NICE2020/cap_and_share/paper
+PWD C:/Users/fabre/Documents/www/NICE2020/cap_and_share/paper
 INPUT c:/texlive/2022/texmf.cnf
 INPUT c:/texlive/2022/texmf-dist/web2c/texmf.cnf
 INPUT c:/texlive/2022/texmf-var/web2c/pdftex/pdflatex.fmt
-INPUT c:/Users/fabre/Documents/www/NICE2020/cap_and_share/paper/paper.tex
+INPUT paper.tex
 OUTPUT build/paper.log
 INPUT c:/texlive/2022/texmf-dist/tex/latex/base/article.cls
 INPUT c:/texlive/2022/texmf-dist/tex/latex/base/article.cls
@@ -1120,8 +1120,8 @@ INPUT c:/texlive/2022/texmf-dist/fonts/vf/adobe/palatino/pplr8c.vf
 INPUT c:/texlive/2022/texmf-dist/fonts/tfm/public/mathpazo/fplmr.tfm
 INPUT c:/texlive/2022/texmf-dist/fonts/vf/adobe/palatino/pplr7t.vf
 INPUT c:/texlive/2022/texmf-dist/fonts/tfm/adobe/palatino/pplr8r.tfm
+INPUT c:/texlive/2022/texmf-dist/fonts/vf/adobe/palatino/pplr7t.vf
 INPUT c:/texlive/2022/texmf-dist/fonts/tfm/adobe/palatino/pplb7t.tfm
-INPUT c:/texlive/2022/texmf-dist/fonts/tfm/adobe/palatino/pplri7t.tfm
 INPUT c:/texlive/2022/texmf-dist/fonts/vf/adobe/palatino/pplb7t.vf
 INPUT c:/texlive/2022/texmf-dist/fonts/tfm/adobe/palatino/pplb8r.tfm
 INPUT c:/texlive/2022/texmf-dist/fonts/vf/public/mathpazo/zplmr7m.vf
@@ -1134,63 +1134,78 @@ INPUT c:/texlive/2022/texmf-dist/fonts/vf/public/mathpazo/zplmr7m.vf
 INPUT c:/texlive/2022/texmf-dist/fonts/tfm/public/mathpazo/fplmri.tfm
 INPUT c:/texlive/2022/texmf-dist/fonts/tfm/public/cm/cmmi10.tfm
 INPUT c:/texlive/2022/texmf-dist/fonts/tfm/adobe/palatino/pplri8r.tfm
-INPUT c:/texlive/2022/texmf-dist/fonts/vf/public/mathpazo/zplmr7m.vf
-INPUT c:/texlive/2022/texmf-dist/fonts/tfm/public/mathpazo/fplmri.tfm
-INPUT c:/texlive/2022/texmf-dist/fonts/tfm/public/cm/cmmi10.tfm
-INPUT c:/texlive/2022/texmf-dist/fonts/tfm/adobe/palatino/pplr8r.tfm
-INPUT c:/texlive/2022/texmf-dist/fonts/tfm/adobe/palatino/pplri8r.tfm
-INPUT c:/texlive/2022/texmf-dist/fonts/vf/public/mathpazo/zplmr7y.vf
-INPUT c:/texlive/2022/texmf-dist/fonts/tfm/public/cm/cmsy10.tfm
 INPUT c:/texlive/2022/texmf-dist/fonts/vf/public/mathpazo/zplmr7v.vf
 INPUT c:/texlive/2022/texmf-dist/fonts/tfm/public/cm/cmex10.tfm
 INPUT c:/texlive/2022/texmf-dist/fonts/tfm/public/cm/cmex10.tfm
 INPUT c:/texlive/2022/texmf-dist/fonts/tfm/public/cm/cmex10.tfm
 INPUT c:/texlive/2022/texmf-dist/fonts/tfm/public/mathpazo/fplmr.tfm
-INPUT c:/texlive/2022/texmf-dist/fonts/vf/adobe/palatino/pplri7t.vf
+INPUT c:/texlive/2022/texmf-dist/fonts/vf/public/mathpazo/zplmr7y.vf
+INPUT c:/texlive/2022/texmf-dist/fonts/tfm/public/cm/cmsy10.tfm
 INPUT c:/texlive/2022/texmf-dist/fonts/vf/public/mathpazo/zplmr7y.vf
 INPUT c:/texlive/2022/texmf-dist/fonts/tfm/public/cm/cmsy10.tfm
 INPUT c:/texlive/2022/texmf-dist/fonts/tfm/public/mathpazo/fplmr.tfm
-INPUT ./figures/Welfare_Heatmap_USA (pdfresizer.com)-3.pdf
-INPUT ./figures/Welfare_Heatmap_USA (pdfresizer.com)-3.pdf
-INPUT figures/Welfare_Heatmap_USA (pdfresizer.com)-3.pdf
-INPUT ./figures/Welfare_Heatmap_USA (pdfresizer.com)-3.pdf
-INPUT ./figures/Welfare_Heatmap_USA (pdfresizer.com)-3.pdf
-INPUT ./figures/Welfare_Heatmap_RUS (pdfresizer.com)-3.pdf
-INPUT ./figures/Welfare_Heatmap_RUS (pdfresizer.com)-3.pdf
-INPUT figures/Welfare_Heatmap_RUS (pdfresizer.com)-3.pdf
-INPUT ./figures/Welfare_Heatmap_RUS (pdfresizer.com)-3.pdf
-INPUT ./figures/Welfare_Heatmap_RUS (pdfresizer.com)-3.pdf
-INPUT ./figures/Welfare_Heatmap_CHN (pdfresizer.com)-2.pdf
-INPUT ./figures/Welfare_Heatmap_CHN (pdfresizer.com)-2.pdf
-INPUT figures/Welfare_Heatmap_CHN (pdfresizer.com)-2.pdf
-INPUT ./figures/Welfare_Heatmap_CHN (pdfresizer.com)-2.pdf
-INPUT ./figures/Welfare_Heatmap_CHN (pdfresizer.com)-2.pdf
-INPUT ./figures/Welfare_Heatmap_TUR (pdfresizer.com)-3.pdf
-INPUT ./figures/Welfare_Heatmap_TUR (pdfresizer.com)-3.pdf
-INPUT figures/Welfare_Heatmap_TUR (pdfresizer.com)-3.pdf
-INPUT ./figures/Welfare_Heatmap_TUR (pdfresizer.com)-3.pdf
-INPUT ./figures/Welfare_Heatmap_TUR (pdfresizer.com)-3.pdf
-INPUT ./figures/Welfare_Heatmap_EU27 (pdfresizer.com)-3.pdf
-INPUT ./figures/Welfare_Heatmap_EU27 (pdfresizer.com)-3.pdf
-INPUT figures/Welfare_Heatmap_EU27 (pdfresizer.com)-3.pdf
-INPUT ./figures/Welfare_Heatmap_EU27 (pdfresizer.com)-3.pdf
-INPUT ./figures/Welfare_Heatmap_EU27 (pdfresizer.com)-3.pdf
-INPUT ./figures/Welfare_Heatmap_IND (pdfresizer.com)-3.pdf
-INPUT ./figures/Welfare_Heatmap_IND (pdfresizer.com)-3.pdf
-INPUT figures/Welfare_Heatmap_IND (pdfresizer.com)-3.pdf
-INPUT ./figures/Welfare_Heatmap_IND (pdfresizer.com)-3.pdf
-INPUT ./figures/Welfare_Heatmap_IND (pdfresizer.com)-3.pdf
-INPUT ./figures/Welfare_Heatmap_NGA (pdfresizer.com)-3.pdf
-INPUT ./figures/Welfare_Heatmap_NGA (pdfresizer.com)-3.pdf
-INPUT figures/Welfare_Heatmap_NGA (pdfresizer.com)-3.pdf
-INPUT ./figures/Welfare_Heatmap_NGA (pdfresizer.com)-3.pdf
-INPUT ./figures/Welfare_Heatmap_NGA (pdfresizer.com)-3.pdf
-INPUT ./figures/Welfare_Heatmap_COD (pdfresizer.com)-2.pdf
-INPUT ./figures/Welfare_Heatmap_COD (pdfresizer.com)-2.pdf
-INPUT figures/Welfare_Heatmap_COD (pdfresizer.com)-2.pdf
-INPUT ./figures/Welfare_Heatmap_COD (pdfresizer.com)-2.pdf
-INPUT ./figures/Welfare_Heatmap_COD (pdfresizer.com)-2.pdf
 INPUT c:/texlive/2022/texmf-dist/fonts/tfm/adobe/palatino/pplri7t.tfm
+INPUT c:/texlive/2022/texmf-dist/fonts/vf/public/mathpazo/zplmr7y.vf
+INPUT c:/texlive/2022/texmf-dist/fonts/tfm/public/cm/cmsy10.tfm
+INPUT c:/texlive/2022/texmf-dist/fonts/tfm/public/mathpazo/fplmr.tfm
+INPUT c:/texlive/2022/texmf-dist/fonts/tfm/adobe/palatino/pplr8r.tfm
+INPUT c:/texlive/2022/texmf-dist/fonts/vf/public/mathpazo/zplmr7m.vf
+INPUT c:/texlive/2022/texmf-dist/fonts/tfm/public/mathpazo/fplmri.tfm
+INPUT c:/texlive/2022/texmf-dist/fonts/tfm/public/cm/cmmi10.tfm
+INPUT c:/texlive/2022/texmf-dist/fonts/tfm/adobe/palatino/pplri8r.tfm
+INPUT c:/texlive/2022/texmf-dist/fonts/vf/adobe/palatino/pplri7t.vf
+INPUT ./figures/heatmap_USA.pdf
+INPUT ./figures/heatmap_USA.pdf
+INPUT figures/heatmap_USA.pdf
+INPUT ./figures/heatmap_USA.pdf
+INPUT ./figures/heatmap_USA.pdf
+INPUT ./figures/heatmap_RUS.pdf
+INPUT ./figures/heatmap_RUS.pdf
+INPUT figures/heatmap_RUS.pdf
+INPUT ./figures/heatmap_RUS.pdf
+INPUT ./figures/heatmap_RUS.pdf
+INPUT ./figures/heatmap_CHN.pdf
+INPUT ./figures/heatmap_CHN.pdf
+INPUT figures/heatmap_CHN.pdf
+INPUT ./figures/heatmap_CHN.pdf
+INPUT ./figures/heatmap_CHN.pdf
+INPUT ./figures/heatmap_TUR.pdf
+INPUT ./figures/heatmap_TUR.pdf
+INPUT figures/heatmap_TUR.pdf
+INPUT ./figures/heatmap_TUR.pdf
+INPUT ./figures/heatmap_TUR.pdf
+INPUT ./figures/heatmap_EU27.pdf
+INPUT ./figures/heatmap_EU27.pdf
+INPUT figures/heatmap_EU27.pdf
+INPUT ./figures/heatmap_EU27.pdf
+INPUT ./figures/heatmap_EU27.pdf
+INPUT ./figures/heatmap_IND.pdf
+INPUT ./figures/heatmap_IND.pdf
+INPUT figures/heatmap_IND.pdf
+INPUT ./figures/heatmap_IND.pdf
+INPUT ./figures/heatmap_IND.pdf
+INPUT ./figures/heatmap_NGA.pdf
+INPUT ./figures/heatmap_NGA.pdf
+INPUT figures/heatmap_NGA.pdf
+INPUT ./figures/heatmap_NGA.pdf
+INPUT ./figures/heatmap_NGA.pdf
+INPUT ./figures/heatmap_COD.pdf
+INPUT ./figures/heatmap_COD.pdf
+INPUT figures/heatmap_COD.pdf
+INPUT ./figures/heatmap_COD.pdf
+INPUT ./figures/heatmap_COD.pdf
+INPUT c:/texlive/2022/texmf-dist/fonts/tfm/adobe/palatino/pplri7t.tfm
+INPUT ./figures/indifference_curves.pdf
+INPUT ./figures/indifference_curves.pdf
+INPUT figures/indifference_curves.pdf
+INPUT ./figures/indifference_curves.pdf
+INPUT ./figures/indifference_curves.pdf
+INPUT ../output/rho1_table.tex
+INPUT ../output/rho1_table.tex
+INPUT ../output/rho1_table.tex
+INPUT ../output/rho1_table.tex
+INPUT ../output/rho1_table.tex
+INPUT ../output/rho1_table.tex
 INPUT c:/texlive/2022/texmf-dist/fonts/tfm/public/mathpazo/zplmr7m.tfm
 INPUT c:/texlive/2022/texmf-dist/fonts/tfm/public/mathpazo/zplmr7y.tfm
 INPUT c:/texlive/2022/texmf-dist/fonts/tfm/public/mathpazo/zplmr7v.tfm
@@ -1198,6 +1213,21 @@ INPUT c:/texlive/2022/texmf-dist/fonts/tfm/public/mathpazo/zplmr7t.tfm
 INPUT c:/texlive/2022/texmf-dist/fonts/tfm/public/amsfonts/symbols/msam10.tfm
 INPUT c:/texlive/2022/texmf-dist/fonts/tfm/public/amsfonts/symbols/msbm10.tfm
 INPUT c:/texlive/2022/texmf-dist/fonts/tfm/adobe/palatino/pplr8c.tfm
+INPUT c:/texlive/2022/texmf-dist/fonts/vf/adobe/palatino/pplri7t.vf
+INPUT c:/texlive/2022/texmf-dist/fonts/tfm/adobe/palatino/pplri8r.tfm
+INPUT c:/texlive/2022/texmf-dist/fonts/vf/public/mathpazo/zplmr7m.vf
+INPUT c:/texlive/2022/texmf-dist/fonts/tfm/public/mathpazo/fplmri.tfm
+INPUT c:/texlive/2022/texmf-dist/fonts/tfm/public/cm/cmmi10.tfm
+INPUT c:/texlive/2022/texmf-dist/fonts/vf/public/mathpazo/zplmr7m.vf
+INPUT c:/texlive/2022/texmf-dist/fonts/tfm/public/mathpazo/fplmri.tfm
+INPUT c:/texlive/2022/texmf-dist/fonts/tfm/public/cm/cmmi10.tfm
+INPUT c:/texlive/2022/texmf-dist/fonts/tfm/adobe/palatino/pplri8r.tfm
+INPUT c:/texlive/2022/texmf-dist/fonts/vf/public/mathpazo/zplmr7y.vf
+INPUT c:/texlive/2022/texmf-dist/fonts/tfm/public/cm/cmsy10.tfm
+INPUT c:/texlive/2022/texmf-dist/fonts/vf/public/mathpazo/zplmr7y.vf
+INPUT c:/texlive/2022/texmf-dist/fonts/tfm/public/cm/cmsy10.tfm
+INPUT c:/texlive/2022/texmf-dist/fonts/vf/public/mathpazo/zplmr7t.vf
+INPUT c:/texlive/2022/texmf-dist/fonts/tfm/public/cm/cmr10.tfm
 INPUT c:/texlive/2022/texmf-dist/fonts/vf/adobe/palatino/pplr7t.vf
 INPUT c:/texlive/2022/texmf-dist/fonts/tfm/adobe/palatino/pplr8r.tfm
 INPUT c:/texlive/2022/texmf-dist/fonts/vf/public/mathpazo/zplmr7t.vf
@@ -1207,33 +1237,17 @@ INPUT c:/texlive/2022/texmf-dist/fonts/vf/public/mathpazo/zplmr7m.vf
 INPUT c:/texlive/2022/texmf-dist/fonts/tfm/public/mathpazo/fplmri.tfm
 INPUT c:/texlive/2022/texmf-dist/fonts/tfm/public/cm/cmmi10.tfm
 INPUT c:/texlive/2022/texmf-dist/fonts/tfm/adobe/palatino/pplri8r.tfm
+INPUT ../output/equivalent_rights_main.tex
+INPUT ../output/equivalent_rights_main.tex
+INPUT ../output/equivalent_rights_main.tex
+INPUT ../output/equivalent_rights_main.tex
+INPUT ../output/equivalent_rights_main.tex
+INPUT ../output/equivalent_rights_main.tex
+INPUT c:/texlive/2022/texmf-dist/fonts/tfm/adobe/palatino/pplri7t.tfm
 INPUT c:/texlive/2022/texmf-dist/fonts/vf/adobe/palatino/pplri7t.vf
-INPUT c:/texlive/2022/texmf-dist/fonts/tfm/adobe/palatino/pplri8r.tfm
-INPUT c:/texlive/2022/texmf-dist/fonts/vf/public/mathpazo/zplmr7t.vf
-INPUT c:/texlive/2022/texmf-dist/fonts/tfm/public/cm/cmr10.tfm
-INPUT c:/texlive/2022/texmf-dist/fonts/vf/public/mathpazo/zplmr7m.vf
-INPUT c:/texlive/2022/texmf-dist/fonts/tfm/public/mathpazo/fplmri.tfm
-INPUT c:/texlive/2022/texmf-dist/fonts/tfm/public/cm/cmmi10.tfm
-INPUT c:/texlive/2022/texmf-dist/fonts/vf/adobe/palatino/pplr7t.vf
-INPUT c:/texlive/2022/texmf-dist/fonts/vf/public/mathpazo/zplmr7m.vf
-INPUT c:/texlive/2022/texmf-dist/fonts/tfm/public/mathpazo/fplmri.tfm
-INPUT c:/texlive/2022/texmf-dist/fonts/tfm/public/cm/cmmi10.tfm
-INPUT c:/texlive/2022/texmf-dist/fonts/tfm/adobe/palatino/pplri8r.tfm
-INPUT ../output/equivalent_rights_combined.tex
-INPUT ../output/equivalent_rights_combined.tex
-INPUT ../output/equivalent_rights_combined.tex
-INPUT ../output/equivalent_rights_combined.tex
-INPUT ../output/equivalent_rights_combined.tex
-INPUT ../output/equivalent_rights_combined.tex
-INPUT c:/texlive/2022/texmf-dist/fonts/tfm/adobe/palatino/pplb8c.tfm
-INPUT c:/texlive/2022/texmf-dist/fonts/vf/public/mathpazo/zplmr7m.vf
-INPUT c:/texlive/2022/texmf-dist/fonts/tfm/public/mathpazo/fplmri.tfm
-INPUT c:/texlive/2022/texmf-dist/fonts/tfm/public/cm/cmmi10.tfm
-INPUT c:/texlive/2022/texmf-dist/fonts/tfm/adobe/palatino/pplri8r.tfm
+INPUT c:/texlive/2022/texmf-dist/fonts/vf/adobe/palatino/pplr8c.vf
 INPUT c:/texlive/2022/texmf-dist/fonts/vf/public/mathpazo/zplmr7y.vf
 INPUT c:/texlive/2022/texmf-dist/fonts/tfm/public/cm/cmsy10.tfm
-INPUT c:/texlive/2022/texmf-dist/fonts/vf/adobe/palatino/pplb8c.vf
-INPUT c:/texlive/2022/texmf-dist/fonts/tfm/public/mathpazo/fplmb.tfm
 INPUT build/paper.bbl
 INPUT build/paper.bbl
 INPUT build/paper.bbl
@@ -1244,30 +1258,55 @@ INPUT build/paper.brf
 INPUT build/paper.brf
 INPUT build/paper.brf
 OUTPUT build/paper.brf
+INPUT ../output/appendix_autarky_usa.tex
+INPUT ../output/appendix_autarky_usa.tex
+INPUT ../output/appendix_autarky_usa.tex
+INPUT ../output/appendix_autarky_usa.tex
+INPUT ../output/appendix_autarky_usa.tex
+INPUT ../output/appendix_autarky_usa.tex
+INPUT ../output/appendix_uniform_cod.tex
+INPUT ../output/appendix_uniform_cod.tex
+INPUT ../output/appendix_uniform_cod.tex
+INPUT ../output/appendix_uniform_cod.tex
+INPUT ../output/appendix_uniform_cod.tex
+INPUT ../output/appendix_uniform_cod.tex
+INPUT c:/texlive/2022/texmf-dist/fonts/vf/public/mathpazo/zplmr7t.vf
+INPUT c:/texlive/2022/texmf-dist/fonts/tfm/public/cm/cmr10.tfm
+INPUT c:/texlive/2022/texmf-dist/fonts/vf/adobe/palatino/pplr7t.vf
 INPUT c:/texlive/2022/texmf-dist/fonts/vf/public/mathpazo/zplmr7y.vf
 INPUT c:/texlive/2022/texmf-dist/fonts/tfm/public/cm/cmsy10.tfm
 INPUT c:/texlive/2022/texmf-dist/fonts/tfm/public/mathpazo/fplmr.tfm
+INPUT c:/texlive/2022/texmf-dist/fonts/vf/public/mathpazo/zplmr7m.vf
+INPUT c:/texlive/2022/texmf-dist/fonts/tfm/public/mathpazo/fplmri.tfm
+INPUT c:/texlive/2022/texmf-dist/fonts/tfm/public/cm/cmmi10.tfm
+INPUT c:/texlive/2022/texmf-dist/fonts/tfm/adobe/palatino/pplri8r.tfm
+INPUT ../output/equivalent_rights_main_isolated.tex
+INPUT ../output/equivalent_rights_main_isolated.tex
+INPUT ../output/equivalent_rights_main_isolated.tex
+INPUT ../output/equivalent_rights_main_isolated.tex
+INPUT ../output/equivalent_rights_main_isolated.tex
+INPUT ../output/equivalent_rights_main_isolated.tex
+INPUT ../output/equivalent_rights_combined.tex
+INPUT ../output/equivalent_rights_combined.tex
+INPUT ../output/equivalent_rights_combined.tex
+INPUT ../output/equivalent_rights_combined.tex
+INPUT ../output/equivalent_rights_combined.tex
+INPUT ../output/equivalent_rights_combined.tex
+INPUT c:/texlive/2022/texmf-dist/fonts/tfm/adobe/palatino/pplb8c.tfm
 INPUT ../output/equivalent_rights_losers.tex
 INPUT ../output/equivalent_rights_losers.tex
 INPUT ../output/equivalent_rights_losers.tex
 INPUT ../output/equivalent_rights_losers.tex
 INPUT ../output/equivalent_rights_losers.tex
 INPUT ../output/equivalent_rights_losers.tex
-INPUT c:/texlive/2022/texmf-dist/fonts/tfm/adobe/palatino/pplri7t.tfm
-INPUT ../output/equivalent_rights_targets_er5_losers_pred.tex
-INPUT ../output/equivalent_rights_targets_er5_losers_pred.tex
-INPUT ../output/equivalent_rights_targets_er5_losers_pred.tex
-INPUT ../output/equivalent_rights_targets_er5_losers_pred.tex
-INPUT ../output/equivalent_rights_targets_er5_losers_pred.tex
-INPUT ../output/equivalent_rights_targets_er5_losers_pred.tex
-INPUT ../output/equivalent_rights_combined_er.tex
-INPUT ../output/equivalent_rights_combined_er.tex
-INPUT ../output/equivalent_rights_combined_er.tex
-INPUT ../output/equivalent_rights_combined_er.tex
-INPUT ../output/equivalent_rights_combined_er.tex
-INPUT ../output/equivalent_rights_combined_er.tex
-INPUT c:/texlive/2022/texmf-dist/fonts/vf/adobe/palatino/pplri7t.vf
-INPUT c:/texlive/2022/texmf-dist/fonts/vf/adobe/palatino/pplr8c.vf
+INPUT c:/texlive/2022/texmf-dist/fonts/vf/adobe/palatino/pplb8c.vf
+INPUT c:/texlive/2022/texmf-dist/fonts/tfm/public/mathpazo/fplmb.tfm
+INPUT ../output/equivalent_rights_equalright_joint.tex
+INPUT ../output/equivalent_rights_equalright_joint.tex
+INPUT ../output/equivalent_rights_equalright_joint.tex
+INPUT ../output/equivalent_rights_equalright_joint.tex
+INPUT ../output/equivalent_rights_equalright_joint.tex
+INPUT ../output/equivalent_rights_equalright_joint.tex
 INPUT build/paper.aux
 INPUT build/paper.out
 INPUT build/paper.out

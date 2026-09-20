@@ -1,4 +1,4 @@
-\begin{thebibliography}{31}
+\begin{thebibliography}{30}
 \providecommand{\natexlab}[1]{#1}
 \providecommand{\url}[1]{\texttt{#1}}
 \expandafter\ifx\csname urlstyle\endcsname\relax
@@ -92,6 +92,13 @@ P.~C. Cramton, D.~J.~C. MacKay, \& A.~Ockenfels, editors.
 \newblock ISBN 978-0-262-03626-9.
 \newblock \url{https://libgen.li/edition.php?id=146679213}.
 
+\bibitem[d'Autume et~al.(2016)d'Autume, Schubert, \&
+  Withagen]{dautume_should_2016}
+A.~d'Autume, K.~Schubert, \& C.~Withagen.
+\newblock Should the carbon price be the same in all countries?
+\newblock \emph{Journal of Public Economic Theory}, 2016.
+\newblock \url{https://onlinelibrary.wiley.com/doi/abs/10.1111/jpet.12162}.
+
 \bibitem[Diamond \& Mirrlees(1971)]{diamond_optimal_1971}
 P.~A. Diamond \& J.~A. Mirrlees.
 \newblock Optimal {{Taxation}} and {{Public Production I}}: {{Production
@@ -139,13 +146,6 @@ M.~Grubb.
   1944-)}, 1990.
 \newblock \url{https://www.jstor.org/stable/2622190}.
 
-\bibitem[Hahn \& Stavins(2011)]{hahn_effect_2011}
-R.~W. Hahn \& R.~N. Stavins.
-\newblock The {{Effect}} of {{Allowance Allocations}} on {{Cap-and-Trade System
-  Performance}}.
-\newblock \emph{The Journal of Law \& Economics}, 2011.
-\newblock \url{https://www.jstor.org/stable/10.1086/661942}.
-
 \bibitem[He et~al.(2024)He, Zhai, \& Ma]{he_analysis_2024}
 X.~He, F.~Zhai, \& J.~Ma.
 \newblock An {{Analysis}} of the {{IMF}}'s {{International Carbon Price
@@ -153,12 +153,6 @@ X.~He, F.~Zhai, \& J.~Ma.
 \newblock \emph{Journal of Globalization and Development}, 2024.
 \newblock
   \url{https://www.degruyterbrill.com/document/doi/10.1515/jgd-2023-0102/html?srsltid=AU7gw4VTpdC\_pudZRy81sAijp86\_-wm9FOSMS8ruHRiV41n6f93AOtk5\&lang=en}.
-
-\bibitem[Kuhn \& Schlattmann(2024)]{kuhn_distributional_2024}
-M.~Kuhn \& L.~Schlattmann.
-\newblock Distributional {{Consequences}} of {{Climate Policies}}.
-\newblock 2024.
-\newblock \url{https://cepr.org/publications/dp18893}.
 
 \bibitem[Le~Moigne et~al.(2026)Le~Moigne, Lepot, Ritel, \&
   Simon]{le_moigne_distributional_2026}
