@@ -79,6 +79,7 @@ curves <- curves[is.finite(curves$rho_welfare), ]
 # allocations to small emitters -- reach hundreds of percent).
 all_gain <- unlist(lapply(countries, function(cc) grid_for(cc)$gain))
 lim <- as.numeric(quantile(abs(all_gain), 0.95, na.rm = TRUE))
+message(sprintf("colour limit (95th percentile of |gain|): %.2f", lim))
 
 xbreaks <- seq(0, 4.75, by = 0.5)
 ybreaks <- c(0.02, 0.05, 0.1, 0.2, 0.5, 1, 2, 5, 10)
