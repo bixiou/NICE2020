@@ -239,6 +239,28 @@ records each finished cell in `logs/tu_done.txt` (file settable through `NICE_DO
 skips it under `NICE_RESUME=1`; Exercise 1 saves after every grid point rather than at the end of
 a country's grid; `logs/rerun_total.bat` restarts the whole pipeline where it stopped.
 
+## 5ter. Follow-ups of 21 Sept 2026
+
+* **Dynamic proposition in totals.** R_it = n_it r_it and E_it = n_it e_it are defined at the head
+  of Section 3.2; (eq:dyn_equiv) reads sum_t beta_t p*_t (R_it - E^A_it) = 0, (eq:rhohat_dyn) and
+  (eq:rhohat_hotelling) are written in totals only, and the proof shows where the population folds
+  into the totals.
+* **Members losing on the solved criterion.** Diagnostic `src/_diag_losers.jl`: with damages held at
+  the schedule's temperature path (the comparison the solve makes), no member is more than 0.005%
+  below its level; the losers appear only once avoided damages are added, and they are the
+  countries with negative Kalkuhl-Wenz marginal damage (beta1_KW < 0 and a local anomaly below
+  -beta1/2beta2): Mongolia under Banerjee et al.; Finland, Iceland, Mongolia and Russia under Equal
+  Right at 5%/yr, ordered by |beta1|. Written up in Section 5 (one clause) and in a new appendix
+  paragraph, "Who loses from the avoided damages".
+* **Benchmark price path.** An exponential 1.8C path was explored (`src/calibrate_hotelling_price.jl`
+  and the zoom search in `cap_and_share/find_global_exp_carbon_tax_buget_zoom.jl`, now runnable
+  with `julia file.jl` and with its targets settable from the environment; rho = 0.3%, the pure rate
+  of time preference consistent with the paper's 3% consumption discounting, see
+  `src/_diag_growth.jl`). Decision: Section 4 stays on the calibrated cap-and-share path. The code
+  now has a single benchmark, `P_STAR_CS` (the former `P_STAR` and the `NICE_PRICE` switch are
+  gone); the Section 4 outputs rebuilt under the new code are byte-identical to those in the paper.
+  Results of the earlier state are kept in `cap_and_share/output/_backup_yearly_price_20260921/`.
+
 ## 5. Status (21 Sept 2026): complete
 
 All 38 TODOs are addressed; each is kept verbatim in paper.tex and followed by a `% DONE` note.

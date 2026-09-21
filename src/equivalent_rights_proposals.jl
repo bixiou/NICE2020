@@ -192,19 +192,45 @@ function entity_indices(name::AbstractString)
 end
 
 # ── reference uniform price p*(t): calibrated 1.8C cap-and-share path ─────────
-const P_STAR = let p = zeros(Float64, NB_STEPS)
-    df = CSV.read(joinpath(ROOT, "cap_and_share", "data", "output", "calibrated_global_cs.csv"), DataFrame)
-    d = Dict(Int(r.time) => Float64(r.global_tax) for r in eachrow(df))
+# p*: the exponential 1.8C path found by cap_and_share/find_global_exp_carbon_tax_buget_zoom.jl.
+# That script searches the start level A and growth rate B of
+#     exp_tax_trajectory(tax_start_value = A, g_rate = B, year_tax_start = 2030,
+#                        year_tax_end = 2200, ramp_up = 5)
+# (src/helper_functions.jl) and keeps the pair that maximises discounted world
+# welfare (utility, pure rate of time preference 0.3%) subject to peak warming
+# staying below 1.8C, the whole world taxed, no recycling. The path is zero
+# before 2025, ramps linearly from 0 in 2025 to A in 2030, is A in 2031, grows
+# at B a year to 2200 and is flat afterwards. calibrated_global_exp.csv holds
+# that exact vector (src/_write_exp_path.jl writes it from the saved A and B),
+# so p* is the path the search validated, with no re-extrapolation.
+function read_price_path(file)
+    p  = zeros(Float64, NB_STEPS)
+    df = CSV.read(joinpath(ROOT, "cap_and_share", "data", "output", file), DataFrame)
+    d  = Dict(Int(r.time) => Float64(r.global_tax) for r in eachrow(df))
     first_y, last_y = minimum(keys(d)), maximum(keys(d))
-    # back-extrapolate to PRICE_START_YEAR at the path's own initial growth rate
-    g = d[first_y + 1] / d[first_y]
     for (i, y) in enumerate(YEARS)
         p[i] = y < PRICE_START_YEAR ? 0.0 :
-               y < first_y          ? d[first_y] / g^(first_y - y) :
+               # a file starting after PRICE_START_YEAR is extended back at its own
+               # first-year growth rate (the calibrated path starts in 2030)
+               y < first_y          ? d[first_y] / (d[first_y + 1] / d[first_y])^(first_y - y) :
                y <= last_y          ? get(d, y, 0.0) : d[last_y]
     end
-    p
+    return p
 end
+
+const P_STAR = read_price_path("calibrated_global_exp.csv")
+
+# The previous benchmark, no longer used. It was calibrated year by year by
+# cap_and_share/calibrate_global_tax_club_emissions.jl: in each year, the uniform
+# global tax (found by bisection, bracketed around the previous year's tax) at
+# which the model's emissions equal the 1.8C cap-and-share trajectory
+# cap_and_share/data/input/E_global_cs_2020_2300.csv (31.4 GtCO2 in 2030, zero
+# from 2079), and the backstop price once that trajectory reaches zero. No growth
+# rule is imposed: $42.6/t in 2030, $206 in 2050, $402 in 2070, the backstop
+# (~$471) by 2100, i.e. growth sliding from 16% to ~3% a year. The file starts in
+# 2030 and was extended back to 2025 at its 2030-31 growth rate. Results based on
+# it are kept in cap_and_share/output/_backup_yearly_price_20260921/.
+# const P_STAR_CS = read_price_path("calibrated_global_cs.csv")
 
 # ──────────────────────────────────────────────────────────────────────────────
 # MODEL RUNNERS
@@ -600,6 +626,12 @@ const CACHE_DIR = joinpath(OUTPUT_BASE, "cache")
 # `build_proposal`. "popw" = population-weighted NPVs (total utilitarianism).
 const CRITERION_VERSION = "popw-2026-09"
 
+# Everything cached below also depends on the recycling shares (set by the
+# reference run at p*) and on p* itself; hashing them into the keys means a new
+# price path can never be served results computed on an old one.
+const RUN_CONFIG = hash((CRITERION_VERSION, round.(RECYCLE_SHARE, digits = 10),
+                         round.(P_STAR, digits = 6)))
+
 # ──────────────────────────────────────────────────────────────────────────────
 # SCENARIO DATA
 # ──────────────────────────────────────────────────────────────────────────────
@@ -638,7 +670,7 @@ silently. Set NICE_NO_CACHE=1 to recompute regardless.
 """
 function cached_p_ref(f, name, tax, members, ce)
     key  = string(hash((round.(tax, digits = 6), members, round.(ce, digits = 8),
-                        collect(CALIB_YEARS))), base = 16)
+                        collect(CALIB_YEARS), RUN_CONFIG)), base = 16)
     path = joinpath(CACHE_DIR, "p_ref_$(lowercase(name))_$key.csv")
     if !FRESH && get(ENV, "NICE_NO_CACHE", "0") == "0" && isfile(path)
         df = CSV.read(path, DataFrame)
@@ -681,7 +713,7 @@ function build_proposal(name, tax)
     # which are criterion-dependent. When the criteria moved from per-capita NPVs
     # to population-weighted ones, a stale cache silently fed the solver targets
     # a million times too small. Bump this string whenever a criterion changes.
-    key   = string(hash((name, round.(tax, digits = 6), CRITERION_VERSION)), base = 16)
+    key   = string(hash((name, round.(tax, digits = 6), RUN_CONFIG)), base = 16)
     cpath = joinpath(CACHE_DIR, "proposal_$(lowercase(name))_$key.jls")
     if !FRESH && isfile(cpath)
         try
@@ -759,7 +791,7 @@ damages fixed in the "reduced emissions" solve (see `make_uniform_model`).
 One model run, cached on disk like the proposal itself.
 """
 function proposal_local_temp(P::Proposal)
-    key  = string(hash((P.name, round.(P.tax, digits = 6))), base = 16)
+    key  = string(hash((P.name, round.(P.tax, digits = 6), RUN_CONFIG)), base = 16)
     path = joinpath(CACHE_DIR, "localtemp_$(lowercase(P.name))_$key.jls")
     if !FRESH && isfile(path)
         try
