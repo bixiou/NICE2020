@@ -166,7 +166,94 @@ Every TODO stays in the .tex; a `% DONE (...)` comment right after it explains w
   uncounted years therefore do not flatter the aggregate dividend (if anything the reported cut
   is conservative), but they do shift the allocation across members. Stated in Online Appendix B.
 
-## 5. Status (20 Sept 2026): complete
+## 4b. Second round (20 Sept 2026, after review)
+
+* **Reduced emissions stays the headline**, on the author's decision: the emissions figure is
+  more telling than the consumption one. The fixed-damages device is therefore stated plainly
+  wherever it carries a number (Section 5 design, the main table's note, Online Appendix B):
+  it is an accounting device, not a scenario, and it is the numerical counterpart of
+  Proposition 2's "the cap can be tightened by sum_i n_i B_i / p*", which likewise changes
+  emissions while treating damages as given. The endogenous-damage variant is *not* computed:
+  it converges on the club's own optimal cap, i.e. it changes the ambition level.
+* **Figure 1 restored to the layout of the figures it replaces**: same cells (pi in steps of
+  0.25 up to 4.75, rho on the ladder 0.02-10), the same axes in every panel, black annotations,
+  the key inside the panel, the colour bar title reading bottom to top, and the same colour rule
+  (95th percentile of |gain|, now +/-11.2). The only differences are pi = 0 and 0.25, and the
+  revised computations.
+* **The curve is traced as pi*(rho)** on a dense rho ladder rather than as rho*(pi), so it has a
+  point for every y value of the panel, as the old contour did, and does not break where the
+  equivalent allocation leaves the plotted range.
+* **Grid extended incrementally**: `todo_values` in src/indifference_curves.jl computes only the
+  missing pi and rho, so the 7 new pi values and rho = 0.02 cost ~6 min per country instead of a
+  full re-run. Table 1 is unchanged by the denser grid.
+* **Reproducibility checked**: re-running the DR Congo grid reproduces the stored CSV byte for
+  byte; re-running both table entry points reproduces Table 1 and the proposal tables.
+* **Note on running the code**: `src/equivalent_rights_proposals.jl` spawns 4 worker processes
+  unless `NICE_WORKERS=1` is set. That is what asks for a firewall authorisation (Distributed
+  opens a listening socket) and, on this machine, what exhausts memory. Always set it.
+
+## 4bis. Total utilitarianism (20 Sept 2026)
+
+The last TODO of the dynamic proposition asked for a factor n_it in the indifference condition.
+Checked in the code: the NPVs did **not** account for population changes -- every criterion
+discounted a per-capita series, which is average utilitarianism within a country and over time.
+
+* **Code**: `npv_pop(series, pop)` added in `src/equivalent_rights_proposals.jl`; used by
+  `country_cons_npv` (replaces `country_mean_cons`), `world_cons_npv` (replaces the NPV of
+  `mean_consumption`), `entity_welfare_npv`, `world_welfare_npv` and `objective_by_country`.
+  `src/indifference_curves.jl`: `entity_cons_npv` is now a population-weighted total, and
+  `predicted_rho1` returns the totals version of (eq:rhohat_dyn) by default, the per-capita
+  variant being kept as the secondary column `rho_hat_pc`. `write_main_table` predicts with
+  `predicted_rho_priced` (`pred_kind = :formula`), the population-weighted formula.
+* **Paper**: the total-utilitarian objective is stated in the static setting (3.1) and at the
+  start of the dynamic one (3.2); n_it appears in (eq:dyn_equiv) and (eq:rhohat_dyn); the
+  Hotelling case (eq:rhohat_hotelling) now reads as the country's share of the cumulative world
+  carbon budget over its share of world population, so that an equal per capita division of the
+  budget is rho = 1. The proof spells out where n_it enters. The criteria are described as
+  population-weighted NPVs of EDE consumption and of total consumption throughout Sections 4-5
+  and in the table notes.
+* **Runs**: all proposal solves (both criteria) and the whole Exercise 1 grid were recomputed on
+  the new criterion (`logs/tu_*.log`); every number in the abstract, introduction, Sections 4-5,
+  conclusion, Table 1, Table 2 and the appendix tables was refreshed from those runs.
+
+## 5bis. Two criterion-mixing bugs found while re-running (21 Sept 2026)
+
+Switching the criteria to population-weighted NPVs left two places reading the old ones:
+
+* **Cached proposals.** `build_proposal` serialises a `Proposal`, which carries the *target*
+  values the solvers aim at (`welf`, `consd` and the world aggregates). Its cache key was
+  `hash(name, tax)`, so a stale cache fed the solver per-capita targets against
+  population-weighted values: the first joint solve reported `max gap = 155384536%`. The key now
+  includes `CRITERION_VERSION`; bump that string whenever a criterion changes. The stale option-A
+  checkpoints were moved to `cap_and_share/output/_pre_popw/`, since `seed_solved!` checks the
+  target name but not the criterion.
+* **Reported welfare gains.** `run_variant` computed a country's welfare gain as a per-capita NPV
+  and compared it with the population-weighted `P.welfare[e]`, giving -100% for every member.
+  The solved rho were unaffected (both solvers drive on `objective_by_country` against `target`,
+  consistently weighted), but the "members losing on welfare" counts and the `ede_gain_pct`
+  column were wrong. Fixed with `npv_pop`, and every variant was rebuilt from the solved rho
+  (`logs/rerun_variants.sh`, four model runs per cell).
+
+Reboot resilience, added the same night (the machine lost power five times): the proposal driver
+records each finished cell in `logs/tu_done.txt` (file settable through `NICE_DONE_FILE`) and
+skips it under `NICE_RESUME=1`; Exercise 1 saves after every grid point rather than at the end of
+a country's grid; `logs/rerun_total.bat` restarts the whole pipeline where it stopped.
+
+## 5. Status (21 Sept 2026): complete
+
+All 38 TODOs are addressed; each is kept verbatim in paper.tex and followed by a `% DONE` note.
+Everything is recomputed under total utilitarianism: 8 joint cells, 8 isolated cells, the full
+Exercise 1 grid, the figures, and the window diagnostic (now population-weighted too). The paper
+compiles in `build/` (30 pages, no undefined references), the PDF is copied next to the .tex, and
+the main text is 5,907 words (JEEM limit 6,000; 6,092 counting the back-matter declarations),
+with the abstract at 196 words and four exhibits.
+
+Headline numbers under the new criterion: the equivalent-rights cut is 5.1% of the coalition's
+emissions for Wolfram et al., 4.7% for Banerjee, Duflo and Greenstone and 15.2% for Equal Right
+at 5%/yr (18.8% on its own path); at unchanged emissions, every member gains 0.019%, 0.052% and
+0.180% of the NPV of its consumption. The first-order prediction is now within 1% of the
+simulated rho_1 for five of the eight countries of Exercise 1.
+
 
 All 37 TODOs are addressed; each is kept verbatim in paper.tex and followed by a `% DONE` note.
 The paper compiles in `build/` (30 pages, no undefined references), the PDF is copied next to

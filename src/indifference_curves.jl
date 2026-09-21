@@ -38,18 +38,23 @@ include(joinpath(@__DIR__, "equivalent_rights_proposals.jl"))
 
 const EX1_DIR       = joinpath(OUTPUT_BASE, "indifference")
 const EX1_COUNTRIES = String.(split(get(ENV, "NICE_EX1_COUNTRIES", "USA,RUS,CHN,TUR,EU27,IND,NGA,COD"), ","))
-const PI_GRID  = [0.0, 0.25, 0.5, 0.75, 1.0, 1.25, 1.5, 1.75, 2.0, 2.5, 3.0, 3.5, 4.0, 5.0]
-const RHO_GRID = [0.0, 0.05, 0.1, 0.15, 0.2, 0.3, 0.4, 0.5, 0.6, 0.8, 1.0, 1.25, 1.5, 2.0, 2.5,
-                  3.0, 3.5, 4.0, 4.5, 5.0, 6.0, 8.0, 10.0]
+# The grid of the figures this replaces (pi in steps of 0.25 up to 4.75, rho on
+# the log-spaced ladder 0.02 ... 10), plus pi = 0, which the old runs did not
+# have and which the zero-price argument of Section 4 needs. The extra rho
+# values are kept: they cost one model run each and make the interpolated
+# indifference curve smooth, while the figure shows the old ladder only.
+const PI_GRID  = collect(0.0:0.25:4.75)
+const RHO_GRID = [0.0, 0.02, 0.05, 0.1, 0.15, 0.2, 0.3, 0.4, 0.5, 0.6, 0.8, 1.0, 1.25, 1.5, 2.0,
+                  2.5, 3.0, 3.5, 4.0, 4.5, 5.0, 6.0, 8.0, 10.0]
 const ALL      = collect(1:NB_COUNTRY)
 const THETA2   = 2.6                       # abatement cost exponent (nice2020_module.jl)
 mkpath(EX1_DIR)
 
-"NPV of per-capita mean consumption of an entity (bloc: population-weighted)."
+"NPV of an entity's total consumption (population-weighted: total utilitarianism)."
 function entity_cons_npv(m, idx::Vector{Int}, pop::Matrix{Float64})
     tot = f64(m[:quantile_recycle, :sum_conso_pc_post_recycle]) ./ NB_QUANTILE
-    s   = [sum(tot[t, idx] .* pop[t, idx]) / sum(pop[t, idx]) for t in 1:NB_STEPS]
-    return npv(s)
+    s   = [sum(tot[t, idx] .* pop[t, idx]) for t in 1:NB_STEPS]
+    return sum(s[NPV_IDX] .* NPV_DISC)
 end
 
 # ── the uniform-price reference: everyone at p*, no net transfers ────────────
@@ -174,27 +179,43 @@ function run_uniform_point(m, entity::String, rho::Float64)
             row_rights_negative = bad)
 end
 
+"Values of `grid` that a stored file does not already hold in column `col`."
+function todo_values(path::String, col::Symbol, grid::Vector{Float64})
+    isfile(path) || return grid, nothing
+    df = CSV.read(path, DataFrame)
+    have = Float64.(df[!, col])
+    return [g for g in grid if !any(isapprox(g, h; atol = 1e-9) for h in have)], df
+end
+
 function run_grid(entity::String)
     t0 = time()
     ma = make_autarky_model(RECYCLE_SHARE)
     mu = make_uniform_model(RECYCLE_SHARE, ALL)
-    ua = NamedTuple[]
+    # ── uniform runs (independent of pi): compute only the missing rho ───────
     fu = joinpath(EX1_DIR, "uniform_$(entity).csv")
-    # resume: the uniform runs do not depend on pi, keep them if already done
-    if isfile(fu) && nrow(CSV.read(fu, DataFrame)) == length(RHO_GRID)
-        @info "uniform runs already on disk" entity
-        RHO_GRID_TODO = Float64[]
-    else
-        RHO_GRID_TODO = RHO_GRID
-    end
-    for rho in RHO_GRID_TODO
+    todo_rho, old_u = todo_values(fu, :rho, RHO_GRID)
+    isempty(todo_rho) && @info "uniform runs already on disk" entity
+    ua = NamedTuple[]
+    for rho in todo_rho
         push!(ua, run_uniform_point(mu, entity, rho))
         @printf("  [%s] uniform rho = %5.2f  welfare %.4f  cons %.4f\n", entity, rho, ua[end].welfare, ua[end].cons)
         flush(stdout)
+        # Written after every point rather than at the end of the grid: this
+        # machine has been rebooting mid-run, and a grid that only saves once
+        # it is complete never saves at all.
+        u = old_u === nothing ? DataFrame(ua) : vcat(old_u, DataFrame(ua); cols = :union)
+        CSV.write(fu, sort(u, :rho))
     end
-    isempty(ua) || CSV.write(fu, DataFrame(ua))
-    aa = NamedTuple[]; ems = DataFrame(time = YEARS); prs = DataFrame(time = YEARS)
-    for pi in PI_GRID
+    # ── autarky runs: compute only the missing pi ────────────────────────────
+    fa  = joinpath(EX1_DIR, "autarky_$(entity).csv")
+    fe  = joinpath(EX1_DIR, "autarky_emissions_$(entity).csv")
+    fp  = joinpath(EX1_DIR, "autarky_row_price_$(entity).csv")
+    todo_pi, old_a = todo_values(fa, :pi, PI_GRID)
+    isempty(todo_pi) && @info "autarky runs already on disk" entity
+    aa  = NamedTuple[]
+    ems = isfile(fe) ? CSV.read(fe, DataFrame) : DataFrame(time = YEARS)
+    prs = isfile(fp) ? CSV.read(fp, DataFrame) : DataFrame(time = YEARS)
+    for pi in todo_pi
         r = run_autarky_point(ma, entity, pi)
         push!(aa, (pi = r.pi, welfare = r.welfare, cons = r.cons, calib_err = r.calib_err,
                    path_missed = r.path_missed, row_price_negative = r.row_price_negative,
@@ -204,10 +225,15 @@ function run_grid(entity::String)
         @printf("  [%s] autarky pi = %4.2f  welfare %.4f  cons %.4f  (calib err %.4f%%)\n",
                 entity, pi, r.welfare, r.cons, r.calib_err * 100)
         flush(stdout)
+        # saved after every pi, for the same reason as the uniform points above
+        a = old_a === nothing ? DataFrame(aa) : vcat(old_a, DataFrame(aa); cols = :union)
+        CSV.write(fa, sort(a, :pi))
+        # the per-year files carry one column per pi; keep them in pi order
+        order(df) = df[!, vcat("time", sort(filter(!=("time"), names(df)),
+                                            by = n -> parse(Float64, replace(n, "pi_" => ""))))]
+        CSV.write(fe, order(ems))
+        CSV.write(fp, order(prs))
     end
-    CSV.write(joinpath(EX1_DIR, "autarky_$(entity).csv"), DataFrame(aa))
-    CSV.write(joinpath(EX1_DIR, "autarky_emissions_$(entity).csv"), ems)
-    CSV.write(joinpath(EX1_DIR, "autarky_row_price_$(entity).csv"), prs)
     @printf("### %s done in %.1f min\n", entity, (time() - t0) / 60)
 end
 
@@ -231,8 +257,13 @@ function indifference_rho(rhos, vals, target)
     return rhos[k] + (target - vals[k]) / slope
 end
 
-"First-order prediction (equation rhohat_dyn): per capita, weighted by beta_t p*_t."
-function predicted_rho1(entity::String, emissions::Vector{Float64}; pc = true)
+"""
+First-order prediction, equation (rhohat_dyn): the entity's emissions over its
+population share of world emissions, each year weighted by the discounted price.
+Under total utilitarianism the weights carry the population, so the ratio is one
+of totals; `pc = true` returns the per-capita variant, reported alongside it.
+"""
+function predicted_rho1(entity::String, emissions::Vector{Float64}; pc = false)
     idx = entity_indices(entity)
     w   = NPV_DISC .* P_STAR[NPV_IDX]
     n   = vec(sum(BASE.pop[:, idx], dims = 2))[NPV_IDX]
@@ -266,7 +297,7 @@ function write_curves_and_table()
         rel = (sum(BASE.ems[t30, idx]) / sum(BASE.pop[t30, idx])) / (BASE.E[t30] / BASE.N[t30])
         c1  = only(filter(r -> r.pi == 1.0, curves[findall(c -> c.country == entity, curves)]))
         push!(rows, (country = entity, emissions_pc_2030 = epc, emissions_pc_rel_2030 = rel,
-                     rho_hat = predicted_rho1(entity, e1), rho_hat_pop = predicted_rho1(entity, e1; pc = false),
+                     rho_hat = predicted_rho1(entity, e1), rho_hat_pc = predicted_rho1(entity, e1; pc = true),
                      rho1_welfare = c1.rho_welfare, rho1_cons = c1.rho_cons))
     end
     CSV.write(joinpath(EX1_DIR, "indifference_curves.csv"), DataFrame(curves))

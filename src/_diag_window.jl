@@ -16,11 +16,16 @@ tot  = f64(m[:quantile_recycle, :sum_conso_pc_post_recycle]) ./ NB_QUANTILE
 # the proposal run, same configuration
 mp = run_autarky!(make_autarky_model(RECYCLE_SHARE), P.tax)
 totp = f64(mp[:quantile_recycle, :sum_conso_pc_post_recycle]) ./ NB_QUANTILE
+# population weights: the criteria are total-utilitarian, so a year counts for
+# the number of people alive in it
+popu = population(m)
+popp = population(mp)
 for (lbl, yrs) in (("2030-2100", 2030:2100), ("2025-2100", 2025:2100))
     idx = [YEAR_IDX[y] for y in yrs]; disc = [1/(1.03)^(y - first(yrs)) for y in yrs]
     gaps = Float64[]
     for c in P.members
-        a = sum(tot[idx, c] .* disc); b = sum(totp[idx, c] .* disc)
+        a = sum(tot[idx, c] .* popu[idx, c] .* disc)
+        b = sum(totp[idx, c] .* popp[idx, c] .* disc)
         push!(gaps, (a - b) / abs(b) * 100)
     end
     w = [sum(P.pop[idx, c]) for c in P.members]; w ./= sum(w)

@@ -1,4 +1,4 @@
-\begin{thebibliography}{30}
+\begin{thebibliography}{28}
 \providecommand{\natexlab}[1]{#1}
 \providecommand{\url}[1]{\texttt{#1}}
 \expandafter\ifx\csname urlstyle\endcsname\relax
@@ -11,13 +11,6 @@ J.~E. Aldy \& R.~N. Stavins.
   and {{Experience}}.
 \newblock \emph{The Journal of Environment \& Development}, 2012.
 \newblock \url{https://doi.org/10.1177/1070496512442508}.
-
-\bibitem[Anthoff \& Emmerling(2019)]{anthoff_inequality_2019}
-D.~Anthoff \& J.~Emmerling.
-\newblock Inequality and the {{Social Cost}} of {{Carbon}}.
-\newblock \emph{Journal of the Association of Environmental and Resource
-  Economists}, 2019.
-\newblock \url{https://www.journals.uchicago.edu/doi/10.1086/701900}.
 
 \bibitem[Anthoff et~al.(2026)Anthoff, Dennig, \&
   Emmerling]{anthoff_differentiated_2026}
@@ -76,13 +69,6 @@ J.~Chateau, F.~Jaumotte, \& G.~Schwerhoff.
 \newblock Global climate policy with differentiated carbon price floors.
 \newblock \emph{Climate Policy}, 2024.
 \newblock \url{https://doi.org/10.1080/14693062.2023.2205376}.
-
-\bibitem[Chichilnisky \& Heal(1994)]{chichilnisky_who_1994}
-G.~Chichilnisky \& G.~Heal.
-\newblock Who should abate carbon emissions?: {{An}} international viewpoint.
-\newblock \emph{Economics Letters}, 1994.
-\newblock
-  \url{http://www.sciencedirect.com/science/article/pii/0165176594901198}.
 
 \bibitem[Cramton et~al.(2017)Cramton, MacKay, \&
   Ockenfels]{cramton_global_2017}
@@ -184,12 +170,10 @@ I.~Parry, S.~Black, \& J.~Roaf.
 \newblock
   \url{https://www.imf.org/en/Publications/staff-climate-notes/Issues/2021/06/15/Proposal-for-an-International-Carbon-Price-Floor-Among-Large-Emitters-460468}.
 
-\bibitem[Shiell(2003)]{shiell_equity_2003}
-L.~Shiell.
-\newblock Equity and efficiency in international markets for pollution permits.
-\newblock \emph{Journal of Environmental Economics and Management}, 2003.
-\newblock
-  \url{https://www.sciencedirect.com/science/article/pii/S0095069602000281}.
+\bibitem[Sandmo(2006)]{sandmo_global_2006}
+A.~Sandmo.
+\newblock Global public economics: Public goods and externalities.
+\newblock \emph{\'Economie publique}, 2006.
 
 \bibitem[{UNEP}(2025)]{unep_emissions_2025}
 {UNEP}.

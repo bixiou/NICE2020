@@ -1,0 +1,16 @@
+ede/A/Wolfram
+cons/A/Wolfram
+ede/B/Wolfram
+cons/B/Wolfram
+cons/A/Duflo
+ede/A/Duflo
+ede/B/Duflo
+cons/B/Duflo
+ede/A/EqualRight5
+cons/A/EqualRight5
+ede/B/EqualRight5
+cons/B/EqualRight5
+ede/A/EqualRight
+cons/A/EqualRight
+ede/B/EqualRight
+cons/B/EqualRight
