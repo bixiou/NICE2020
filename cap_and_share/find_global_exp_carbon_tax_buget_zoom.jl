@@ -13,12 +13,25 @@ using Mimi, MimiFAIRv2, DataFrames, CSVFiles
 
 # --- Tax and budget start parameters ---
 const tax_start_year        = 2030     # tax start year (2025, 2030…)
-const evaluation_end_year   = 2100    # the end of the year for budgeting and well-being
-const emission_budget_limit = 1000   # budget max GtCO2 from tax_start_year to evaluation_end_year
-const temp_limit            = 2.00
-const use_budget            = false
+const evaluation_end_year   = 2100    # the end of the year for budgeting
+const welfare_end_year      = parse(Int, get(ENV, "NICE_WELFARE_END", string(evaluation_end_year)))  # last year of well-being counted
+                                      # (set to 2300, the model's horizon, so that the peak-warming ceiling is not
+                                      # enforced through years whose welfare the objective ignores)
+const emission_budget_limit = parse(Float64, get(ENV, "NICE_BUDGET_LIMIT", "1000"))  # GtCO2 from tax_start_year to evaluation_end_year
+const temp_limit            = parse(Float64, get(ENV, "NICE_TEMP_LIMIT", "2.00"))
+const use_budget            = get(ENV, "NICE_USE_BUDGET", "0") in ("1", "true")
+# With budget_exact the budget is spent exactly (cumulative emissions = the limit)
+# rather than being a ceiling: welfare includes damages, so a ceiling need not bind,
+# and the search then returns the damage-driven optimum rather than a budget path.
+const budget_exact          = get(ENV, "NICE_BUDGET_EXACT", "0") in ("1", "true")
+const budget_start_year     = parse(Int, get(ENV, "NICE_BUDGET_START", string(tax_start_year)))  # first year counted in the budget
 const ramp_up               = 5     # Number of periods the tax is linearly ramped up
-rho = 0.015                       # discount rate
+rho = 0.003                      # pure rate of time preference (it discounts welfare_country,
+                                 # i.e. CRRA utility, not consumption). Set so that it matches the
+                                 # paper's 3% discounting OF CONSUMPTION: 1+r = (1+rho)(1+g)^eta with
+                                 # eta = 1.5 and g = 1.78%/yr, the model's own growth of mean
+                                 # consumption per capita over 2030-2100, gives rho = 0.31%.
+                                 # (Was 0.015; 3% here would be r = 5.7%.) See src/_diag_growth.jl.
 
 # budgets_ndc
 #       AFR       AUS       CAN       CHI       CSA       EEU       FSU       IND       JPN       MEA       MEX       ODA       SKO       USA       WEU     World 
@@ -85,22 +98,80 @@ years_vec  = collect(2020:2020+nb_steps-1)
 
 mask = (years_vec .>= tax_start_year) .& (years_vec .<= evaluation_end_year)
 discount = (1 .+ rho) .^ collect(0:(evaluation_end_year - tax_start_year))
+bmask     = (years_vec .>= budget_start_year) .& (years_vec .<= evaluation_end_year)   # budget window
+wmask     = (years_vec .>= tax_start_year) .& (years_vec .<= welfare_end_year)
+wdiscount = (1 .+ rho) .^ collect(0:(welfare_end_year - tax_start_year))
 
 # === Zoom-progressive search with carbon budget constraint ===
-const n_zoom    = 3       # number of zoom iterations
+const n_zoom    = parse(Int, get(ENV, "NICE_N_ZOOM", "3"))       # number of zoom iterations
 const n_points  = 11      # 11×11 grids
 # initial bounds 
 const start_first  = 0
 const start_last   = 2000
-const g_rate_first = 0.0
-const g_rate_last  = 0.20
+const g_rate_first = parse(Float64, get(ENV, "NICE_B_MIN", "0.0"))   # settable, so an interrupted
+                                                                     # search can resume from a later level
+const g_rate_last  = parse(Float64, get(ENV, "NICE_B_MAX", "0.20"))
 start_min, start_max = start_first, start_last
 rate_min,  rate_max  = g_rate_first, g_rate_last
 
 best_welfare = -Inf
 best_params  = (NaN, NaN)
 
+if use_budget && budget_exact
+    # For each growth rate B, the start level A that spends the budget exactly:
+    # regula falsi (Illinois variant), cumulative emissions falling monotonically
+    # in A. Then zoom on B for the highest welfare. A 2-D grid cannot hit an
+    # equality, which is why this mode searches over B alone.
+    budget_gap(A, B) = sum(test_global_exp_c_tax(A, B)[1][bmask]) - emission_budget_limit
+    function A_for_budget(B; lo = Float64(start_first), hi = Float64(start_last),
+                          tol = 0.5, max_iter = 40)          # tol in GtCO2
+        f_lo, f_hi = budget_gap(lo, B), budget_gap(hi, B)
+        (f_lo > 0 && f_hi < 0) || return NaN                  # not attainable in [lo, hi]
+        side = 0
+        for it in 1:max_iter
+            A = (lo * f_hi - hi * f_lo) / (f_hi - f_lo)
+            f = budget_gap(A, B)
+            abs(f) < tol && return A
+            if f > 0                                         # too many emissions: raise A
+                lo, f_lo = A, f
+                side == 1 && (f_hi /= 2)
+                side = 1
+            else
+                hi, f_hi = A, f
+                side == -1 && (f_lo /= 2)
+                side = -1
+            end
+        end
+        return (lo + hi) / 2
+    end
+    B_min, B_max = g_rate_first, g_rate_last
+    for zoom in 1:n_zoom
+        global B_min, B_max, best_welfare, best_params
+        println("Zoom niveau $zoom (budget exact): B∈[$B_min,$B_max]")
+        B_vals = range(B_min, stop = B_max, length = n_points)
+        wel = fill(-Inf, n_points); As = fill(NaN, n_points)
+        for (j, B) in enumerate(B_vals)
+            A = A_for_budget(B)
+            isnan(A) && continue
+            _, welfare, _ = test_global_exp_c_tax(A, B)
+            w = sum(welfare[wmask] ./ wdiscount)
+            As[j], wel[j] = A, (isfinite(w) ? w : -Inf)
+            println("    B = ", round(B, digits = 5), ": A = ", round(A, digits = 2), ", welfare = ", w)
+            flush(stdout)
+        end
+        j = argmax(wel)
+        println("  → meilleur A=$(As[j]), B=$(B_vals[j]), welfare=$(wel[j])")
+        flush(stdout)
+        if wel[j] > best_welfare
+            best_welfare, best_params = wel[j], (As[j], B_vals[j])
+        end
+        B_min, B_max = B_vals[max(j - 1, 1)], B_vals[min(j + 1, n_points)]
+    end
+else
 for zoom in 1:n_zoom
+    # `global`: the loop both reads and rewrites these bounds, and a top-level
+    # loop in a script would otherwise make them local (and so undefined here)
+    global start_min, start_max, rate_min, rate_max, best_welfare, best_params
     println("Zoom niveau $zoom: domaine A∈[$start_min,$start_max], B∈[$rate_min,$rate_max]")
     A_vals = range(start_min, stop=start_max, length=n_points)
     B_vals = range(rate_min,  stop=rate_max,  length=n_points)
@@ -113,12 +184,14 @@ for zoom in 1:n_zoom
         emissions, welfare, temperature = test_global_exp_c_tax(A, B)
 
         # we restrict to the years [tax_start_year, evaluation_end_year]
-        emis_zoom = emissions[mask]
-        wel_zoom  = welfare[mask] ./ discount
+        emis_zoom = emissions[bmask]
+        wel_zoom  = welfare[wmask] ./ wdiscount
 
         # carbon budget constraint or temperature ceiling
         if ((use_budget & (sum(emis_zoom) <= emission_budget_limit)) | (!use_budget & (maximum(temperature) < temp_limit))) # temperature[evaluation_end_year - 2020 + 1]
-            welfare_grid[i, j] = sum(wel_zoom)
+            # a run that breaks down numerically must not win: argmax ranks NaN above every number
+            w = sum(wel_zoom)
+            welfare_grid[i, j] = isfinite(w) ? w : -Inf
         end
         # sinon reste -Inf
     end
@@ -130,6 +203,7 @@ for zoom in 1:n_zoom
     best_A, best_B = A_vals[i_max], B_vals[j_max]
     best_val       = welfare_grid[i_max, j_max]
     println("  → meilleur A=$(best_A), B=$(best_B), welfare=$best_val")
+    flush(stdout)  # progress visible when the output is redirected to a file
 
     # memorize if it's the best overall
     if best_val > best_welfare
@@ -147,14 +221,16 @@ for zoom in 1:n_zoom
     rate_min,  rate_max  = minimum(B_neighbors), maximum(B_neighbors)
 end
 
+end   # use_budget && budget_exact
+
 # --- Checking total emissions for the optimum path ---
 emissions_opt, welfare_opt, temperature_opt = test_global_exp_c_tax(best_params[1], best_params[2])
 
 # We keep only the period [tax_start_year, evaluation_end_year]
-emis_budget = emissions_opt[mask]
+emis_budget = emissions_opt[bmask]
 
 total_emis_opt = sum(emis_budget)
-println("Total emissions of  ", tax_start_year, " to ", evaluation_end_year,
+println("Total emissions of  ", budget_start_year, " to ", evaluation_end_year,
         " for the scenario : ", total_emis_opt, " GtCO2")
 
 println("\n=== Final result ===")
@@ -164,6 +240,18 @@ println("Total discounted welfare = $best_welfare")
 # Saving the results
 save(joinpath("data","uniform_exp_tax_path_params.csv"),
      DataFrame(path=collect(best_params)); header=false)
+
+# The winning path as p*: the very vector the search evaluated for it (ramp-up,
+# plateau and all), so that its peak warming is the one checked above. Read by
+# read_price_path in src/equivalent_rights_proposals.jl; src/_write_exp_path.jl
+# rebuilds the same file from the saved parameters.
+let path = exp_tax_trajectory(tax_start_value = best_params[1], g_rate = best_params[2],
+                              year_tax_start = tax_start_year, year_tax_end = 2200,
+                              ramp_up = ramp_up)
+    out = joinpath(@__DIR__, "data", "output", "calibrated_global_exp.csv")
+    save(out, DataFrame(time = collect(2020:(2020 + length(path) - 1)), global_tax = path))
+    println("Written: ", out)
+end
 
 # # Save selected carbon tax pathway to CSV
 # tax_path = parse.(Float64, split(tax_path[1], '_'))

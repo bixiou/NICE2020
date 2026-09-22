@@ -192,19 +192,45 @@ function entity_indices(name::AbstractString)
 end
 
 # ── reference uniform price p*(t): calibrated 1.8C cap-and-share path ─────────
-const P_STAR = let p = zeros(Float64, NB_STEPS)
-    df = CSV.read(joinpath(ROOT, "cap_and_share", "data", "output", "calibrated_global_cs.csv"), DataFrame)
-    d = Dict(Int(r.time) => Float64(r.global_tax) for r in eachrow(df))
+# p*: the exponential 1.8C path found by cap_and_share/find_global_exp_carbon_tax_buget_zoom.jl.
+# That script searches the start level A and growth rate B of
+#     exp_tax_trajectory(tax_start_value = A, g_rate = B, year_tax_start = 2030,
+#                        year_tax_end = 2200, ramp_up = 5)
+# (src/helper_functions.jl) and keeps the pair that maximises discounted world
+# welfare (utility, pure rate of time preference 0.3%) subject to peak warming
+# staying below 1.8C, the whole world taxed, no recycling. The path is zero
+# before 2025, ramps linearly from 0 in 2025 to A in 2030, is A in 2031, grows
+# at B a year to 2200 and is flat afterwards. calibrated_global_exp.csv holds
+# that exact vector (src/_write_exp_path.jl writes it from the saved A and B),
+# so p* is the path the search validated, with no re-extrapolation.
+function read_price_path(file)
+    p  = zeros(Float64, NB_STEPS)
+    df = CSV.read(joinpath(ROOT, "cap_and_share", "data", "output", file), DataFrame)
+    d  = Dict(Int(r.time) => Float64(r.global_tax) for r in eachrow(df))
     first_y, last_y = minimum(keys(d)), maximum(keys(d))
-    # back-extrapolate to PRICE_START_YEAR at the path's own initial growth rate
-    g = d[first_y + 1] / d[first_y]
     for (i, y) in enumerate(YEARS)
         p[i] = y < PRICE_START_YEAR ? 0.0 :
-               y < first_y          ? d[first_y] / g^(first_y - y) :
+               # a file starting after PRICE_START_YEAR is extended back at its own
+               # first-year growth rate (the calibrated path starts in 2030)
+               y < first_y          ? d[first_y] / (d[first_y + 1] / d[first_y])^(first_y - y) :
                y <= last_y          ? get(d, y, 0.0) : d[last_y]
     end
-    p
+    return p
 end
+
+const P_STAR = read_price_path("calibrated_global_exp.csv")
+
+# The previous benchmark, no longer used. It was calibrated year by year by
+# cap_and_share/calibrate_global_tax_club_emissions.jl: in each year, the uniform
+# global tax (found by bisection, bracketed around the previous year's tax) at
+# which the model's emissions equal the 1.8C cap-and-share trajectory
+# cap_and_share/data/input/E_global_cs_2020_2300.csv (31.4 GtCO2 in 2030, zero
+# from 2079), and the backstop price once that trajectory reaches zero. No growth
+# rule is imposed: $42.6/t in 2030, $206 in 2050, $402 in 2070, the backstop
+# (~$471) by 2100, i.e. growth sliding from 16% to ~3% a year. The file starts in
+# 2030 and was extended back to 2025 at its 2030-31 growth rate. Results based on
+# it are kept in cap_and_share/output/_backup_yearly_price_20260921/.
+# const P_STAR_CS = read_price_path("calibrated_global_cs.csv")
 
 # ──────────────────────────────────────────────────────────────────────────────
 # MODEL RUNNERS
@@ -244,9 +270,27 @@ prices every country, the legacy Duflo everything but the HICs.
 """
 proposal_members(tax::Matrix{Float64}) = [c for c in 1:NB_COUNTRY if any(>(0.0), @view tax[:, c])]
 
-"Model configured for the *club price + differentiated rights* regime."
-function make_uniform_model(recycle_share, members::Vector{Int})
+"""
+    make_uniform_model(recycle_share, members; fixed_temp)
+
+Model configured for the *club price + differentiated rights* regime.
+
+`fixed_temp` holds the damage side of the model at a given path of local
+temperatures, by disconnecting the damage component from the climate module.
+This is what the "reduced emissions" solve needs: Propositions 1 and 2 compare
+the two regimes *at the same damages*, so the equivalent allocation must not
+credit a member with the damages avoided by the tighter cap. Left endogenous,
+the solve keeps cutting emissions as long as the club's avoided damages exceed
+its abatement costs -- which, for a club whose price is below its own marginal
+damage, they do for a long way -- and the resulting cut would measure the
+ambition of the cap rather than the efficiency gain of uniform pricing.
+"""
+function make_uniform_model(recycle_share, members::Vector{Int}; fixed_temp = nothing)
     m = MimiNICE2020.create_nice2020()
+    if fixed_temp !== nothing
+        disconnect_param!(m, :damages, :local_temp_anomaly)
+        update_param!(m, :damages, :local_temp_anomaly, fixed_temp)
+    end
     update_param!(m, :switch_custom_transfers,                    1)
     update_param!(m, :switch_recycle,                             1)
     update_param!(m, :switch_global_recycling,                    1)
@@ -308,59 +352,73 @@ club_emissions(m)    = f64(m[:emissions, :E_gtco2_club])
 club_emissions(ems::Matrix{Float64}, members::Vector{Int}) =
     vec(sum(@view(ems[:, members]), dims = 2))
 
-"NPV of each country's mean consumption per capita (thousand USD2017/person)."
-function country_mean_cons(m)
-    tot = f64(m[:quantile_recycle, :sum_conso_pc_post_recycle]) ./ NB_QUANTILE
-    return [npv(@view tot[:, c]) for c in 1:NB_COUNTRY]
-end
-
-"""
-    mean_consumption(m, pop)
-
-Population-weighted world mean consumption per capita (thousand USD2017/person),
-the utilitarian counterpart of `cons_EDE_global`: same consumption concept (post
-damage, abatement and recycling), aggregated with no inequality aversion. The
-EDE answers "is the world better off once distribution is priced in", this one
-answers "is there more consumption in total" -- the pure efficiency question the
-Step 3 dominance result speaks to.
-"""
-function mean_consumption(m, pop)
-    tot = f64(m[:quantile_recycle, :sum_conso_pc_post_recycle]) ./ NB_QUANTILE
-    return vec(sum(tot .* pop, dims = 2)) ./ vec(sum(pop, dims = 2))
-end
-
 const NPV_IDX = [YEAR_IDX[y] for y in YEARS_NPV]
 const NPV_DISC = [1 / (1 + DISCOUNT_RATE)^(y - first(YEARS_NPV)) for y in YEARS_NPV]
 
 npv(series::AbstractVector) = sum(series[NPV_IDX] .* NPV_DISC)
 
 """
-    entity_welfare_npv(m, idx, pop)
+    npv_pop(series, pop)
 
-NPV of equally-distributed-equivalent consumption for an entity made of the
-country indices `idx`. A multi-country entity (the EU27) is aggregated with the
-model's own population-weighted EDE, so the bloc figure is comparable to a
-single country's.
+Total-utilitarian NPV: the per-capita `series` weighted by the population alive
+in each year. Every criterion below is of this form, because the welfare of a
+country is the sum of the welfare of its residents, not the welfare of a
+representative one: a year in which the country has more people counts for more.
+This is what puts the factor n_it in the dynamic indifference condition of the
+paper, and what makes the Hotelling case a statement about shares of the carbon
+budget rather than about per-capita emissions.
 """
-function entity_welfare_npv(m, idx::Vector{Int}, pop::Matrix{Float64})
-    ede = f64(m[:welfare, :cons_EDE_country])
-    if length(idx) == 1
-        return npv(@view ede[:, idx[1]])
-    end
-    agg = [MimiNICE2020.EDE_aggregated(ede[t, idx], pop[t, idx], ETA) for t in 1:NB_STEPS]
-    return npv(agg)
+npv_pop(series::AbstractVector, pop::AbstractVector) =
+    sum(series[NPV_IDX] .* pop[NPV_IDX] .* NPV_DISC)
+
+"NPV of each country's total consumption (population-weighted, USD2017)."
+function country_cons_npv(m)
+    tot = f64(m[:quantile_recycle, :sum_conso_pc_post_recycle]) ./ NB_QUANTILE
+    pop = population(m)
+    return [npv_pop(@view(tot[:, c]), @view(pop[:, c])) for c in 1:NB_COUNTRY]
 end
 
-world_welfare_npv(m) = npv(f64(m[:welfare, :cons_EDE_global]))
+"""
+    world_cons_npv(m, pop)
+
+NPV of world total consumption: the utilitarian counterpart of the global EDE,
+with the same consumption concept (post damage, abatement and recycling) and no
+inequality aversion. The EDE answers "is the world better off once distribution
+is priced in", this one answers "is there more consumption in total".
+"""
+function world_cons_npv(m, pop)
+    tot = f64(m[:quantile_recycle, :sum_conso_pc_post_recycle]) ./ NB_QUANTILE
+    return sum(vec(sum(tot .* pop, dims = 2))[NPV_IDX] .* NPV_DISC)
+end
+
+"""
+    entity_welfare_npv(m, idx, pop)
+
+NPV of the equally-distributed-equivalent consumption of an entity made of the
+country indices `idx`, weighted by its population (total utilitarianism). A
+multi-country entity (the EU27) is aggregated with the model's own
+population-weighted EDE, so the bloc figure is comparable to a single country's.
+"""
+function entity_welfare_npv(m, idx::Vector{Int}, pop::Matrix{Float64})
+    ede  = f64(m[:welfare, :cons_EDE_country])
+    npop = [sum(@view pop[t, idx]) for t in 1:NB_STEPS]
+    length(idx) == 1 && return npv_pop(@view(ede[:, idx[1]]), npop)
+    agg = [MimiNICE2020.EDE_aggregated(ede[t, idx], pop[t, idx], ETA) for t in 1:NB_STEPS]
+    return npv_pop(agg, npop)
+end
+
+world_welfare_npv(m) = npv_pop(f64(m[:welfare, :cons_EDE_global]),
+                               vec(sum(population(m), dims = 2)))
 
 "What the proposal delivers to `entity` on the measure the solvers equalise."
 target_value(P, entity::AbstractString) = TARGET == "cons" ? P.cons[entity] : P.welfare[entity]
 
 "The same measure for every country, read off a model run."
 function objective_by_country(m)
-    TARGET == "cons" && return country_mean_cons(m)
+    TARGET == "cons" && return country_cons_npv(m)
     ede = f64(m[:welfare, :cons_EDE_country])
-    return [npv(@view ede[:, c]) for c in 1:NB_COUNTRY]
+    pop = population(m)
+    return [npv_pop(@view(ede[:, c]), @view(pop[:, c])) for c in 1:NB_COUNTRY]
 end
 
 """
@@ -564,6 +622,16 @@ const PBACKTIME = f64(REFERENCE_RUN[:abatement, :pbacktime])
 
 const CACHE_DIR = joinpath(OUTPUT_BASE, "cache")
 
+# Identifies the welfare criteria the cached proposals were built with; see
+# `build_proposal`. "popw" = population-weighted NPVs (total utilitarianism).
+const CRITERION_VERSION = "popw-2026-09"
+
+# Everything cached below also depends on the recycling shares (set by the
+# reference run at p*) and on p* itself; hashing them into the keys means a new
+# price path can never be served results computed on an old one.
+const RUN_CONFIG = hash((CRITERION_VERSION, round.(RECYCLE_SHARE, digits = 10),
+                         round.(P_STAR, digits = 6)))
+
 # ──────────────────────────────────────────────────────────────────────────────
 # SCENARIO DATA
 # ──────────────────────────────────────────────────────────────────────────────
@@ -602,7 +670,7 @@ silently. Set NICE_NO_CACHE=1 to recompute regardless.
 """
 function cached_p_ref(f, name, tax, members, ce)
     key  = string(hash((round.(tax, digits = 6), members, round.(ce, digits = 8),
-                        collect(CALIB_YEARS))), base = 16)
+                        collect(CALIB_YEARS), RUN_CONFIG)), base = 16)
     path = joinpath(CACHE_DIR, "p_ref_$(lowercase(name))_$key.csv")
     if !FRESH && get(ENV, "NICE_NO_CACHE", "0") == "0" && isfile(path)
         df = CSV.read(path, DataFrame)
@@ -639,7 +707,13 @@ function build_proposal(name, tax)
     # A proposal is expensive to build (an autarky run plus the p_ref
     # calibration) and depends only on its own price schedule, so cache it:
     # rebuilding the tables then costs no model runs at all.
-    key   = string(hash((name, round.(tax, digits = 6))), base = 16)
+    #
+    # CRITERION_VERSION is part of the key because a Proposal carries the target
+    # values the solvers aim at (`welf`, `consd` and their world counterparts),
+    # which are criterion-dependent. When the criteria moved from per-capita NPVs
+    # to population-weighted ones, a stale cache silently fed the solver targets
+    # a million times too small. Bump this string whenever a criterion changes.
+    key   = string(hash((name, round.(tax, digits = 6), RUN_CONFIG)), base = 16)
     cpath = joinpath(CACHE_DIR, "proposal_$(lowercase(name))_$key.jls")
     if !FRESH && isfile(cpath)
         try
@@ -701,12 +775,40 @@ function build_proposal_uncached(name, tax)
     @printf("  p_ref(%s): 2030 = %.1f, 2050 = %.1f, 2100 = %.1f \$/t (calib error %.4f%%)\n",
             name, p_ref[YEAR_IDX[2030]], p_ref[YEAR_IDX[2050]], p_ref[YEAR_IDX[2100]], err * 100)
 
-    cmc  = country_mean_cons(m)
+    cmc  = country_cons_npv(m)
     consd = Dict(string(COUNTRIES[c]) => cmc[c] for c in 1:NB_COUNTRY)
 
     return Proposal(name, tax, members, pop, ems, we, ce, wp, cp, ce ./ cp, welf, consd,
-                    world_welfare_npv(m), npv(mean_consumption(m, pop)),
+                    world_welfare_npv(m), world_cons_npv(m, pop),
                     temperature(m)[YEAR_IDX[2100]], p_ref)
+end
+
+"""
+    proposal_local_temp(P)
+
+The country-level temperature path under the proposal itself, used to hold
+damages fixed in the "reduced emissions" solve (see `make_uniform_model`).
+One model run, cached on disk like the proposal itself.
+"""
+function proposal_local_temp(P::Proposal)
+    key  = string(hash((P.name, round.(P.tax, digits = 6), RUN_CONFIG)), base = 16)
+    path = joinpath(CACHE_DIR, "localtemp_$(lowercase(P.name))_$key.jls")
+    if !FRESH && isfile(path)
+        try
+            return Serialization.deserialize(path)::Matrix{Float64}
+        catch err
+            @warn "could not read the cached local temperatures, recomputing" P.name err
+        end
+    end
+    m = run_autarky!(make_autarky_model(RECYCLE_SHARE), P.tax)
+    T = f64(m[:pattern_scale, :local_temperature])
+    mkpath(CACHE_DIR)
+    try
+        Serialization.serialize(path, T)
+    catch err
+        @warn "could not cache the local temperatures" P.name err
+    end
+    return T
 end
 
 # ──────────────────────────────────────────────────────────────────────────────
@@ -902,6 +1004,26 @@ function predicted_rho_priced(entity::AbstractString, P::Proposal)
     return den > 0 ? sum(own .* w) / den : NaN
 end
 
+"""
+Average-utilitarian variant of `predicted_rho_priced`:
+    rho_hat_i = sum_t beta_t p*_t e^A_it / sum_t beta_t p*_t ebar_t,
+with e^A_it the entity's emissions per capita under the proposal and ebar_t the
+club's. It drops the factor n_it of equation (rhohat_dyn), i.e. it weighs a year
+by the discounted price alone rather than also by the number of people alive in
+it. The solvers equalise population-weighted NPVs (total utilitarianism), so
+`predicted_rho_priced` is the prediction the theory gives and the one the tables
+report; this one is kept as a robustness column, and differs mainly for
+fast-growing countries, whose late years the totals version weighs more.
+"""
+function predicted_rho_pc(entity::AbstractString, P::Proposal)
+    idx = intersect(entity_indices(entity), P.members)
+    isempty(idx) && return NaN
+    w   = NPV_DISC .* P.p_ref[NPV_IDX]
+    own = (vec(sum(P.emissions[:, idx], dims = 2)) ./ vec(sum(P.pop[:, idx], dims = 2)))[NPV_IDX]
+    den = sum(P.ebar[NPV_IDX] .* w)
+    return den > 0 ? sum(own .* w) / den : NaN
+end
+
 "`predicted_rho` (discounted, not price-weighted) for a reporting entity."
 function predicted_rho_paper(entity::AbstractString, P::Proposal)
     idx = intersect(entity_indices(entity), P.members)
@@ -932,6 +1054,9 @@ end
 # The three predictions of rho the combined tables can carry, with the sentence
 # that defines each in the table note. `:formula` is the one the theory implies.
 const PREDICTORS = Dict(
+    :pc      => (predicted_rho_pc,
+                 "the country's emissions per capita under the proposal over the club's, each year " *
+                 "weighted by the discounted uniform price over 2030--2100 (equation~\\eqref{eq:rhohat_dyn})"),
     :formula => (predicted_rho_priced,
                  "the country's own emissions under the proposal over an equal-per-capita share of " *
                  "the club's, each year weighted by the discounted club price over 2030--2100"),
@@ -1233,11 +1358,77 @@ function solve_option_B(P::Proposal; kwargs...)
     return solve_option_B(P, rho0; kwargs...)
 end
 
+# Variant 1 of the joint solve, "reduced emissions": every member exactly as
+# well off as under the proposal. Nested: the inner problem holds the level L
+# (population-weighted mean rho, i.e. the cap relative to the proposal's
+# emissions) fixed and equalises the members' relative gains -- a well-behaved
+# problem, `solve_option_B(fix_level = true)`; the outer problem is a 1-D secant
+# on L until that common gain is zero. Solving level and spread in one loop
+# (fix_level = false) does not work: the common gain responds weakly to L (a
+# few hundredths of a percent over ten points of cap, because the tighter cap is
+# largely paid for by avoided damages), so its secant is swamped by the noise of
+# the simultaneous share updates and overshoots.
+function solve_joint_indifferent(P::Proposal, rho_init::Vector{Float64};
+                                 tol_gain = 1e-5, tol_spread = 1e-5, max_outer = 10,
+                                 slope_guess = 3e-3, max_level_step = 0.10,
+                                 fixed_temp = proposal_local_temp(P))
+    wts = zeros(Float64, NB_COUNTRY)
+    for c in P.members
+        wts[c] = sum(@view P.pop[CALIB_IDX, c])
+    end
+    wts ./= sum(wts)
+    rho = copy(rho_init)
+    hist = Tuple{Float64,Float64}[]            # (level, common gain)
+    gap, price = Inf, copy(P.p_ref)
+    for k in 1:max_outer
+        L = sum(rho .* wts)
+        rho, gap, price, g = solve_option_B(P, rho; fix_level = true, tol = tol_spread,
+                                            tol_floor = tol_spread, label = "B1.$k", max_iter = 100,
+                                            fixed_temp = fixed_temp)
+        push!(hist, (L, g))
+        @printf("  [B1/%s] outer %d  level = %.4f  common gain = %+.5f%%  spread = %.5f%%\n",
+                P.name, k, L, g * 100, gap * 100)
+        flush(stdout)
+        abs(g) < tol_gain && break
+        # secant on the last two levels, else the prior slope (a looser cap, a
+        # higher gain: the slope is positive)
+        s = length(hist) >= 2 && abs(hist[end][1] - hist[end-1][1]) > 1e-9 ?
+            (hist[end][2] - hist[end-1][2]) / (hist[end][1] - hist[end-1][1]) : slope_guess
+        s <= 1e-6 && (s = slope_guess)
+        Lnew = clamp(L - g / s, L - max_level_step, L + max_level_step)
+        rho .*= Lnew / L
+    end
+    abs(hist[end][2]) < tol_gain || @warn "joint indifference: common gain not driven to zero" P.name hist
+    return rho, max(gap, abs(hist[end][2])), price
+end
+
+"""
+    renorm_rights(rho, P)
+
+Rights proportional to `rho_i * pop_i(t) * Ebar_S(t)`, rescaled year by year so
+that they add up to the club's own emissions under the proposal. Only the
+*relative* rho matter; this is the allocation of the "increased consumption"
+variant (the cap is the proposal's, the surplus is shared through the rho).
+"""
+renorm_rights(rho::Vector{Float64}, P::Proposal) = rescale_to(rights_from_rho(rho, P), P.club_emissions)
+
+# THE TWO JOINT PROBLEMS (Sept 2026 redefinition of the solves).
+#   fix_level = false, renorm = false  -> variant 1, "reduced emissions": every
+#       member exactly at its proposal level; the cap is the sum of the rights,
+#       so the level of rho is solved too and the whole surplus becomes a
+#       tighter cap. Converged on max|gap|.
+#   renorm = true                       -> variant 2, "increased consumption":
+#       the cap is the proposal's own emissions, year by year; the rho are
+#       shares, moved until every member gains the same relative amount, which
+#       is the maximin allocation. Converged on the spread of the gains.
+#   fix_level = true, renorm = false    -> the pre-Sept 2026 joint solve (level
+#       held at the starting vector's, spread solved); kept for reference.
 function solve_option_B(P::Proposal, rho_init::Vector{Float64};
                         max_iter = 400, tol = 2e-5, rho_min = -5.0, rho_max = 30.0,
-                        fix_level = true, calib_tol = 1e-4, calib_reject = 5e-3,
-                        tol_floor = 5e-6)
-    m = make_uniform_model(RECYCLE_SHARE, P.members)
+                        fix_level = true, renorm = false, calib_tol = 5e-5, calib_reject = 5e-3,
+                        tol_floor = 5e-6, level_step = 0.10, label = "B", fixed_temp = nothing)
+    renorm && (fix_level = true)          # with renormalised rights the level is moot
+    m = make_uniform_model(RECYCLE_SHARE, P.members; fixed_temp)
 
     # Everything below is indexed by country but lives on the club: non-members
     # hold no rights, face no price and have no welfare target, so they carry
@@ -1274,8 +1465,8 @@ function solve_option_B(P::Proposal, rho_init::Vector{Float64};
         for c in mem
             rho[c] = clamp(L * sigma[c], rho_min, rho_max)
         end
-        rights = rights_from_rho(rho, P)
-        cap    = vec(sum(rights, dims = 2))
+        rights = renorm ? renorm_rights(rho, P) : rights_from_rho(rho, P)
+        cap    = renorm ? copy(P.club_emissions) : vec(sum(rights, dims = 2))
         # A zero cap is normal in the years where the proposal itself drives the
         # club's emissions to zero (Wolfram's do from 2091 on): equal-per-capita
         # rights are zero there too, and the calibrator delivers them with the
@@ -1292,7 +1483,7 @@ function solve_option_B(P::Proposal, rho_init::Vector{Float64};
         price, cerr = calibrate_price_to_cap(m, rights, cap; p_init = price,
                                              tol = calib_tol,
                                              max_iter = (it == 1 ? 30 : 12),
-                                             label = "B/$(P.name) it$it")
+                                             label = "$(label)/$(P.name) it$it")
         # `calib_reject` is an absolute floor, NOT a multiple of calib_tol: the
         # calibrator cannot always reach its target in the late-century years
         # (where the cap is near zero and only the backstop delivers it), and
@@ -1323,8 +1514,8 @@ function solve_option_B(P::Proposal, rho_init::Vector{Float64};
         # around it is B's to solve. Convergence is therefore tested on the
         # distributional residual -- testing max|rel| instead puts the target
         # below |mbar| and the solver can never stop.
-        @printf("  [B/%s] iter %3d  max gap = %.4f%%  mean = %+.4f%%  spread = %.4f%%  step = %.3f  cap = %.1f%% of proposal (club)\n",
-                P.name, it, max_rel * 100, mbar * 100, maximum(abs, @view dev[mem]) * 100, step_limit,
+        @printf("  [%s/%s] iter %3d  max gap = %.4f%%  mean = %+.4f%%  spread = %.4f%%  step = %.3f  cap = %.1f%% of proposal (club)\n",
+                label, P.name, it, max_rel * 100, mbar * 100, maximum(abs, @view dev[mem]) * 100, step_limit,
                 sum(cap[CALIB_IDX]) / sum(P.club_emissions[CALIB_IDX]) * 100)
         flush(stdout)
 
@@ -1336,14 +1527,17 @@ function solve_option_B(P::Proposal, rho_init::Vector{Float64};
         # whenever the common gain is itself small, since a spread has to be
         # read against the gain it disperses; `tol_floor` stops the criterion
         # chasing zero when mbar happens to pass through it.
-        crit = max(tol_floor, min(tol, abs(mbar) / 2))
-        if max_dev < best_rel
-            best_rel = max_dev; best_rho = copy(rho); best_mbar = mbar
+        # With a free level (variant 1) the target is every gap at zero, so the
+        # criterion is on max|rel| itself, and the absolute `tol` applies.
+        crit  = fix_level ? max(tol_floor, min(tol, abs(mbar) / 2)) : tol
+        score = fix_level ? max_dev : max_rel
+        if score < best_rel
+            best_rel = score; best_rho = copy(rho); best_mbar = mbar
             step_limit = min(0.30, step_limit * 1.3)
         else
             step_limit = max(0.01, step_limit * 0.6)
         end
-        max_dev < crit && break
+        score < crit && break
 
         # ── level: 1-D secant on the population-weighted mean gap ────────────
         # A looser cap means a lower price, less abatement and higher welfare,
@@ -1356,15 +1550,19 @@ function solve_option_B(P::Proposal, rho_init::Vector{Float64};
             # level at its starting value and solve the distribution, reporting
             # the residual mean gap as the aggregate surplus of club pricing.
             L
-        elseif it == 1
-            L * 0.95                              # seed the secant
+        elseif isnan(mbar_prev) || abs(L - L_prev) < 1e-9
+            # seed the secant: a surplus (mbar > 0) means the cap can be tightened
+            L * (1 - sign(mbar) * 0.02)
         elseif !isnan(mbar_prev) && abs(L - L_prev) > 1e-9 &&
                (mbar - mbar_prev) / (L - L_prev) > 1e-9
             L - mbar / ((mbar - mbar_prev) / (L - L_prev))
         else
             L * (1 - clamp(2 * mbar, -0.2, 0.2))
         end
-        L_new = clamp(L_new, 0.2 * L, 1.8 * L)    # trust region on the level
+        # trust region on the level: the mean gap responds weakly to the level
+        # (a cap change of several points moves it by hundredths of a percent),
+        # so an unclamped secant step can leap to caps the backstop cannot meet
+        L_new = clamp(L_new, (1 - level_step) * L, (1 + level_step) * L)
 
         # ── shares: per-country secant on the distributional gap ─────────────
         sigma_new = copy(sigma)
@@ -1391,11 +1589,16 @@ function solve_option_B(P::Proposal, rho_init::Vector{Float64};
         error("option B produced no usable iteration for $(P.name): every one was rejected before " *
               "its welfare gaps could be scored (see the `non-positive` / `cap not attainable` warnings " *
               "above). The returned vector would be the starting point, not a solve.")
-    @printf("  [B/%s] best distributional gap = %.5f%% (target %.5f%%); residual mean gap = %+.4f%%, the aggregate surplus of club pricing at this level\n",
-            P.name, best_rel * 100, max(tol_floor, min(tol, abs(best_mbar) / 2)) * 100, best_mbar * 100)
-    best_rel > max(tol_floor, min(tol, abs(best_mbar) / 2)) &&
-        @warn "option B did not reach its tolerance" P.name best_rel mbar = best_mbar
-    return best_rho, best_rel, price
+    target_gap = fix_level ? max(tol_floor, min(tol, abs(best_mbar) / 2)) : tol
+    @printf("  [%s/%s] best %s gap = %.5f%% (target %.5f%%); mean gap = %+.4f%%%s\n",
+            label, P.name, fix_level ? "distributional" : "absolute", best_rel * 100, target_gap * 100,
+            best_mbar * 100, renorm ? ", the common gain at the proposal's cap" :
+                             fix_level ? ", the aggregate surplus at this level" : "")
+    best_rel > target_gap &&
+        @warn "option B did not reach its tolerance" label P.name best_rel mbar = best_mbar
+    # the 4th value is the population-weighted mean gap at the kept vector: the
+    # common gain when the level is fixed (existing callers take the first three)
+    return best_rho, best_rel, price, best_mbar
 end
 
 # ──────────────────────────────────────────────────────────────────────────────
@@ -1628,8 +1831,8 @@ used by variant 3.
 """
 function run_variant(P::Proposal, rho::Vector{Float64}, variant::Int, label::String;
                      p_init = nothing, model = nothing, floor_rho = nothing,
-                     calib_tol = 1e-4)
-    m = model === nothing ? make_uniform_model(RECYCLE_SHARE, P.members) : model
+                     calib_tol = 3e-5, fixed_temp = nothing)
+    m = model === nothing ? make_uniform_model(RECYCLE_SHARE, P.members; fixed_temp) : model
     rights, cap = if variant == 2
         r, c, _ = minimax_loss_rights(P, rho; label = "$(label)*", p_init, model = m)
         (r, c)
@@ -1653,13 +1856,16 @@ function run_variant(P::Proposal, rho::Vector{Float64}, variant::Int, label::Str
     # emissions); no variant uses that allocation, so this is a question about
     # the run, not a theorem, and it is worth printing.
     ede  = f64(m[:welfare, :cons_EDE_country])
-    cmc  = country_mean_cons(m)
+    cmc  = country_cons_npv(m)
+    # population-weighted, like the targets they are compared with: `P.welfare`
+    # is `entity_welfare_npv`, which carries the population of each year
+    mpop = population(m)
     ede_gain  = zeros(Float64, NB_COUNTRY)
     cons_gain = zeros(Float64, NB_COUNTRY)
     for c in 1:NB_COUNTRY
         e = string(COUNTRIES[c])
         w0, c0 = P.welfare[e], P.cons[e]
-        ede_gain[c]  = w0 != 0 ? (npv(@view ede[:, c]) - w0) / abs(w0) * 100 : 0.0
+        ede_gain[c]  = w0 != 0 ? (npv_pop(@view(ede[:, c]), @view(mpop[:, c])) - w0) / abs(w0) * 100 : 0.0
         cons_gain[c] = c0 != 0 ? (cmc[c] - c0) / abs(c0) * 100 : 0.0
     end
     # the ratio the variant actually hands out: rights over an equal-per-capita
@@ -1682,7 +1888,7 @@ function run_variant(P::Proposal, rho::Vector{Float64}, variant::Int, label::Str
     tot_r = sum(cap[CALIB_IDX])
     tot_p = sum(P.club_emissions[CALIB_IDX])
     ww    = world_welfare_npv(m)
-    wc    = npv(mean_consumption(m, population(m)))
+    wc    = world_cons_npv(m, population(m))
     return VariantResult(label, tot_r, tot_p, (tot_p / tot_r - 1) * 100, (tot_r / tot_p - 1) * 100,
                          temperature(m)[YEAR_IDX[2100]], ww,
                          (ww - P.world_welfare) / abs(P.world_welfare) * 100,
@@ -1735,7 +1941,7 @@ entity_name(e::AbstractString) = get(ENTITY_NAME, e, e)
 "Table/figure label for a proposal (`Duflo_legacy` -> `Duflo (legacy)`)."
 function display_name(name::AbstractString)
     base = replace(name, "_legacy" => "")
-    cited = base == "Duflo"       ? "Banerjee et al." :
+    cited = base == "Duflo"       ? "Banerjee, Duflo \\& Greenstone" :
             base == "Wolfram"     ? "Wolfram et al."  :
             base == "EqualRight"  ? "Equal Right"     :
             base == "EqualRight5" ? "Equal Right, 5\\%/yr" : base
@@ -1922,19 +2128,26 @@ function ab_tabular(io, props; color = false, predicted = nothing, pred_kind = :
         println(io, "  ", entity_name(e), " & ", join(cells, " & "), " \\\\")
     end
     println(io, "  \\midrule")
-    println(io, outcome("Emissions change in the coalition, variant 1 (\\%)", P -> "",
+    ncol = 1 + sum(width, props)
+    section(t) = println(io, "  \\multicolumn{$ncol}{l}{\\textit{$t}} \\\\")
+    section("Reduced emissions (variant 1)")
+    println(io, outcome("\\quad Emissions change in the coalition (\\%)", P -> "",
                         (m, P, r) -> paint(fmt_pct_1(r.v1.emissions_change_pct))))
-    println(io, outcome("World temp.~2100, change (\\textdegree{}C)", P -> "",
+    println(io, outcome("\\quad World temp.~2100, change (\\textdegree{}C)", P -> "",
                         (m, P, r) -> paint(fmt_delta(r.v1.temp_2100 - P.temp_2100))))
-    println(io, outcome("World welfare gain, EDE (variant 1)", P -> "",
+    println(io, outcome("\\quad World welfare gain (\\%)", P -> "",
                         (m, P, r) -> fmt_pct(r.v1.welfare_gain_pct)))
-    println(io, outcome("World consumption gain (variant 1)", P -> "",
+    println(io, outcome("\\quad World consumption gain (\\%)", P -> "",
                         (m, P, r) -> fmt_pct(r.v1.cons_gain_pct)))
-    for (k, v) in ((2, :v2), (3, :v3), (4, :v4))
-        println(io, outcome("World welfare gain, EDE (variant $k)", P -> "",
-                            (m, P, r) -> fmt_pct(getfield(r, v).welfare_gain_pct)))
-        println(io, outcome("World consumption gain (variant $k)", P -> "",
-                            (m, P, r) -> fmt_pct(getfield(r, v).cons_gain_pct)))
+    # isolated: v2 is uniform scaling, so v4 repeats it and is not printed
+    for (k, v, t) in ((2, :v2, "Increased consumption (variant 2)"),
+                      (3, :v3, "Surplus shared by marginal utility (variant 3)"),
+                      (4, :v4, "Surplus shared by uniform scaling (variant 4)"))
+        section(t)
+        println(io, outcome("\\quad World welfare gain (\\%)", P -> "",
+                            (m, P, r) -> (m == "A" && k == 4) ? "=(2)" : fmt_pct(getfield(r, v).welfare_gain_pct)))
+        println(io, outcome("\\quad World consumption gain (\\%)", P -> "",
+                            (m, P, r) -> (m == "A" && k == 4) ? "=(2)" : fmt_pct(getfield(r, v).cons_gain_pct)))
     end
     println(io, "  \\bottomrule")
     println(io, "\\end{tabular}")
@@ -2063,16 +2276,19 @@ function write_combined_table(path::String, props; label = "tab:equiv_rights", p
                            display_name(predicted), " schedule: ", PREDICTORS[pred_kind][2], ". "),
                     "The European Union figure aggregates its ",
                     "members' rights, and a country the proposal does not price is outside the club in both ",
-                    "regimes, shown at \$p_i=0\$ with no equivalent allocation (`--'). Variant 1 lets the ",
-                    "equivalent allocation set the cap; variants 2 to 4 return the resulting surplus as rights ",
-                    "so that club emissions match the proposal's, sharing it so as to minimise the largest ",
-                    "shortfall against the proposal (2), in proportion to population times marginal utility ",
-                    "(3), and by uniform scaling (4). The temperature row is the change from the proposal's own 2100 warming, ",
+                    "regimes, shown at \$p_i=0\$ with no equivalent allocation (`--'). Variant 1 (reduced ",
+                    "emissions) lets the equivalent allocation set the cap: in the joint solve every member is ",
+                    "held exactly at its level under the proposal; in the isolated solve each country's ratio is ",
+                    "solved with all others grandfathered, and the ratios are then applied together. Variants 2 to 4 ",
+                    "(increased consumption) keep club emissions at the proposal's and share the surplus: ",
+                    "equalising the relative gains of all members (joint variant 2), by scaling the isolated ",
+                    "allocation up uniformly (isolated variant 2, also variant 4), and in proportion to population ",
+                    "times marginal utility (variant 3). The temperature row is the change from the proposal's own 2100 warming, ",
                     "which is ",
                     join([@sprintf("%.2f\\textdegree{}C for %s", P.temp_2100, display_name(P.name))
                           for P in props], ", ", " and "),
-                    ". Welfare is reported on the inequality-averse global EDE (\$\\eta=1.5\$) and on world ",
-                    "mean consumption per capita, which weights every person's consumption equally.}")
+                    ". World welfare is the NPV of the inequality-averse global EDE consumption (\$\\eta=1.5\$); ",
+                    "world consumption is mean consumption per capita, which weights every person's consumption equally.}")
         println(io, "\\end{table}")
     end
     @info "wrote table" path
@@ -2128,7 +2344,7 @@ function write_losers_table(path::String, props; label = "tab:equiv_rights_loser
     nm, n = length(ms), length(props)
     count_below(v, P, field) = begin
         g = getfield(v, field)
-        isempty(g) ? nothing : count(c -> g[c] < 0, P.members)
+        isempty(g) ? nothing : count(c -> g[c] < -LOSS_TOL, P.members)
     end
     cell(x) = x === nothing ? "--" : string(x)
     open(path, "w") do io
@@ -2195,6 +2411,28 @@ matches_target(df, want::AbstractString) =
     hasproperty(df, :target) ? all(==(want), String.(df.target)) : want == "ede"
 
 """
+    read_csv_safe(path; tries)
+
+`CSV.read`, but `nothing` rather than an exception when the file cannot be read
+or comes back without columns. The results of the other target are read off
+disk, and a run solving that target may be rewriting them at that very moment;
+a half-written file is worth a retry and then a skip, not a crash that loses
+the cell just computed.
+"""
+function read_csv_safe(path::AbstractString; tries = 3)
+    for k in 1:tries
+        try
+            df = CSV.read(path, DataFrame)
+            ncol(df) > 0 && return df
+        catch err
+            k == tries && @warn "could not read a results file, ignoring it" path err
+        end
+        sleep(0.5)
+    end
+    return nothing
+end
+
+"""
     read_results_for(tag, props)
 
 The results one target left on disk, keyed `(method, scenario)` exactly like
@@ -2214,8 +2452,8 @@ function read_results_for(tag::AbstractString, props)
     for suffix in ("_er", "")
         gp = joinpath(OUTPUT_BASE, "country_gains$(suffix)$(tag).csv")
         isfile(gp) || continue
-        gdf = CSV.read(gp, DataFrame)
-        matches_target(gdf, want) || continue
+        gdf = read_csv_safe(gp)
+        (gdf === nothing || !matches_target(gdf, want)) && continue
         for sub in groupby(gdf, [:method, :scenario, :variant])
             k = (String(sub.method[1]), String(sub.scenario[1]), Int(sub.variant[1]))
             idx = Dict(String(r.country) => i for (i, r) in enumerate(eachrow(sub)))
@@ -2235,16 +2473,16 @@ function read_results_for(tag::AbstractString, props)
     for suffix in ("_er", "")
         path = joinpath(OUTPUT_BASE, "equivalent_rights_variants$(suffix)$(tag).csv")
         isfile(path) || continue
-        df = CSV.read(path, DataFrame)
-        matches_target(df, want) || continue
+        df = read_csv_safe(path)
+        (df === nothing || !matches_target(df, want)) && continue
         for P in props, m in ("A", "B")
             haskey(store, (m, P.name)) && continue
             rows = df[(String.(df.method) .== m) .& (String.(df.scenario) .== P.name), :]
             nrow(rows) >= 2 || continue
             rp = joinpath(OUTPUT_BASE, "rho_$(lowercase(m))_$(lowercase(P.name))$(tag).csv")
             isfile(rp) || continue
-            rdf = CSV.read(rp, DataFrame)
-            matches_target(rdf, want) || continue
+            rdf = read_csv_safe(rp)
+            (rdf === nothing || !matches_target(rdf, want)) && continue
             d   = Dict(String(r.country) => Float64(r.rho) for r in eachrow(rdf))
             rho = [get(d, string(c), 0.0) for c in COUNTRIES]
             function vr(k)
@@ -2283,6 +2521,97 @@ each one leaves short on each measure.
 A proposal that has been solved on only one target keeps its other column at
 `--`; nothing is invented to fill it.
 """
+#     write_main_table(path, props, welf, cons; method, predicted, pred_kind)
+#
+# The paper's main table (Sept 2026): the bare `tabular`, no float, caption or
+# note -- those live in paper.tex, so the note can be edited with the text. Per
+# proposal: the 2030 price p, optionally the first-order prediction \\hat\\rho, and
+# the equivalent ratio solved on welfare (NPV of EDE consumption) and on mean
+# consumption. Below, the two surplus types, every row read under both criteria.
+# `method` is "B" (joint, main text) or "A" (isolated, appendix).
+const LOSS_TOL = 0.005   # %, threshold for counting a member as losing
+function write_main_table(path::String, props, welf, cons; method = "B",
+                          predicted = "Duflo", pred_kind = :formula)
+    stores = (("welf", welf), ("cons", cons))
+    got(store, P) = get(store, (method, P.name), nothing)
+    any(P -> any(s -> got(s[2], P) !== nothing, stores), props) || begin
+        @warn "no results on either criterion: not writing" path method
+        return
+    end
+    haspred(P) = predicted !== nothing && P.name == predicted
+    width(P)   = 3 + haspred(P)
+    ncol       = 1 + sum(width, props)
+    # summary rows leave the price (and prediction) cells empty, so that each
+    # number sits under the rho column of the criterion it was solved on
+    function cells_for(f)
+        cells = String[]
+        for P in props
+            push!(cells, "")
+            haspred(P) && push!(cells, "")
+            for (_, st) in stores
+                r = got(st, P)
+                push!(cells, r === nothing ? "--" : f(P, r))
+            end
+        end
+        return cells
+    end
+    row(lbl, f) = "  " * lbl * " & " * join(cells_for(f), " & ") * " \\\\"
+    gains(r, v, field) = getfield(getfield(r, v), field)
+    # a member "loses" when it falls short of the proposal by more than LOSS_TOL
+    # (in %): the joint solve holds members at their level to within ~0.002%,
+    # so a zero threshold would count convergence noise as losses
+    nlose(v, field)  = (P, r) -> (g = gains(r, v, field); isempty(g) ? "--" : string(count(c -> g[c] < -LOSS_TOL, P.members)))
+    floor_(v, field) = (P, r) -> (g = gains(r, v, field); isempty(g) ? "--" : fmt_pct(minimum(g[c] for c in P.members)))
+    open(path, "w") do io
+        println(io, "% Generated by src/equivalent_rights_proposals.jl (write_main_table) -- do not edit by hand.")
+        println(io, "\\begin{tabular}{l", join("c"^width(P) for P in props), "}")
+        println(io, "  \\toprule")
+        println(io, "  & ", join(["\\multicolumn{$(width(P))}{c}{\\textbf{$(display_name(P.name))}}" for P in props], " & "), " \\\\")
+        starts = cumsum(vcat(2, [width(P) for P in props[1:end-1]]))
+        println(io, "  ", join(["\\cmidrule(lr){$a-$(a + width(P) - 1)}" for (a, P) in zip(starts, props)], " "))
+        println(io, "  \\textbf{Country} & ",
+                join([string("\$p\$", haspred(P) ? " & \$\\hat\\rho\$" : "",
+                             " & \$\\rho^{\\mathrm{welf}}\$ & \$\\rho^{\\mathrm{cons}}\$") for P in props], " & "), " \\\\")
+        println(io, "  \\midrule")
+        for e in report_order(props)
+            cells = String[]
+            for P in props
+                idx = intersect(entity_indices(e), P.members)
+                if isempty(idx)
+                    push!(cells, "0"); haspred(P) && push!(cells, "--"); push!(cells, "--", "--")
+                    continue
+                end
+                push!(cells, fmt_price(mean(P.tax[YEAR_IDX[2030], idx])))
+                haspred(P) && push!(cells, fmt(PREDICTORS[pred_kind][1](e, P); d = 2))
+                for (_, st) in stores
+                    r = got(st, P)
+                    push!(cells, r === nothing ? "--" : fmt(entity_rho(r.rho, e, P); d = 2))
+                end
+            end
+            println(io, "  ", entity_name(e), " & ", join(cells, " & "), " \\\\")
+        end
+        println(io, "  \\midrule")
+        println(io, "  \\multicolumn{", ncol, "}{l}{\\textit{Reduced emissions: every member as well off as under the proposal}} \\\\")
+        println(io, row("World temp.~2100, change (\\textdegree{}C)", (P, r) -> fmt_delta(r.v1.temp_2100 - P.temp_2100)))
+        println(io, row("Emissions change in the coalition (\\%)", (P, r) -> fmt_pct_1(r.v1.emissions_change_pct)))
+        println(io, row("World welfare gain (\\%)", (P, r) -> fmt_pct(r.v1.welfare_gain_pct)))
+        println(io, row("World consumption gain (\\%)", (P, r) -> fmt_pct(r.v1.cons_gain_pct)))
+        println(io, row("\\quad Members losing on welfare", nlose(:v1, :ede_gain)))
+        println(io, row("\\quad Members losing on consumption", nlose(:v1, :cons_gain)))
+        println(io, "  \\midrule")
+        println(io, "  \\multicolumn{", ncol, "}{l}{\\textit{Increased consumption: coalition emissions as under the proposal}} \\\\")
+        println(io, row("World welfare gain (\\%)", (P, r) -> fmt_pct(r.v2.welfare_gain_pct)))
+        println(io, row("World consumption gain (\\%)", (P, r) -> fmt_pct(r.v2.cons_gain_pct)))
+        println(io, row("\\quad Smallest member gain, welfare", floor_(:v2, :ede_gain)))
+        println(io, row("\\quad Smallest member gain, consumption", floor_(:v2, :cons_gain)))
+        println(io, row("\\quad Members losing on welfare", nlose(:v2, :ede_gain)))
+        println(io, row("\\quad Members losing on consumption", nlose(:v2, :cons_gain)))
+        println(io, "  \\bottomrule")
+        println(io, "\\end{tabular}")
+    end
+    @info "wrote table" path
+end
+
 # `predicted`/`pred_kind` open that proposal's block on a prediction of rho, as in
 # `ab_tabular`; `now_col` puts the 2025 relative emissions right of the country.
 function write_targets_table(path::String, props, ede, cons;
@@ -2328,7 +2657,7 @@ function write_targets_table(path::String, props, ede, cons;
             for (_, st) in stores
                 r = got(st, P)
                 g = r === nothing ? Float64[] : getfield(getfield(r, v), field)
-                push!(cells, isempty(g) ? "--" : string(count(c -> g[c] < 0, P.members)))
+                push!(cells, isempty(g) ? "--" : string(count(c -> g[c] < -LOSS_TOL, P.members)))
             end
         end
         return "  " * lbl * " & " * join(cells, " & ") * " \\\\"
@@ -2513,6 +2842,18 @@ function write_target_tables(props)
     # first-order formula, `_pred_now` gives 2025 relative emissions by the country
     if !isempty(er5) && any(P -> P.name == "Duflo", core)
         write_pred_target_tables(vcat(core, er5), ede, cons)
+        # Sept 2026 paper tables: main text (joint), appendix (isolated, and the
+        # Equal Right schedule on its own escalation path)
+        write_main_table(joinpath(OUTPUT_BASE, "equivalent_rights_main.tex"), vcat(core, er5), ede, cons)
+        write_main_table(joinpath(OUTPUT_BASE, "equivalent_rights_main_isolated.tex"), vcat(core, er5), ede, cons;
+                         method = "A")
+    end
+    er = [P for P in props if P.name == "EqualRight"]
+    if !isempty(er)
+        for m in ("A", "B")
+            write_main_table(joinpath(OUTPUT_BASE, "equivalent_rights_equalright_$(m == "A" ? "isolated" : "joint").tex"),
+                             vcat(er, er5), ede, cons; method = m, predicted = nothing)
+        end
     end
     isempty(er5) || write_targets_table(
         joinpath(OUTPUT_BASE, "equivalent_rights_targets_er5_beamer.tex"),
@@ -2683,40 +3024,59 @@ function solve_cell!(P::Proposal, method::String, props; variants_only = false)
         rho === nothing && (@warn "no saved rho to rerun the variants from" P.name method; return nothing)
         @info "rerunning the variants from a saved solve" scenario = P.name option = method
     end
+    # Sept 2026 definitions (criterion x way x surplus type):
+    #   isolated (A): rho solved country by country, others grandfathered.
+    #       v1 "reduced emissions"     the allocation at face value, its sum the cap;
+    #       v2 "increased consumption" the same allocation scaled up uniformly to
+    #                                  the proposal's emissions (= uniform scaling).
+    #   joint (B):    v1 every member exactly indifferent, level of rho solved, so
+    #                    the whole surplus becomes a tighter cap;
+    #                 v2 cap = proposal's emissions, rho moved until all members
+    #                    gain the same relative amount (maximin).
+    #   v3, v4 (appendix, both ways): the v2 surplus shared instead in proportion
+    #       to population x marginal utility (v3) or by uniform scaling (v4).
     rho = variants_only ? saved_rho(method, P) : if method == "A"
         d, flags = solve_option_A(P; checkpoint = joinpath(OUTPUT_BASE,
                                  "rho_A_$(lowercase(P.name))_checkpoint$(TAG).csv"))
         write_rho_csv(joinpath(OUTPUT_BASE, "rho_A_$(lowercase(P.name))$(TAG).csv"), d, flags)
         [get(d, string(c), 0.0) for c in COUNTRIES]     # non-members hold no rights
     else
-        # option A's vector if it ran in this session, else one saved by an
-        # earlier run, else the closed-form prediction
+        # warm start: a previous joint solve if one is on disk (the pre-Sept 2026
+        # one solved the same spread at a slightly looser level, so it is close),
+        # else option A's vector, else the closed-form prediction
         warm = get(RESULTS, ("A", P.name), nothing)
-        rho0 = warm !== nothing ? warm.rho : saved_rho_A(P)
-        v, gap, pB = rho0 === nothing ? solve_option_B(P) : solve_option_B(P, rho0)
+        rho0 = something(saved_rho("B", P), warm === nothing ? saved_rho_A(P) : warm.rho, Some(nothing))
+        rho0 === nothing && (rho0 = [c in P.members ? clamp(predicted_rho([c], P), 0.05, 8.0) : 0.0 for c in 1:NB_COUNTRY])
+        v, gap, pB = solve_joint_indifferent(P, rho0)
         CSV.write(joinpath(OUTPUT_BASE, "rho_B_$(lowercase(P.name))$(TAG).csv"),
                   DataFrame(country = string.(COUNTRIES), rho = v,
                             member = [c in P.members for c in 1:NB_COUNTRY],
                             max_rel_welfare_gap = fill(gap, NB_COUNTRY),
+                            level = fill("free", NB_COUNTRY),
                             target = fill(TARGET, NB_COUNTRY)))
         v
     end
 
-    # kept for reference: option A's allocation, available to any variant that
-    # wants it as a reference point
-    # variant 3 floors on option A's equivalent allocation: from this session if
-    # it ran, else from disk. For option A itself the floor is its own vector,
-    # so A3 coincides with A2 by construction.
-    a = get(RESULTS, ("A", P.name), nothing)
-    floor_rho = a === nothing ? saved_rho_A(P) : a.rho
-    floor_rho === nothing &&
-        @warn "no option-A allocation to floor variant 3 on; it will repeat variant 2" P.name
     v1 = run_variant(P, rho, 1, "$(method)1/$(P.name)")
-    # variant 4 (uniform scaling) is the cheapest way to get a price for the
-    # shared cap, so it goes first and warms the other two
-    v4 = run_variant(P, rho, 4, "$(method)4/$(P.name)"; p_init = v1.price_path)
-    v2 = run_variant(P, rho, 2, "$(method)2/$(P.name)"; p_init = v4.price_path)
-    v3 = run_variant(P, rho, 3, "$(method)3/$(P.name)"; p_init = v4.price_path)
+    # uniform scaling: variant 2 of the isolated solve, variant 4 of the joint one
+    vs = run_variant(P, rho, 4, "$(method)4/$(P.name)"; p_init = v1.price_path)
+    v2 = if method == "A"
+        vs
+    else
+        # equal gains at the proposal's cap, started from the variant-1 shares
+        rho2 = variants_only && isfile(joinpath(OUTPUT_BASE, "rho_B2_$(lowercase(P.name))$(TAG).csv")) ?
+               let df = CSV.read(joinpath(OUTPUT_BASE, "rho_B2_$(lowercase(P.name))$(TAG).csv"), DataFrame)
+                   d = Dict(String(r.country) => Float64(r.rho) for r in eachrow(df))
+                   [get(d, string(c), 0.0) for c in COUNTRIES]
+               end : first(solve_option_B(P, rho; renorm = true, label = "B2", max_iter = 80))
+        CSV.write(joinpath(OUTPUT_BASE, "rho_B2_$(lowercase(P.name))$(TAG).csv"),
+                  DataFrame(country = string.(COUNTRIES), rho = rho2,
+                            member = [c in P.members for c in 1:NB_COUNTRY],
+                            target = fill(TARGET, NB_COUNTRY)))
+        run_variant(P, rho2, 4, "$(method)2/$(P.name)"; p_init = vs.price_path)
+    end
+    v3 = run_variant(P, rho, 3, "$(method)3/$(P.name)"; p_init = vs.price_path)
+    v4 = vs
     RESULTS[(method, P.name)] = (; rho, v1, v2, v3, v4)
     flush_outputs(props)
     @printf("  [%s/%s] done in %.1f min -- tables updated\n", method, P.name, (time() - t0) / 60)
