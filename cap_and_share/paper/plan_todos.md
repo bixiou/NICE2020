@@ -252,14 +252,23 @@ a country's grid; `logs/rerun_total.bat` restarts the whole pipeline where it st
   -beta1/2beta2): Mongolia under Banerjee et al.; Finland, Iceland, Mongolia and Russia under Equal
   Right at 5%/yr, ordered by |beta1|. Written up in Section 5 (one clause) and in a new appendix
   paragraph, "Who loses from the avoided damages".
-* **Benchmark price path.** An exponential 1.8C path was explored (`src/calibrate_hotelling_price.jl`
-  and the zoom search in `cap_and_share/find_global_exp_carbon_tax_buget_zoom.jl`, now runnable
-  with `julia file.jl` and with its targets settable from the environment; rho = 0.3%, the pure rate
-  of time preference consistent with the paper's 3% consumption discounting, see
-  `src/_diag_growth.jl`). Decision: Section 4 stays on the calibrated cap-and-share path. The code
-  now has a single benchmark, `P_STAR_CS` (the former `P_STAR` and the `NICE_PRICE` switch are
-  gone); the Section 4 outputs rebuilt under the new code are byte-identical to those in the paper.
-  Results of the earlier state are kept in `cap_and_share/output/_backup_yearly_price_20260921/`.
+* **Benchmark price path (final).** p* is now the exponential path found by
+  `cap_and_share/find_global_exp_carbon_tax_buget_zoom.jl` with a new exact-budget mode
+  (`NICE_USE_BUDGET=1 NICE_BUDGET_EXACT=1 NICE_BUDGET_LIMIT=1000 NICE_BUDGET_START=2025
+  NICE_WELFARE_END=2300`, rho = 0.3%; launcher `logs/zoom.bat`): for each growth rate the start
+  level is solved so that 2025-2100 emissions are exactly 1000 GtCO2, and the welfare-best
+  growth rate is kept. Result: $127.02/t in 2030, 1.68%/yr (ramp from 0 in 2025); 995 GtCO2 and
+  1.84C in 2100 in the paper's configuration. `src/_write_exp_path.jl` writes the exact vector
+  the search evaluated to `cap_and_share/data/output/calibrated_global_exp.csv`, read as `P_STAR`.
+  The old calibrated path (`P_STAR_CS`) is commented out in `src/equivalent_rights_proposals.jl`
+  with how it was built; results on it are in `cap_and_share/output/_backup_yearly_price_20260921/`.
+  Everything was re-run on the new p* (`logs/rerun_exp.sh`; caches now keyed on the recycling
+  shares and p*). Section 5 is essentially unchanged (p* enters only through the recycling
+  weights); Section 4, Table 1 and Figures 1-2 are recomputed and rewritten.
+  Earlier attempts, discarded: a 1.8C peak ceiling with welfare to 2100 ($240, 0.72%/yr, binding
+  in 2299); a 2C ceiling with welfare to 2300 (corner: immediate full abatement). Note that the
+  global-tax regime caps the price at the backstop and abatement at 100%; removals beyond 100%
+  exist only in the country-tax regime 4 (commit cd59b2d1, 2026-06-22).
 
 ## 5. Status (21 Sept 2026): complete
 

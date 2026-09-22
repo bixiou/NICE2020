@@ -10,3 +10,7 @@ cons/A/Wolfram
 ede/A/Wolfram
 cons/A/Duflo
 ede/A/Duflo
+cons/A/EqualRight5
+ede/A/EqualRight5
+cons/A/EqualRight
+ede/A/EqualRight
