@@ -2,7 +2,8 @@
 # Equivalent emission rights for the Wolfram and Duflo price proposals.
 #
 # For a proposal S (a schedule of differentiated national carbon prices, run in
-# autarky: no cross-border revenue sharing), we look for the allocation of
+# autarky: no cross-border revenue sharing -- except Equal Right, whose revenue
+# is recycled equally per capita at the world level), we look for the allocation of
 # emission rights that, combined with a *uniform* world carbon price, leaves
 # every country exactly as well off as under S.
 #
@@ -305,14 +306,22 @@ function make_uniform_model(recycle_share, members::Vector{Int}; fixed_temp = no
     return m
 end
 
-"Model configured for a proposal: country-specific prices, revenue kept at home."
-function make_autarky_model(recycle_share)
+"""
+    make_autarky_model(recycle_share; world_pc)
+
+Model configured for a proposal: country-specific prices, revenue kept at home.
+With `world_pc`, every country's revenue is pooled instead and paid back as an
+equal per capita dividend to the whole world population (POLICY_SC is
+All_World), priced or not; within each country the dividend is then shared
+across deciles by `recycle_share`, like domestic revenue.
+"""
+function make_autarky_model(recycle_share; world_pc::Bool = false)
     m = MimiNICE2020.create_nice2020()
     update_param!(m, :switch_custom_transfers,                    0)
     update_param!(m, :switch_recycle,                             1)
-    update_param!(m, :switch_global_recycling,                    0)
-    update_param!(m, :revenue_recycle, :global_recycle_share,     zeros(NB_COUNTRY))
-    update_param!(m, :revenue_recycle, :switch_global_pc_recycle, 0)
+    update_param!(m, :switch_global_recycling,                    world_pc ? 1 : 0)
+    update_param!(m, :revenue_recycle, :global_recycle_share,     world_pc ? ones(NB_COUNTRY) : zeros(NB_COUNTRY))
+    update_param!(m, :revenue_recycle, :switch_global_pc_recycle, world_pc ? 1 : 0)
     update_param!(m, :switch_footprint,                           1)
     update_param!(m, :switch_transfers_affect_growth,             1)
     update_param!(m, :abatement, :control_regime,                 4)   # direct_country_tax
@@ -510,6 +519,18 @@ wolfram_rate(c) = !(c in WOLFRAM_MEMBER_SYMS) ? 0.0 :
 # path of the "Global 2 (1.6)" sheet, column D, which compounds at 16.4% a year.
 # Both are extracted to CSV so the model needs no spreadsheet reader; the six
 # model countries the proposal does not list are left unpriced.
+#
+# Recycling. Equal Right pools the revenues in a global fund that pays a
+# universal dividend, so its runs (both escalation paths) recycle revenue
+# equally per capita at the world level rather than domestically. The runs
+# until 22 Sept 2026 kept it at home like the other proposals; their outputs are
+# in cap_and_share/output/_backup_er_domestic_recycling_20260922/, and
+# NICE_ER_RECYCLING=domestic reproduces them.
+const ER_RECYCLING = get(ENV, "NICE_ER_RECYCLING", "world_pc")
+ER_RECYCLING in ("world_pc", "domestic") || error("NICE_ER_RECYCLING must be world_pc or domestic")
+"True when the proposal's revenue is recycled equally per capita at the world level."
+world_pc_recycling(name::AbstractString) = startswith(name, "EqualRight") && ER_RECYCLING == "world_pc"
+
 const EQUAL_RIGHT_PRICE = let d = Dict{Symbol,Float64}()
     df = CSV.read(joinpath(ROOT, "cap_and_share", "data", "equal_right_prices.csv"), DataFrame)
     for r in eachrow(df)
@@ -703,6 +724,12 @@ efficiency dividend negative: every country can still be made indifferent, but
 only by handing out 13% *more* rights than the proposal's own emissions, and
 the world welfare gain collapses to zero.
 """
+# Cache key of a proposal run. World per capita recycling enters it only when it
+# is on, so the keys (and caches) of the domestically recycled runs are unchanged.
+proposal_key(name, tax) = world_pc_recycling(name) ?
+    (name, round.(tax, digits = 6), RUN_CONFIG, :world_pc_recycling) :
+    (name, round.(tax, digits = 6), RUN_CONFIG)
+
 function build_proposal(name, tax)
     # A proposal is expensive to build (an autarky run plus the p_ref
     # calibration) and depends only on its own price schedule, so cache it:
@@ -713,7 +740,7 @@ function build_proposal(name, tax)
     # which are criterion-dependent. When the criteria moved from per-capita NPVs
     # to population-weighted ones, a stale cache silently fed the solver targets
     # a million times too small. Bump this string whenever a criterion changes.
-    key   = string(hash((name, round.(tax, digits = 6), RUN_CONFIG)), base = 16)
+    key   = string(hash(proposal_key(name, tax)), base = 16)
     cpath = joinpath(CACHE_DIR, "proposal_$(lowercase(name))_$key.jls")
     if !FRESH && isfile(cpath)
         try
@@ -737,7 +764,7 @@ end
 function build_proposal_uncached(name, tax)
     @info "Running proposal scenario" name
     members = proposal_members(tax)
-    m = run_autarky!(make_autarky_model(RECYCLE_SHARE), tax)
+    m = run_autarky!(make_autarky_model(RECYCLE_SHARE; world_pc = world_pc_recycling(name)), tax)
     pop = population(m)
     ems = country_emissions(m)
     we  = vec(sum(ems, dims = 2))
@@ -791,7 +818,7 @@ damages fixed in the "reduced emissions" solve (see `make_uniform_model`).
 One model run, cached on disk like the proposal itself.
 """
 function proposal_local_temp(P::Proposal)
-    key  = string(hash((P.name, round.(P.tax, digits = 6), RUN_CONFIG)), base = 16)
+    key  = string(hash(proposal_key(P.name, P.tax)), base = 16)
     path = joinpath(CACHE_DIR, "localtemp_$(lowercase(P.name))_$key.jls")
     if !FRESH && isfile(path)
         try
@@ -800,7 +827,7 @@ function proposal_local_temp(P::Proposal)
             @warn "could not read the cached local temperatures, recomputing" P.name err
         end
     end
-    m = run_autarky!(make_autarky_model(RECYCLE_SHARE), P.tax)
+    m = run_autarky!(make_autarky_model(RECYCLE_SHARE; world_pc = world_pc_recycling(P.name)), P.tax)
     T = f64(m[:pattern_scale, :local_temperature])
     mkpath(CACHE_DIR)
     try
@@ -3149,6 +3176,7 @@ end
 # Environment: NICE_WORKERS (worker count, default min(4, CPU/2)),
 # NICE_METHODS ("A", "B", "A,B"), NICE_DUFLO_LEGACY=1 (third scenario),
 # NICE_A_COVERAGE (share of club emissions solved exactly),
+# NICE_ER_RECYCLING ("world_pc", the default, or "domestic": Equal Right's recycling),
 # NICE_AUTORUN=0 (load the definitions without running anything).
 if myid() == 1 && get(ENV, "NICE_AUTORUN", "1") != "0" &&
    (abspath(PROGRAM_FILE) == abspath(SELF) || isinteractive())

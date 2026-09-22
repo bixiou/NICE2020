@@ -12,7 +12,7 @@ Pkg.instantiate()
 using Mimi, MimiFAIRv2, DataFrames, CSVFiles
 
 # --- Tax and budget start parameters ---
-const tax_start_year        = 2030     # tax start year (2025, 2030…)
+const tax_start_year        = 2035     # tax start year (2025, 2030…)
 const evaluation_end_year   = 2100    # the end of the year for budgeting
 const welfare_end_year      = parse(Int, get(ENV, "NICE_WELFARE_END", string(evaluation_end_year)))  # last year of well-being counted
                                       # (set to 2300, the model's horizon, so that the peak-warming ceiling is not
@@ -25,7 +25,7 @@ const use_budget            = get(ENV, "NICE_USE_BUDGET", "0") in ("1", "true")
 # and the search then returns the damage-driven optimum rather than a budget path.
 const budget_exact          = get(ENV, "NICE_BUDGET_EXACT", "0") in ("1", "true")
 const budget_start_year     = parse(Int, get(ENV, "NICE_BUDGET_START", string(tax_start_year)))  # first year counted in the budget
-const ramp_up               = 5     # Number of periods the tax is linearly ramped up
+const ramp_up               = 10    # Number of periods the tax is linearly ramped up
 rho = 0.003                      # pure rate of time preference (it discounts welfare_country,
                                  # i.e. CRRA utility, not consumption). Set so that it matches the
                                  # paper's 3% discounting OF CONSUMPTION: 1+r = (1+rho)(1+g)^eta with
@@ -273,4 +273,4 @@ em, wel, temp = test_global_exp_c_tax(232, .0416)
 # World max 2.00°C in 2100, ramp up 2030-30: 184, .002 ; carbon budget: 1349
 # World max 1.80°C in 2100, ramp up 2025-30: 216, .0128; carbon budget: 600
 # World max 2.00°C in 2100, ramp up 2025-30: 184, 0.0088   ; carbon budget:  950
-# TODO! display carbon budget when !use_budget and temp_max, temp 2100 when use_budget
+# TODO! display carbon budget when !use_budget and temp_max, temp 2100 when use_budget
