@@ -8,3 +8,5 @@ cons/B/EqualRight
 ede/B/EqualRight
 cons/A/Wolfram
 ede/A/Wolfram
+cons/A/Duflo
+ede/A/Duflo
