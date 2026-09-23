@@ -1240,10 +1240,10 @@ INPUT ../output/equivalent_rights_main.tex
 INPUT ../output/equivalent_rights_main.tex
 INPUT ../output/equivalent_rights_main.tex
 INPUT c:/texlive/2022/texmf-dist/fonts/tfm/adobe/palatino/pplri7t.tfm
-INPUT c:/texlive/2022/texmf-dist/fonts/vf/adobe/palatino/pplri7t.vf
-INPUT c:/texlive/2022/texmf-dist/fonts/vf/adobe/palatino/pplr8c.vf
 INPUT c:/texlive/2022/texmf-dist/fonts/vf/public/mathpazo/zplmr7y.vf
 INPUT c:/texlive/2022/texmf-dist/fonts/tfm/public/cm/cmsy10.tfm
+INPUT c:/texlive/2022/texmf-dist/fonts/vf/adobe/palatino/pplri7t.vf
+INPUT c:/texlive/2022/texmf-dist/fonts/vf/adobe/palatino/pplr8c.vf
 INPUT build/paper.bbl
 INPUT build/paper.bbl
 INPUT build/paper.bbl

@@ -1,27 +1,26 @@
 # Fdb version 4
-["bibtex build/paper"] 1790098813 "build/paper.aux" "build/paper.bbl" "build/paper" 1790098816 0
+["bibtex build/paper"] 1790131758 "build/paper.aux" "build/paper.bbl" "build/paper" 1790131761 0
   "./plainnaturl_clean.bst" 1753911830 25999 4b2b0914a35465b0a6a8366fb04efb16 ""
   "./price_rights.bib" 1790098712 15111 c7688af491dc68bc0b23f02b57442ce9 ""
-  "build/paper.aux" 1790098815 18865 1bb0c7ca86f664770b05d9ca02251ea3 "pdflatex"
+  "build/paper.aux" 1790131760 19208 db52c186c3ab5744054543bbd8acd3ee "pdflatex"
   (generated)
   "build/paper.bbl"
   "build/paper.blg"
   (rewritten before read)
-["pdflatex"] 1790098813 "c:/Users/fabre/Documents/www/NICE2020/cap_and_share/paper/paper.tex" "build/paper.pdf" "paper" 1790098816 0
+["pdflatex"] 1790131759 "paper.tex" "build/paper.pdf" "paper" 1790131761 0
   "../output/appendix_autarky_usa.tex" 1790066244 575 67cb9661a69a13311f294cc4cf173db0 ""
   "../output/appendix_uniform_cod.tex" 1790066244 555 9031d3075d6e07fef0e8ceec69f50ab8 ""
-  "../output/equivalent_rights_combined.tex" 1790066244 4247 1b0435a1c330ceeee54a2e61b69bf08a ""
-  "../output/equivalent_rights_equalright_joint.tex" 1790066244 2162 da81aa8b8afd8c56310b6990255c4ee2 ""
-  "../output/equivalent_rights_losers.tex" 1790066244 1580 b782600c9a3d32321dc9d82db9ee8df9 ""
-  "../output/equivalent_rights_main.tex" 1790066244 2827 15f96f04864f710d22c7569d7487c56d ""
-  "../output/equivalent_rights_main_isolated.tex" 1790066244 2854 ad98a1a83e558c392076b5b96b41aaaa ""
+  "../output/equivalent_rights_combined.tex" 1790131500 4202 1b0435a1c330ceeee54a2e61b69bf08a ""
+  "../output/equivalent_rights_equalright_joint.tex" 1790131594 2147 b5e503ea45cb1be839e2f2cc8fd71ffe ""
+  "../output/equivalent_rights_losers.tex" 1790131500 1552 b782600c9a3d32321dc9d82db9ee8df9 ""
+  "../output/equivalent_rights_main.tex" 1790131594 2805 43334234ae8581848b98161fde6a1170 ""
+  "../output/equivalent_rights_main_isolated.tex" 1790131594 2833 3049e1ed1e3b82ff18131c40a7e81de9 ""
   "../output/rho1_table.tex" 1790066244 614 1ec2527d3bc3b753462ee00b8b9858c7 ""
-  "build/paper.aux" 1790098815 18865 1bb0c7ca86f664770b05d9ca02251ea3 "pdflatex"
-  "build/paper.bbl" 1790098813 9579 5eb92149e2bcdbfb1bbaf73208218232 "bibtex build/paper"
-  "build/paper.brf" 1790098815 3421 a4acabdf54f934ed5d559bf7f85efef9 "pdflatex"
-  "build/paper.out" 1790098815 2843 a65aa7b0c0601485127b0e57c062525a "pdflatex"
-  "build/paper.toc" 1790098815 2972 16281e894b48acbe32408f9c0066afda "pdflatex"
-  "c:/Users/fabre/Documents/www/NICE2020/cap_and_share/paper/paper.tex" 1790098808 121995 634396f3d21bb30b7539ba43d10d0b0f ""
+  "build/paper.aux" 1790131760 19208 db52c186c3ab5744054543bbd8acd3ee "pdflatex"
+  "build/paper.bbl" 1790131759 9579 5eb92149e2bcdbfb1bbaf73208218232 "bibtex build/paper"
+  "build/paper.brf" 1790131760 3539 668d84b3e236d5a74c258f23961eb111 "pdflatex"
+  "build/paper.out" 1790131760 2858 e24a672a2c5ba6b2b0a387425d7665ec "pdflatex"
+  "build/paper.toc" 1790131760 3055 bf7bbc07d16c96aa9abd06b66bef09dd "pdflatex"
   "c:/texlive/2022/texmf-dist/fonts/enc/dvips/base/8r.enc" 1670336910 4850 80dc9bab7f31fb78a000ccfed0e27cab ""
   "c:/texlive/2022/texmf-dist/fonts/map/fontname/texfonts.map" 1670337557 3524 cb3e574dea2d1052e39280babc910dc8 ""
   "c:/texlive/2022/texmf-dist/fonts/tfm/adobe/palatino/pplb7t.tfm" 1670341705 1616 371d1ee60c04b008c8fd760060cd34f1 ""
@@ -221,7 +220,7 @@
   "figures/heatmap_RUS.pdf" 1790066244 10353 fb75970e73ed1e362ae6e40fe0fa1e07 ""
   "figures/heatmap_TUR.pdf" 1790066244 10090 163e99dd406fb6dfac8703e20b4ba56b ""
   "figures/heatmap_USA.pdf" 1790066244 10449 63e15f5e78f70b55b75104faa866b332 ""
-  "paper.tex" 1790098808 121995 634396f3d21bb30b7539ba43d10d0b0f ""
+  "paper.tex" 1790131731 125594 c1b423edc0041b23083c0711b1fd55a0 ""
   (generated)
   "build/paper.aux"
   "build/paper.brf"
