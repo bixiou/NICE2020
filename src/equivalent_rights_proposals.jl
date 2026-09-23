@@ -518,7 +518,8 @@ wolfram_rate(c) = !(c in WOLFRAM_MEMBER_SYMS) ? 0.0 :
 # vulnerability and income, $12/t to $240/t), and the escalation is the charge
 # path of the "Global 2 (1.6)" sheet, column D, which compounds at 16.4% a year.
 # Both are extracted to CSV so the model needs no spreadsheet reader; the six
-# model countries the proposal does not list are left unpriced.
+# model countries the report does not list are priced at their income group's
+# median charge (see ER_COVERAGE below), so that the schedule covers the world.
 #
 # Recycling. Equal Right pools the revenues in a global fund that pays a
 # universal dividend, so its runs (both escalation paths) recycle revenue
@@ -531,10 +532,35 @@ ER_RECYCLING in ("world_pc", "domestic") || error("NICE_ER_RECYCLING must be wor
 "True when the proposal's revenue is recycled equally per capita at the world level."
 world_pc_recycling(name::AbstractString) = startswith(name, "EqualRight") && ER_RECYCLING == "world_pc"
 
+# The report lists 173 of the model's 179 economies. The six it leaves out --
+# Aruba, French Polynesia, Hong Kong, Macao, Palestine and Taiwan -- are priced
+# at the median charge of their World Bank income group among the economies the
+# report does list, so that the schedule covers the world and every country is a
+# member of the club. The charge is graded by income and by climate
+# vulnerability; income is the part of that grading we can observe for the six,
+# and the medians are $15/t (LIC), $42 (LMIC), $96 (UMIC) and $240 (HIC).
+# NICE_ER_COVERAGE=listed restores the earlier scenario, where the six were
+# unpriced and outside the club.
+const ER_COVERAGE = get(ENV, "NICE_ER_COVERAGE", "world")
+ER_COVERAGE in ("world", "listed") || error("NICE_ER_COVERAGE must be world or listed")
+
 const EQUAL_RIGHT_PRICE = let d = Dict{Symbol,Float64}()
     df = CSV.read(joinpath(ROOT, "cap_and_share", "data", "equal_right_prices.csv"), DataFrame)
     for r in eachrow(df)
         d[Symbol(r.country)] = Float64(r.price_2025)
+    end
+    if ER_COVERAGE == "world"
+        group_of = Dict{Symbol,Vector{Symbol}}(:LIC => LIC_S, :LMIC => LMIC_S,
+                                               :UMIC => UMIC_S, :HIC => HIC_S)
+        med = Dict(g => median([d[c] for c in cs if haskey(d, c)]) for (g, cs) in group_of)
+        for c in COUNTRIES
+            haskey(d, c) && continue
+            g = findfirst(g -> c in group_of[g], collect(keys(group_of)))
+            g === nothing && continue
+            key = collect(keys(group_of))[g]
+            d[c] = med[key]
+            @info "Equal Right: economy not listed in the report, priced at its income group's median" country = c group = key price = d[c]
+        end
     end
     d
 end
