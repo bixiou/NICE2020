@@ -1,4 +1,4 @@
-\begin{thebibliography}{28}
+\begin{thebibliography}{29}
 \providecommand{\natexlab}[1]{#1}
 \providecommand{\url}[1]{\texttt{#1}}
 \expandafter\ifx\csname urlstyle\endcsname\relax
@@ -119,6 +119,12 @@ A.~Fabre, T.~Douenne, \& L.~Mattauch.
 \newblock Majority support for global redistributive and climate policies.
 \newblock \emph{Nature Human Behaviour}, 2025.
 \newblock \url{https://www.nature.com/articles/s41562-025-02175-9.pdf}.
+
+\bibitem[Fanning \& Hickel(2023)]{fanning_compensation_2023}
+A.~L. Fanning \& J.~Hickel.
+\newblock Compensation for atmospheric appropriation.
+\newblock \emph{Nature Sustainability}, 2023.
+\newblock \url{https://www.nature.com/articles/s41893-023-01130-8}.
 
 \bibitem[Gollier \& Tirole(2015)]{gollier_negotiating_2015}
 C.~Gollier \& J.~Tirole.

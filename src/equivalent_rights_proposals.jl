@@ -2622,8 +2622,12 @@ function write_main_table(path::String, props, welf, cons; method = "B",
         println(io, "  & ", join(["\\multicolumn{$(width(P))}{c}{\\textbf{$(display_name(P.name))}}" for P in props], " & "), " \\\\")
         starts = cumsum(vcat(2, [width(P) for P in props[1:end-1]]))
         println(io, "  ", join(["\\cmidrule(lr){$a-$(a + width(P) - 1)}" for (a, P) in zip(starts, props)], " "))
+        # sub-header: within each block, the two criteria columns are the equivalent rights
+        println(io, "  & ", join([join(vcat(fill("", 1 + haspred(P)),
+                                            ["\\multicolumn{2}{c}{Equivalent rights}"]), " & ") for P in props], " & "), " \\\\")
+        println(io, "  ", join(["\\cmidrule(lr){$(a + width(P) - 2)-$(a + width(P) - 1)}" for (a, P) in zip(starts, props)], " "))
         println(io, "  \\textbf{Country} & ",
-                join([string("\$p\$", haspred(P) ? " & \$\\hat\\rho\$" : "",
+                join([string("\$p_{2030}\$", haspred(P) ? " & \$\\hat\\rho\$" : "",
                              " & \$\\rho^{\\mathrm{welf}}\$ & \$\\rho^{\\mathrm{cons}}\$") for P in props], " & "), " \\\\")
         println(io, "  \\midrule")
         for e in report_order(props)
