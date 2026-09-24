@@ -118,7 +118,20 @@ end
 # CONFIGURATION
 # ──────────────────────────────────────────────────────────────────────────────
 
-const OUTPUT_BASE   = joinpath(ROOT, "cap_and_share", "output")
+# Within-country recycling of the carbon revenue, in both the autarky and the
+# uniform regimes:
+#   "negishi"  (default) in proportion to c^eta, the inverse of marginal utility,
+#              which leaves the within-country distribution untouched;
+#   "equal_pc" an equal per capita dividend inside each country, which makes the
+#              domestic incidence of the price progressive.
+# The second writes to cap_and_share/output/equal_pc/ (its own cache included),
+# so both sets of results can live side by side.
+const RECYCLING = lowercase(get(ENV, "NICE_RECYCLING", "negishi"))
+RECYCLING in ("negishi", "equal_pc") || error("NICE_RECYCLING must be negishi or equal_pc")
+
+const OUTPUT_BASE   = RECYCLING == "equal_pc" ?
+                      joinpath(ROOT, "cap_and_share", "output", "equal_pc") :
+                      joinpath(ROOT, "cap_and_share", "output")
 const YEARS_NPV     = 2030:2100          # welfare NPV window (= paper convention)
 const DISCOUNT_RATE = 0.03
 const ETA           = 1.5                # elasticity of marginal utility (welfare.jl default)
@@ -662,11 +675,14 @@ const REFERENCE_RUN = let
     m
 end
 
-const RECYCLE_SHARE = negishi_recycle_shares(REFERENCE_RUN)
+const RECYCLE_SHARE = RECYCLING == "equal_pc" ?
+                      fill(1 / NB_QUANTILE, NB_COUNTRY, NB_QUANTILE) :
+                      negishi_recycle_shares(REFERENCE_RUN)
 
 # Backstop price: the price at which abatement reaches 100%.
 const PBACKTIME = f64(REFERENCE_RUN[:abatement, :pbacktime])
 
+mkpath(OUTPUT_BASE)
 const CACHE_DIR = joinpath(OUTPUT_BASE, "cache")
 
 # Identifies the welfare criteria the cached proposals were built with; see

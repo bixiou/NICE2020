@@ -1,26 +1,25 @@
 # Fdb version 3
-["bibtex build/paper"] 1790119411 "build/paper.aux" "build/paper.bbl" "build/paper" 1790119416
+["bibtex build/paper"] 1790200340 "build/paper.aux" "build/paper.bbl" "build/paper" 1790200344
   "./plainnaturl_clean.bst" 1789813518 25999 4b2b0914a35465b0a6a8366fb04efb16 ""
-  "build/paper.aux" 1790119415 18871 f878deee51fa41873d277650c95add76 "pdflatex"
+  "build/paper.aux" 1790200343 19323 67dfe32c7560d5785313a1aa574a84e5 "pdflatex"
   "price_rights.bib" 1790119391 15540 c7688af491dc68bc0b23f02b57442ce9 ""
   (generated)
   "build/paper.bbl"
   "build/paper.blg"
-["pdflatex"] 1790119412 "c:/Users/fabre/Documents/www/NICE2020/cap_and_share/paper/paper.tex" "build/paper.pdf" "paper" 1790119416
+["pdflatex"] 1790200340 "paper.tex" "build/paper.pdf" "paper" 1790200344
   "../output/appendix_autarky_usa.tex" 1790062942 564 67cb9661a69a13311f294cc4cf173db0 ""
   "../output/appendix_uniform_cod.tex" 1790062942 544 9031d3075d6e07fef0e8ceec69f50ab8 ""
-  "../output/equivalent_rights_combined.tex" 1790071551 4202 1b0435a1c330ceeee54a2e61b69bf08a ""
-  "../output/equivalent_rights_equalright_joint.tex" 1790071570 2127 da81aa8b8afd8c56310b6990255c4ee2 ""
-  "../output/equivalent_rights_losers.tex" 1790071551 1552 b782600c9a3d32321dc9d82db9ee8df9 ""
-  "../output/equivalent_rights_main.tex" 1790119391 2702 ccb5579442dc3e0a0c0154fa66a87b16 ""
-  "../output/equivalent_rights_main_isolated.tex" 1790119391 2868 3049e1ed1e3b82ff18131c40a7e81de9 ""
+  "../output/equivalent_rights_combined.tex" 1790132166 4202 1b0435a1c330ceeee54a2e61b69bf08a ""
+  "../output/equivalent_rights_equalright_joint.tex" 1790132168 1952 2ad477653e3694759ede40d677e73594 ""
+  "../output/equivalent_rights_losers.tex" 1790132166 1552 b782600c9a3d32321dc9d82db9ee8df9 ""
+  "../output/equivalent_rights_main.tex" 1790132168 2736 6c9d98402df1acec5f525c8da8335bd7 ""
+  "../output/equivalent_rights_main_isolated.tex" 1790132168 2833 aa02f2442351697e8342c1e552d28f61 ""
   "../output/rho1_table.tex" 1790062940 598 1ec2527d3bc3b753462ee00b8b9858c7 ""
-  "build/paper.aux" 1790119415 18871 f878deee51fa41873d277650c95add76 "pdflatex"
-  "build/paper.bbl" 1790119412 9579 5eb92149e2bcdbfb1bbaf73208218232 "bibtex build/paper"
-  "build/paper.brf" 1790119415 3421 acbccd557c51023946118ace564ba756 "pdflatex"
-  "build/paper.out" 1790119415 2858 e24a672a2c5ba6b2b0a387425d7665ec "pdflatex"
-  "build/paper.toc" 1790119415 2975 ac2ff333b101ccbf0b2737ac8a6ea682 "pdflatex"
-  "c:/Users/fabre/Documents/www/NICE2020/cap_and_share/paper/paper.tex" 1790119403 122233 724b6d3e1ae66a24f8e3461db0ee30b2 ""
+  "build/paper.aux" 1790200343 19323 67dfe32c7560d5785313a1aa574a84e5 "pdflatex"
+  "build/paper.bbl" 1790200340 9579 5eb92149e2bcdbfb1bbaf73208218232 "bibtex build/paper"
+  "build/paper.brf" 1790200343 3541 112d23324e38111c4c4675b542d310da "pdflatex"
+  "build/paper.out" 1790200343 3146 02e2e8022eb96ddef1894d9b8ecd5bbd "pdflatex"
+  "build/paper.toc" 1790200343 3078 69b206d5c8c0007ad647ea7119e8abd7 "pdflatex"
   "c:/texlive/2022/texmf-dist/fonts/enc/dvips/base/8r.enc" 1663542048 4850 80dc9bab7f31fb78a000ccfed0e27cab ""
   "c:/texlive/2022/texmf-dist/fonts/map/fontname/texfonts.map" 1663542332 3524 cb3e574dea2d1052e39280babc910dc8 ""
   "c:/texlive/2022/texmf-dist/fonts/tfm/adobe/palatino/pplb7t.tfm" 1663543501 1616 371d1ee60c04b008c8fd760060cd34f1 ""
@@ -220,7 +219,7 @@
   "figures/heatmap_RUS.pdf" 1790021471 10353 fb75970e73ed1e362ae6e40fe0fa1e07 ""
   "figures/heatmap_TUR.pdf" 1790021472 10090 163e99dd406fb6dfac8703e20b4ba56b ""
   "figures/heatmap_USA.pdf" 1790021470 10449 63e15f5e78f70b55b75104faa866b332 ""
-  "paper.tex" 1790119403 122233 724b6d3e1ae66a24f8e3461db0ee30b2 ""
+  "paper.tex" 1790200326 127176 ff9e09664a7d3ac0db996ce694174d10 ""
   (generated)
   "build/paper.aux"
   "build/paper.brf"

@@ -37,6 +37,7 @@ haskey(ENV, "NICE_WORKERS") || (ENV["NICE_WORKERS"] = "1")
 include(joinpath(@__DIR__, "equivalent_rights_proposals.jl"))
 
 const EX1_DIR       = joinpath(OUTPUT_BASE, "indifference")
+mkpath(EX1_DIR)
 const EX1_COUNTRIES = String.(split(get(ENV, "NICE_EX1_COUNTRIES", "USA,RUS,CHN,TUR,EU27,IND,NGA,COD"), ","))
 # The grid of the figures this replaces (pi in steps of 0.25 up to 4.75, rho on
 # the log-spaced ladder 0.02 ... 10), plus pi = 0, which the old runs did not
@@ -48,7 +49,6 @@ const RHO_GRID = [0.0, 0.02, 0.05, 0.1, 0.15, 0.2, 0.3, 0.4, 0.5, 0.6, 0.8, 1.0,
                   2.5, 3.0, 3.5, 4.0, 4.5, 5.0, 6.0, 8.0, 10.0]
 const ALL      = collect(1:NB_COUNTRY)
 const THETA2   = 2.6                       # abatement cost exponent (nice2020_module.jl)
-mkpath(EX1_DIR)
 
 "NPV of an entity's total consumption (population-weighted: total utilitarianism)."
 function entity_cons_npv(m, idx::Vector{Int}, pop::Matrix{Float64})

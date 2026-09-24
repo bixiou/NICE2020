@@ -774,4 +774,49 @@ The Equal Right schedule is designed to rise by about 16\% a year, far faster th
 \end{minipage}
 \end{table}}{}
 
+% ============================================================
+\section{An equal per capita dividend within countries}
+\label{app:eqpc}
+% ============================================================
+
+Throughout the paper, the carbon revenue a country keeps is returned to its deciles in proportion to $c^{\eta}$, the inverse of marginal utility, which leaves the within-country distribution of consumption unchanged and isolates the between-country question. This appendix repeats the two central exhibits under the opposite convention: the revenue is returned as an equal per capita dividend inside each country, in the differentiated regime and in the uniform one alike, which makes the domestic incidence of a carbon price progressive. Everything else --- the benchmark price, the schedules, the criteria and the solves --- is unchanged. Table~\ref{tab:equiv_rights_main_eqpc} is the analogue of Table~\ref{tab:equiv_rights_main} and Figure~\ref{fig:heatmaps_eqpc} the analogue of Figure~\ref{fig:heatmaps}.
+
+\IfFileExists{../output/equal_pc/equivalent_rights_main.tex}{%
+\begin{table}[htbp]
+\centering\small\singlespacing
+\caption{Allocations equivalent to three differentiated-price schedules, with an equal per capita dividend within countries}
+\label{tab:equiv_rights_main_eqpc}
+\resizebox{\textwidth}{!}{\input{../output/equal_pc/equivalent_rights_main.tex}}
+\begin{minipage}{\textwidth}\footnotesize\singlespacing
+\emph{Note}: As Table~\ref{tab:equiv_rights_main}, with the carbon revenue returned as an equal per capita dividend inside each country instead of in proportion to $c^{\eta}$, in both regimes.
+\end{minipage}
+\end{table}}{}
+
+\IfFileExists{../paper/figures/heatmap_eqpc_USA.pdf}{%
+\begin{figure}[p]
+  \centering
+  \begin{subfigure}[b]{0.49\textwidth}\centering
+    \includegraphics[width=\linewidth]{figures/heatmap_eqpc_USA.pdf}\caption{United States}\end{subfigure}\hfill
+  \begin{subfigure}[b]{0.49\textwidth}\centering
+    \includegraphics[width=\linewidth]{figures/heatmap_eqpc_RUS.pdf}\caption{Russia}\end{subfigure}\\[2pt]
+  \begin{subfigure}[b]{0.49\textwidth}\centering
+    \includegraphics[width=\linewidth]{figures/heatmap_eqpc_CHN.pdf}\caption{China}\end{subfigure}\hfill
+  \begin{subfigure}[b]{0.49\textwidth}\centering
+    \includegraphics[width=\linewidth]{figures/heatmap_eqpc_TUR.pdf}\caption{Turkey}\end{subfigure}\\[2pt]
+  \begin{subfigure}[b]{0.49\textwidth}\centering
+    \includegraphics[width=\linewidth]{figures/heatmap_eqpc_EU27.pdf}\caption{European Union (EU27)}\end{subfigure}\hfill
+  \begin{subfigure}[b]{0.49\textwidth}\centering
+    \includegraphics[width=\linewidth]{figures/heatmap_eqpc_IND.pdf}\caption{India}\end{subfigure}\\[2pt]
+  \begin{subfigure}[b]{0.49\textwidth}\centering
+    \includegraphics[width=\linewidth]{figures/heatmap_eqpc_NGA.pdf}\caption{Nigeria}\end{subfigure}\hfill
+  \begin{subfigure}[b]{0.49\textwidth}\centering
+    \includegraphics[width=\linewidth]{figures/heatmap_eqpc_COD.pdf}\caption{DR Congo}\end{subfigure}
+  \caption{Welfare gain of the uniform-price regime over autarky, with an equal per capita dividend within countries}
+  \label{fig:heatmaps_eqpc}
+  \begin{minipage}{\textwidth}\footnotesize\singlespacing
+  \emph{Note}: As Figure~\ref{fig:heatmaps}, with the carbon revenue returned as an equal per capita dividend inside each country instead of in proportion to $c^{\eta}$, in both regimes.
+  \end{minipage}
+\end{figure}}{}
+
+
 \end{document}

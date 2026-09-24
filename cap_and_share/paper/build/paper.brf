@@ -4,7 +4,7 @@
 \backcite {unep_emissions_2025}{{2}{1}{section.1}}
 \backcite {parry_proposal_2021}{{2}{1}{section.1}}
 \backcite {wolfram_building_2025}{{2}{1}{section.1}}
-\backcite {banerjee_grand_2025}{{2}{1}{section.1}}
+\backcite {banerjee_grand_2025}{{3}{1}{section.1}}
 \backcite {parry_proposal_2021}{{3}{1}{section.1}}
 \backcite {aldy_promise_2012}{{3}{1}{section.1}}
 \backcite {fabre_public_2025}{{3}{1}{section.1}}
@@ -19,7 +19,7 @@
 \backcite {anthoff_differentiated_2026}{{4}{2}{section.2}}
 \backcite {babiker_is_2004}{{4}{2}{section.2}}
 \backcite {boeters_optimally_2014}{{4}{2}{section.2}}
-\backcite {babiker_is_2004}{{4}{2}{section.2}}
+\backcite {babiker_is_2004}{{5}{2}{section.2}}
 \backcite {dautume_should_2016}{{5}{2}{section.2}}
 \backcite {babiker_climate_2005}{{5}{2}{section.2}}
 \backcite {boeters_optimally_2014}{{5}{2}{section.2}}
@@ -47,12 +47,14 @@
 \backcite {wolfram_building_2025}{{14}{5.1}{subsection.5.1}}
 \backcite {banerjee_grand_2025}{{14}{5.1}{subsection.5.1}}
 \backcite {wolfram_building_2025}{{14}{5.1}{subsection.5.1}}
+\backcite {banerjee_grand_2025}{{14}{5.1}{subsection.5.1}}
+\backcite {wolfram_building_2025}{{15}{5.1}{subsection.5.1}}
 \backcite {banerjee_grand_2025}{{15}{5.1}{subsection.5.1}}
 \backcite {wolfram_building_2025}{{15}{5.2}{subsection.5.2}}
 \backcite {banerjee_grand_2025}{{15}{5.2}{subsection.5.2}}
 \backcite {banerjee_grand_2025}{{16}{5.3}{section*.10}}
 \backcite {wolfram_building_2025}{{16}{5.3}{section*.10}}
-\backcite {wolfram_building_2025}{{18}{5.3}{section*.11}}
+\backcite {wolfram_building_2025}{{17}{5.3}{section*.11}}
 \backcite {wolfram_building_2025}{{19}{6}{section.6}}
 \backcite {banerjee_grand_2025}{{19}{6}{section.6}}
 \backcite {equal_right_climate_2023}{{19}{6}{section.6}}
