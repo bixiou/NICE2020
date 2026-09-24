@@ -1,2 +1,8 @@
 cons/A/EqualRight5
 ede/A/EqualRight5
+cons/B/EqualRight5
+ede/B/EqualRight5
+cons/A/EqualRight
+ede/A/EqualRight
+cons/B/EqualRight
+ede/B/EqualRight

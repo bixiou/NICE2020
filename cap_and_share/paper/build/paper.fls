@@ -1,8 +1,8 @@
-PWD c:/Users/fabre/Documents/www/NICE2020/cap_and_share/paper
+PWD C:/Users/fabre/Documents/www/NICE2020/cap_and_share/paper
 INPUT c:/texlive/2022/texmf.cnf
 INPUT c:/texlive/2022/texmf-dist/web2c/texmf.cnf
 INPUT c:/texlive/2022/texmf-var/web2c/pdftex/pdflatex.fmt
-INPUT c:/Users/fabre/Documents/www/NICE2020/cap_and_share/paper/paper.tex
+INPUT paper.tex
 OUTPUT build/paper.log
 INPUT c:/texlive/2022/texmf-dist/tex/latex/base/article.cls
 INPUT c:/texlive/2022/texmf-dist/tex/latex/base/article.cls
@@ -1240,10 +1240,10 @@ INPUT ../output/equivalent_rights_main.tex
 INPUT ../output/equivalent_rights_main.tex
 INPUT ../output/equivalent_rights_main.tex
 INPUT c:/texlive/2022/texmf-dist/fonts/tfm/adobe/palatino/pplri7t.tfm
-INPUT c:/texlive/2022/texmf-dist/fonts/vf/adobe/palatino/pplri7t.vf
-INPUT c:/texlive/2022/texmf-dist/fonts/vf/adobe/palatino/pplr8c.vf
 INPUT c:/texlive/2022/texmf-dist/fonts/vf/public/mathpazo/zplmr7y.vf
 INPUT c:/texlive/2022/texmf-dist/fonts/tfm/public/cm/cmsy10.tfm
+INPUT c:/texlive/2022/texmf-dist/fonts/vf/adobe/palatino/pplri7t.vf
+INPUT c:/texlive/2022/texmf-dist/fonts/vf/adobe/palatino/pplr8c.vf
 INPUT build/paper.bbl
 INPUT build/paper.bbl
 INPUT build/paper.bbl
