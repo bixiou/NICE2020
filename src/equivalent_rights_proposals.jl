@@ -2583,16 +2583,20 @@ A proposal that has been solved on only one target keeps its other column at
 # consumption. Below, the two surplus types, every row read under both criteria.
 # `method` is "B" (joint, main text) or "A" (isolated, appendix).
 const LOSS_TOL = 0.005   # %, threshold for counting a member as losing
+# `cons_only` writes the paper's Table 2: the consumption criterion alone (no
+# rho^welf column), without the welfare aggregates and the counts of losing
+# members, and with the reduced-emissions gain labelled post-damage (it is
+# computed with damages endogenous, so it carries the avoided damages).
 function write_main_table(path::String, props, welf, cons; method = "B",
-                          predicted = "Duflo", pred_kind = :formula)
-    stores = (("welf", welf), ("cons", cons))
+                          predicted = "Duflo", pred_kind = :formula, cons_only = false)
+    stores = cons_only ? (("cons", cons),) : (("welf", welf), ("cons", cons))
     got(store, P) = get(store, (method, P.name), nothing)
     any(P -> any(s -> got(s[2], P) !== nothing, stores), props) || begin
         @warn "no results on either criterion: not writing" path method
         return
     end
     haspred(P) = predicted !== nothing && P.name == predicted
-    width(P)   = 3 + haspred(P)
+    width(P)   = 1 + length(stores) + haspred(P)
     ncol       = 1 + sum(width, props)
     # summary rows leave the price (and prediction) cells empty, so that each
     # number sits under the rho column of the criterion it was solved on
@@ -2624,11 +2628,11 @@ function write_main_table(path::String, props, welf, cons; method = "B",
         println(io, "  ", join(["\\cmidrule(lr){$a-$(a + width(P) - 1)}" for (a, P) in zip(starts, props)], " "))
         # sub-header: within each block, the two criteria columns are the equivalent rights
         println(io, "  & ", join([join(vcat(fill("", 1 + haspred(P)),
-                                            ["\\multicolumn{2}{c}{Equivalent rights}"]), " & ") for P in props], " & "), " \\\\")
-        println(io, "  ", join(["\\cmidrule(lr){$(a + width(P) - 2)-$(a + width(P) - 1)}" for (a, P) in zip(starts, props)], " "))
+                                            ["\\multicolumn{$(length(stores))}{c}{Equivalent rights}"]), " & ") for P in props], " & "), " \\\\")
+        println(io, "  ", join(["\\cmidrule(lr){$(a + width(P) - length(stores))-$(a + width(P) - 1)}" for (a, P) in zip(starts, props)], " "))
         println(io, "  \\textbf{Country} & ",
                 join([string("\$p_{2030}\$", haspred(P) ? " & \$\\hat\\rho\$" : "",
-                             " & \$\\rho^{\\mathrm{welf}}\$ & \$\\rho^{\\mathrm{cons}}\$") for P in props], " & "), " \\\\")
+                             cons_only ? " & \$\\rho\$" : " & \$\\rho^{\\mathrm{welf}}\$ & \$\\rho^{\\mathrm{cons}}\$") for P in props], " & "), " \\\\")
         println(io, "  \\midrule")
         for e in report_order(props)
             cells = String[]
@@ -2651,18 +2655,19 @@ function write_main_table(path::String, props, welf, cons; method = "B",
         println(io, "  \\multicolumn{", ncol, "}{l}{\\textit{Reduced emissions: every member as well off as under the proposal}} \\\\")
         println(io, row("World temp.~2100, change (\\textdegree{}C)", (P, r) -> fmt_delta(r.v1.temp_2100 - P.temp_2100)))
         println(io, row("Emissions change in the coalition (\\%)", (P, r) -> fmt_pct_1(r.v1.emissions_change_pct)))
-        println(io, row("World welfare gain (\\%)", (P, r) -> fmt_pct(r.v1.welfare_gain_pct)))
-        println(io, row("World consumption gain (\\%)", (P, r) -> fmt_pct(r.v1.cons_gain_pct)))
-        println(io, row("\\quad Members losing on welfare", nlose(:v1, :ede_gain)))
-        println(io, row("\\quad Members losing on consumption", nlose(:v1, :cons_gain)))
+        cons_only || println(io, row("World welfare gain (\\%)", (P, r) -> fmt_pct(r.v1.welfare_gain_pct)))
+        println(io, row(cons_only ? "Post-damage consumption gain (\\%)" : "World consumption gain (\\%)",
+                        (P, r) -> fmt_pct(r.v1.cons_gain_pct)))
+        cons_only || println(io, row("\\quad Members losing on welfare", nlose(:v1, :ede_gain)))
+        cons_only || println(io, row("\\quad Members losing on consumption", nlose(:v1, :cons_gain)))
         println(io, "  \\midrule")
         println(io, "  \\multicolumn{", ncol, "}{l}{\\textit{Increased consumption: coalition emissions as under the proposal}} \\\\")
-        println(io, row("World welfare gain (\\%)", (P, r) -> fmt_pct(r.v2.welfare_gain_pct)))
+        cons_only || println(io, row("World welfare gain (\\%)", (P, r) -> fmt_pct(r.v2.welfare_gain_pct)))
         println(io, row("World consumption gain (\\%)", (P, r) -> fmt_pct(r.v2.cons_gain_pct)))
-        println(io, row("\\quad Smallest member gain, welfare", floor_(:v2, :ede_gain)))
+        cons_only || println(io, row("\\quad Smallest member gain, welfare", floor_(:v2, :ede_gain)))
         println(io, row("\\quad Smallest member gain, consumption", floor_(:v2, :cons_gain)))
-        println(io, row("\\quad Members losing on welfare", nlose(:v2, :ede_gain)))
-        println(io, row("\\quad Members losing on consumption", nlose(:v2, :cons_gain)))
+        cons_only || println(io, row("\\quad Members losing on welfare", nlose(:v2, :ede_gain)))
+        cons_only || println(io, row("\\quad Members losing on consumption", nlose(:v2, :cons_gain)))
         println(io, "  \\bottomrule")
         println(io, "\\end{tabular}")
     end
@@ -2901,7 +2906,10 @@ function write_target_tables(props)
         write_pred_target_tables(vcat(core, er5), ede, cons)
         # Sept 2026 paper tables: main text (joint), appendix (isolated, and the
         # Equal Right schedule on its own escalation path)
-        write_main_table(joinpath(OUTPUT_BASE, "equivalent_rights_main.tex"), vcat(core, er5), ede, cons)
+        write_main_table(joinpath(OUTPUT_BASE, "equivalent_rights_main.tex"), vcat(core, er5), ede, cons;
+                         cons_only = true)
+        # the previous layout (both criteria, welfare aggregates, loser counts), kept as a backup
+        write_main_table(joinpath(OUTPUT_BASE, "equivalent_rights_main_both_criteria.tex"), vcat(core, er5), ede, cons)
         write_main_table(joinpath(OUTPUT_BASE, "equivalent_rights_main_isolated.tex"), vcat(core, er5), ede, cons;
                          method = "A")
     end

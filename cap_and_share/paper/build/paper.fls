@@ -1155,6 +1155,11 @@ INPUT c:/texlive/2022/texmf-dist/fonts/vf/public/mathpazo/zplmr7m.vf
 INPUT c:/texlive/2022/texmf-dist/fonts/tfm/public/mathpazo/fplmri.tfm
 INPUT c:/texlive/2022/texmf-dist/fonts/tfm/public/cm/cmmi10.tfm
 INPUT c:/texlive/2022/texmf-dist/fonts/tfm/adobe/palatino/pplri8r.tfm
+INPUT ./figures/heatmap_linear_USA.pdf
+INPUT ./figures/heatmap_linear_USA.pdf
+INPUT figures/heatmap_linear_USA.pdf
+INPUT ./figures/heatmap_linear_USA.pdf
+INPUT ./figures/heatmap_linear_USA.pdf
 INPUT ./figures/heatmap_USA.pdf
 INPUT ./figures/heatmap_USA.pdf
 INPUT figures/heatmap_USA.pdf
@@ -1170,11 +1175,6 @@ INPUT ./figures/heatmap_CHN.pdf
 INPUT figures/heatmap_CHN.pdf
 INPUT ./figures/heatmap_CHN.pdf
 INPUT ./figures/heatmap_CHN.pdf
-INPUT ./figures/heatmap_TUR.pdf
-INPUT ./figures/heatmap_TUR.pdf
-INPUT figures/heatmap_TUR.pdf
-INPUT ./figures/heatmap_TUR.pdf
-INPUT ./figures/heatmap_TUR.pdf
 INPUT ./figures/heatmap_EU27.pdf
 INPUT ./figures/heatmap_EU27.pdf
 INPUT figures/heatmap_EU27.pdf

@@ -1,13 +1,13 @@
 # Fdb version 4
-["bibtex build/paper"] 1790216015 "build/paper.aux" "build/paper.bbl" "build/paper" 1790216018 0
+["bibtex build/paper"] 1790238294 "build/paper.aux" "build/paper.bbl" "build/paper" 1790238303 0
   "./plainnaturl_clean.bst" 1753911830 25999 4b2b0914a35465b0a6a8366fb04efb16 ""
   "./price_rights.bib" 1790175465 15541 71a5d05bc8afd83a3903bf2496a69fcd ""
-  "build/paper.aux" 1790216017 19379 b8b90592316dffb3af899ed9d2b9c970 "pdflatex"
+  "build/paper.aux" 1790238298 19387 596c2026e0683920d093c2c842298baf "pdflatex"
   (generated)
   "build/paper.bbl"
   "build/paper.blg"
   (rewritten before read)
-["pdflatex"] 1790216015 "paper.tex" "build/paper.pdf" "paper" 1790216018 0
+["pdflatex"] 1790238295 "paper.tex" "build/paper.pdf" "paper" 1790238303 0
   "../output/appendix_autarky_usa.tex" 1790066244 575 67cb9661a69a13311f294cc4cf173db0 ""
   "../output/appendix_uniform_cod.tex" 1790066244 555 9031d3075d6e07fef0e8ceec69f50ab8 ""
   "../output/equivalent_rights_combined.tex" 1790215566 4202 1b0435a1c330ceeee54a2e61b69bf08a ""
@@ -16,11 +16,11 @@
   "../output/equivalent_rights_main.tex" 1790215723 3023 7a4aa129517f23cc49e5c07ffd7d88f9 ""
   "../output/equivalent_rights_main_isolated.tex" 1790215723 3051 f29ae35ddc25244308072694cb47025a ""
   "../output/rho1_table.tex" 1790066244 614 1ec2527d3bc3b753462ee00b8b9858c7 ""
-  "build/paper.aux" 1790216017 19379 b8b90592316dffb3af899ed9d2b9c970 "pdflatex"
-  "build/paper.bbl" 1790216015 9837 75d58e69c964d6dd6cf3440d5fdc8d51 "bibtex build/paper"
-  "build/paper.brf" 1790216017 3781 37148a80027a0a22cbc95b3ef066fa9d "pdflatex"
-  "build/paper.out" 1790216017 2858 e24a672a2c5ba6b2b0a387425d7665ec "pdflatex"
-  "build/paper.toc" 1790216017 2842 6d67a5b29e281886100043c2ee79af70 "pdflatex"
+  "build/paper.aux" 1790238298 19387 596c2026e0683920d093c2c842298baf "pdflatex"
+  "build/paper.bbl" 1790238294 9837 75d58e69c964d6dd6cf3440d5fdc8d51 "bibtex build/paper"
+  "build/paper.brf" 1790238298 3781 37148a80027a0a22cbc95b3ef066fa9d "pdflatex"
+  "build/paper.out" 1790238298 2858 e24a672a2c5ba6b2b0a387425d7665ec "pdflatex"
+  "build/paper.toc" 1790238298 2842 36ce45c60944f1ab08c43f00039beccc "pdflatex"
   "c:/texlive/2022/texmf-dist/fonts/enc/dvips/base/8r.enc" 1670336910 4850 80dc9bab7f31fb78a000ccfed0e27cab ""
   "c:/texlive/2022/texmf-dist/fonts/map/fontname/texfonts.map" 1670337557 3524 cb3e574dea2d1052e39280babc910dc8 ""
   "c:/texlive/2022/texmf-dist/fonts/tfm/adobe/palatino/pplb7t.tfm" 1670341705 1616 371d1ee60c04b008c8fd760060cd34f1 ""
@@ -218,9 +218,9 @@
   "figures/heatmap_IND.pdf" 1790066244 10432 569e939ef257b9cb5ff133c857e23a09 ""
   "figures/heatmap_NGA.pdf" 1790066244 9107 457f995dd4b3c52f367f92d8108c5d4f ""
   "figures/heatmap_RUS.pdf" 1790066244 10353 fb75970e73ed1e362ae6e40fe0fa1e07 ""
-  "figures/heatmap_TUR.pdf" 1790066244 10090 163e99dd406fb6dfac8703e20b4ba56b ""
   "figures/heatmap_USA.pdf" 1790066244 10449 63e15f5e78f70b55b75104faa866b332 ""
-  "paper.tex" 1790216014 129519 b2d5eb8da95ac9bb56f1de58c689659d ""
+  "figures/heatmap_linear_USA.pdf" 1790066244 9951 e07b331e845ab7c0af79b010aba6b3fd ""
+  "paper.tex" 1790238247 129861 955706dcf6a18f98b4673eb304d4fc74 ""
   (generated)
   "build/paper.aux"
   "build/paper.brf"
