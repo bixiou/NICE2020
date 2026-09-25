@@ -2548,7 +2548,9 @@ function read_results_for(tag::AbstractString, props)
             haskey(store, (m, P.name)) && continue
             rows = df[(String.(df.method) .== m) .& (String.(df.scenario) .== P.name), :]
             nrow(rows) >= 2 || continue
-            rp = joinpath(OUTPUT_BASE, "rho_$(lowercase(m))_$(lowercase(P.name))$(tag).csv")
+            # the writers spell the method in upper case (rho_A_..., rho_B_...); reading
+            # it in lower case only worked on case-insensitive file systems
+            rp = joinpath(OUTPUT_BASE, "rho_$(m)_$(lowercase(P.name))$(tag).csv")
             isfile(rp) || continue
             rdf = read_csv_safe(rp)
             (rdf === nothing || !matches_target(rdf, want)) && continue
@@ -2642,10 +2644,8 @@ function write_main_table(path::String, props, welf, cons; method = "B",
         println(io, "  & ", join(["\\multicolumn{$(width(P))}{c}{\\textbf{$(display_name(P.name))}}" for P in props], " & "), " \\\\")
         starts = cumsum(vcat(2, [width(P) for P in props[1:end-1]]))
         println(io, "  ", join(["\\cmidrule(lr){$a-$(a + width(P) - 1)}" for (a, P) in zip(starts, props)], " "))
-        # sub-header: within each block, the two criteria columns are the equivalent rights
-        println(io, "  & ", join([join(vcat(fill("", 1 + haspred(P)),
-                                            ["\\multicolumn{$(length(stores))}{c}{Equivalent rights}"]), " & ") for P in props], " & "), " \\\\")
-        println(io, "  ", join(["\\cmidrule(lr){$(a + width(P) - length(stores))-$(a + width(P) - 1)}" for (a, P) in zip(starts, props)], " "))
+        # (the "Equivalent rights" sub-header over the rho columns was dropped in
+        # Sept 2026: the column symbols and the note already say what they are)
         println(io, "  \\textbf{Country} & ",
                 join([string("\$p_{2030}\$", haspred(P) ? " & \$\\hat\\rho\$" : "",
                              cons_only ? " & \$\\rho\$" : " & \$\\rho^{\\mathrm{welf}}\$ & \$\\rho^{\\mathrm{cons}}\$") for P in props], " & "), " \\\\")
@@ -2682,7 +2682,10 @@ function write_main_table(path::String, props, welf, cons; method = "B",
         cons_only || println(io, row("World welfare gain (\\%)", (P, r) -> fmt_pct(r.v2.welfare_gain_pct)))
         println(io, row("World consumption gain (\\%)", (P, r) -> fmt_pct(r.v2.cons_gain_pct)))
         cons_only || println(io, row("\\quad Smallest member gain, welfare", floor_(:v2, :ede_gain)))
-        println(io, row("\\quad Smallest member gain, consumption", floor_(:v2, :cons_gain)))
+        # Table 2 drops the smallest-gain row: with the maximin sharing every member
+        # gains the same, and the row only differed from the world gain through the
+        # non-members (see the note on the Wolfram et al. column in paper.tex)
+        cons_only || println(io, row("\\quad Smallest member gain, consumption", floor_(:v2, :cons_gain)))
         cons_only || println(io, row("\\quad Members losing on welfare", nlose(:v2, :ede_gain)))
         cons_only || println(io, row("\\quad Members losing on consumption", nlose(:v2, :cons_gain)))
         println(io, "  \\bottomrule")
@@ -2927,14 +2930,15 @@ function write_target_tables(props)
                          cons_only = true)
         # the previous layout (both criteria, welfare aggregates, loser counts), kept as a backup
         write_main_table(joinpath(OUTPUT_BASE, "equivalent_rights_main_both_criteria.tex"), vcat(core, er5), ede, cons)
+        # the appendix tables follow Table 2's layout (consumption criterion only)
         write_main_table(joinpath(OUTPUT_BASE, "equivalent_rights_main_isolated.tex"), vcat(core, er5), ede, cons;
-                         method = "A")
+                         method = "A", cons_only = true)
     end
     er = [P for P in props if P.name == "EqualRight"]
     if !isempty(er)
         for m in ("A", "B")
             write_main_table(joinpath(OUTPUT_BASE, "equivalent_rights_equalright_$(m == "A" ? "isolated" : "joint").tex"),
-                             vcat(er, er5), ede, cons; method = m, predicted = nothing)
+                             vcat(er, er5), ede, cons; method = m, predicted = nothing, cons_only = true)
         end
     end
     isempty(er5) || write_targets_table(
@@ -3085,7 +3089,7 @@ definition of a variant changes rather than the equivalence itself.
 """
 function saved_rho(method::String, P::Proposal)
     FRESH && return nothing
-    path = joinpath(OUTPUT_BASE, "rho_$(lowercase(method))_$(lowercase(P.name))$(TAG).csv")
+    path = joinpath(OUTPUT_BASE, "rho_$(method)_$(lowercase(P.name))$(TAG).csv")   # as written: rho_A_/rho_B_
     isfile(path) || return nothing
     df = CSV.read(path, DataFrame)
     produced_under_target(df) || return nothing
