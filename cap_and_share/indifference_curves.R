@@ -11,8 +11,15 @@ library(ggplot2)
 
 args <- commandArgs(trailingOnly = FALSE)
 here <- dirname(normalizePath(sub("^--file=", "", args[grep("^--file=", args)])))
-dir_in  <- file.path(here, "output", "indifference")
+# NICE_RECYCLING=equal_pc: the runs with an equal per capita dividend inside
+# each country (Online Appendix). Their grid lives in output/equal_pc/ and their
+# figures carry the "eqpc" tag, leaving the main figures untouched.
+recycling <- Sys.getenv("NICE_RECYCLING", "negishi")
+if (!recycling %in% c("negishi", "equal_pc")) stop("NICE_RECYCLING must be negishi or equal_pc")
+dir_in  <- if (recycling == "equal_pc") file.path(here, "output", "equal_pc", "indifference") else
+                                        file.path(here, "output", "indifference")
 dir_out <- file.path(here, "paper", "figures")
+tag     <- if (recycling == "equal_pc") "eqpc_" else ""
 countries <- c("USA", "RUS", "CHN", "TUR", "EU27", "IND", "NGA", "COD")
 labels <- c(USA = "United States", RUS = "Russia", CHN = "China", TUR = "Turkey",
             EU27 = "European Union (EU27)", IND = "India", NGA = "Nigeria", COD = "DR Congo")
@@ -154,9 +161,9 @@ plot_heat <- function(cc, log_y) {
 }
 
 for (cc in countries) {
-  ggsave(file.path(dir_out, paste0("heatmap_", cc, ".pdf")), plot_heat(cc, TRUE),
+  ggsave(file.path(dir_out, paste0("heatmap_", tag, cc, ".pdf")), plot_heat(cc, TRUE),
          width = 6.6, height = 3.5)
-  ggsave(file.path(dir_out, paste0("heatmap_linear_", cc, ".pdf")), plot_heat(cc, FALSE),
+  ggsave(file.path(dir_out, paste0("heatmap_linear_", tag, cc, ".pdf")), plot_heat(cc, FALSE),
          width = 6.6, height = 3.5)
 }
 
@@ -173,5 +180,5 @@ p <- ggplot(cv, aes(pi)) +
   labs(x = expression("Autarky price factor " * pi[i]), y = expression("Equivalent rights factor " * rho[i])) +
   expand_limits(y = 0) +
   theme_minimal(base_size = 10) + theme(legend.position = "bottom")
-ggsave(file.path(dir_out, "indifference_curves.pdf"), p, width = 8, height = 4.6)
+ggsave(file.path(dir_out, if (tag == "") "indifference_curves.pdf" else "indifference_curves_eqpc.pdf"), p, width = 8, height = 4.6)
 cat("figures written to", dir_out, "\n")
