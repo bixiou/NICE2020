@@ -23,8 +23,13 @@ tag     <- if (recycling == "equal_pc") "eqpc_" else ""
 countries <- c("USA", "RUS", "CHN", "TUR", "EU27", "IND", "NGA", "COD")
 labels <- c(USA = "United States", RUS = "Russia", CHN = "China", TUR = "Turkey",
             EU27 = "European Union (EU27)", IND = "India", NGA = "Nigeria", COD = "DR Congo")
-metric <- "cons"                        # NPV of consumption (the paper's Figure 1;
-                                        # "welfare" = NPV of EDE consumption is the variant kept in backup)
+# The two benchmarks of the paper: NPV of total consumption with c^eta (Negishi)
+# recycling (Figure 1), and NPV of EDE consumption (welfare) with an equal per
+# capita dividend within countries (its Online Appendix analogue).
+metric <- if (recycling == "equal_pc") "welfare" else "cons"
+rho_col <- if (metric == "welfare") "rho_welfare" else "rho_cons"
+fill_title <- if (metric == "welfare") "Welfare in Uniform relative to Autarky\n(% of EDE consumption NPV)" else
+                                       "Consumption in Uniform relative to Autarky\n(% of consumption NPV)"
 has <- function(cc) all(file.exists(file.path(dir_in, paste0(c("uniform_", "autarky_"), cc, ".csv"))))
 countries <- Filter(has, countries)
 
@@ -80,7 +85,7 @@ curve_for <- function(cc) {
 }
 
 curves <- read.csv(file.path(dir_in, "indifference_curves.csv"))
-curves <- curves[is.finite(curves$rho_cons), ]
+curves <- curves[is.finite(curves[[rho_col]]), ]
 
 # Colour limits: symmetric, at the 95th percentile of |gain| over all countries,
 # the rule used by the figures this replaces (a few cells -- very large
@@ -96,13 +101,13 @@ plot_heat <- function(cc, log_y) {
   g  <- grid_for(cc, log_y)
   ey <- if (log_y) EY else EY_LIN
   cv <- curve_for(cc)
-  r1 <- curves$rho_cons[curves$country == cc & curves$pi == 1]
+  r1 <- curves[[rho_col]][curves$country == cc & curves$pi == 1]
   p <- ggplot(g) +
     geom_rect(aes(xmin = xmin, xmax = xmax, ymin = ymin, ymax = ymax,
                   fill = pmax(pmin(gain, lim), -lim)),
               colour = "white", linewidth = 0.15) +
     scale_fill_distiller(palette = "RdBu", direction = 1, limits = c(-lim, lim),
-                         name = "Consumption in Uniform relative to Autarky\n(% of consumption NPV)") +
+                         name = fill_title) +
     # crosshair at pi = 1, then the indifference curve on top
     annotate("segment", x = 1, xend = 1, y = min(ey), yend = r1,
              colour = "black", linetype = "dotted", linewidth = 0.4) +
@@ -172,8 +177,8 @@ cv$label <- factor(labels[cv$country], levels = labels[countries])
 p <- ggplot(cv, aes(pi)) +
   geom_hline(yintercept = 0, colour = "grey60", linewidth = 0.3) +
   geom_vline(xintercept = 1, colour = "grey80", linewidth = 0.3, linetype = "dotted") +
-  geom_line(aes(y = rho_welfare, colour = "Simulated")) +
-  geom_point(aes(y = rho_welfare, colour = "Simulated"), size = 0.9) +
+  geom_line(aes(y = .data[[rho_col]], colour = "Simulated")) +
+  geom_point(aes(y = .data[[rho_col]], colour = "Simulated"), size = 0.9) +
   geom_line(aes(y = rho_hat, colour = "First-order prediction"), linetype = "dashed") +
   facet_wrap(~label, scales = "free_y", ncol = 4) +
   scale_colour_manual(values = c("Simulated" = "black", "First-order prediction" = "#c0392b"), name = NULL) +
