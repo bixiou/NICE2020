@@ -1,27 +1,27 @@
 # Fdb version 4
-["bibtex build/paper"] 1790314977 "build/paper.aux" "build/paper.bbl" "build/paper" 1790338085 0
+["bibtex build/paper"] 1790344079 "build/paper.aux" "build/paper.bbl" "build/paper" 1790344082 0
   "./plainnaturl_clean.bst" 1753911830 25999 4b2b0914a35465b0a6a8366fb04efb16 ""
-  "./price_rights.bib" 1790175465 15541 71a5d05bc8afd83a3903bf2496a69fcd ""
-  "build/paper.aux" 1790338084 19387 844089d6379bd04bd84e936e61ce31a0 "pdflatex"
+  "./price_rights.bib" 1790338869 15531 617e8de0bd01b977298c9a54f65651ef ""
+  "build/paper.aux" 1790344081 19732 f2f41d8abddd7d06c27fc5c8bd0475ea "pdflatex"
   (generated)
   "build/paper.bbl"
   "build/paper.blg"
   (rewritten before read)
-["pdflatex"] 1790338078 "c:/Users/fabre/Documents/www/NICE2020/cap_and_share/paper/paper.tex" "build/paper.pdf" "paper" 1790338085 0
-  "../output/appendix_autarky_usa.tex" 1790288391 562 dbc8cea607d341833d9b4a9aa4b58d52 ""
-  "../output/appendix_uniform_cod.tex" 1790288391 543 500195810c4a2ce08ff0820dfd841fe3 ""
+["pdflatex"] 1790344079 "c:/Users/fabre/Documents/www/NICE2020/cap_and_share/paper/paper.tex" "build/paper.pdf" "paper" 1790344082 0
+  "../output/appendix_autarky_usa.tex" 1790339256 562 dbc8cea607d341833d9b4a9aa4b58d52 ""
+  "../output/appendix_uniform_cod.tex" 1790339256 543 500195810c4a2ce08ff0820dfd841fe3 ""
   "../output/equivalent_rights_combined.tex" 1790314907 4202 851d97d682d663f3eceb76eeb91d988a ""
-  "../output/equivalent_rights_equalright_joint.tex" 1790314912 2290 604f2f48bcc2c8e290c97b42c2d2e32d ""
+  "../output/equivalent_rights_equalright_joint.tex" 1790338694 2290 604f2f48bcc2c8e290c97b42c2d2e32d ""
   "../output/equivalent_rights_losers.tex" 1790314907 1552 f49f0814361e8189e1db848802a72ad8 ""
-  "../output/equivalent_rights_main.tex" 1790314910 1895 9abc50adacb77a3ec7defabc44980efa ""
-  "../output/equivalent_rights_main_isolated.tex" 1790314911 3051 f92f48323abe080f7b7c664a11904558 ""
-  "../output/rho1_table.tex" 1790288388 598 d8453a1ffdcf02b62dfcad3f33b1030b ""
-  "build/paper.aux" 1790338084 19387 844089d6379bd04bd84e936e61ce31a0 "pdflatex"
-  "build/paper.bbl" 1790314977 9837 75d58e69c964d6dd6cf3440d5fdc8d51 "bibtex build/paper"
-  "build/paper.brf" 1790338084 3781 37148a80027a0a22cbc95b3ef066fa9d "pdflatex"
-  "build/paper.out" 1790338084 2858 e24a672a2c5ba6b2b0a387425d7665ec "pdflatex"
-  "build/paper.toc" 1790338084 2842 477d0726a5241161dc06e0cce25ab58e "pdflatex"
-  "c:/Users/fabre/Documents/www/NICE2020/cap_and_share/paper/paper.tex" 1790314959 129951 cf94afd018119a6cd03654a12d363e88 ""
+  "../output/equivalent_rights_main.tex" 1790338694 1895 9abc50adacb77a3ec7defabc44980efa ""
+  "../output/equivalent_rights_main_isolated.tex" 1790338694 3051 f92f48323abe080f7b7c664a11904558 ""
+  "../output/rho1_table.tex" 1790339253 622 4d94dc7309c0c0fb9f31c6a0e4ddf9da ""
+  "build/paper.aux" 1790344081 19732 f2f41d8abddd7d06c27fc5c8bd0475ea "pdflatex"
+  "build/paper.bbl" 1790344079 9821 88da7d9c633e90f45a65dde786d147a7 "bibtex build/paper"
+  "build/paper.brf" 1790344081 3794 b9ae5c99d55c409b5120a31915bce26d "pdflatex"
+  "build/paper.out" 1790344081 3146 02e2e8022eb96ddef1894d9b8ecd5bbd "pdflatex"
+  "build/paper.toc" 1790344081 3008 f64c2ce841015a98a6c90242c1c37ea2 "pdflatex"
+  "c:/Users/fabre/Documents/www/NICE2020/cap_and_share/paper/paper.tex" 1790344062 135230 c9ba83345fb7b2cee5448943280df379 ""
   "c:/texlive/2022/texmf-dist/fonts/enc/dvips/base/8r.enc" 1670336910 4850 80dc9bab7f31fb78a000ccfed0e27cab ""
   "c:/texlive/2022/texmf-dist/fonts/map/fontname/texfonts.map" 1670337557 3524 cb3e574dea2d1052e39280babc910dc8 ""
   "c:/texlive/2022/texmf-dist/fonts/tfm/adobe/palatino/pplb7t.tfm" 1670341705 1616 371d1ee60c04b008c8fd760060cd34f1 ""
@@ -221,7 +221,7 @@
   "figures/heatmap_RUS.pdf" 1790314731 10187 bbaa301e9e2efdb93752523be8c14749 ""
   "figures/heatmap_USA.pdf" 1790314730 10255 f2369dfa673fe0896984d82e7abe4eb4 ""
   "figures/heatmap_linear_USA.pdf" 1790314731 9782 a3939ed2bdc835cf41f1b5999a7c55a5 ""
-  "paper.tex" 1790314959 129951 cf94afd018119a6cd03654a12d363e88 ""
+  "paper.tex" 1790344062 135230 c9ba83345fb7b2cee5448943280df379 ""
   (generated)
   "build/paper.aux"
   "build/paper.brf"
