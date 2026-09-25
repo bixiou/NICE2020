@@ -2,7 +2,7 @@
 # written by src/indifference_curves.jl into cap_and_share/output/indifference/.
 #   Rscript cap_and_share/indifference_curves.R
 # Writes, into cap_and_share/paper/figures/:
-#   heatmap_<country>.pdf         welfare gain of the uniform regime, log rho axis
+#   heatmap_<country>.pdf         consumption gain of the uniform regime, log rho axis
 #                                 (the paper's Figure 1; same layout as the
 #                                 figures it replaces, with pi = 0 and 0.25 added)
 #   heatmap_linear_<country>.pdf  same on a linear rho axis (not used in the paper)
@@ -23,7 +23,8 @@ tag     <- if (recycling == "equal_pc") "eqpc_" else ""
 countries <- c("USA", "RUS", "CHN", "TUR", "EU27", "IND", "NGA", "COD")
 labels <- c(USA = "United States", RUS = "Russia", CHN = "China", TUR = "Turkey",
             EU27 = "European Union (EU27)", IND = "India", NGA = "Nigeria", COD = "DR Congo")
-metric <- "welfare"                     # NPV of EDE consumption
+metric <- "cons"                        # NPV of consumption (the paper's Figure 1;
+                                        # "welfare" = NPV of EDE consumption is the variant kept in backup)
 has <- function(cc) all(file.exists(file.path(dir_in, paste0(c("uniform_", "autarky_"), cc, ".csv"))))
 countries <- Filter(has, countries)
 
@@ -79,7 +80,7 @@ curve_for <- function(cc) {
 }
 
 curves <- read.csv(file.path(dir_in, "indifference_curves.csv"))
-curves <- curves[is.finite(curves$rho_welfare), ]
+curves <- curves[is.finite(curves$rho_cons), ]
 
 # Colour limits: symmetric, at the 95th percentile of |gain| over all countries,
 # the rule used by the figures this replaces (a few cells -- very large
@@ -95,13 +96,13 @@ plot_heat <- function(cc, log_y) {
   g  <- grid_for(cc, log_y)
   ey <- if (log_y) EY else EY_LIN
   cv <- curve_for(cc)
-  r1 <- curves$rho_welfare[curves$country == cc & curves$pi == 1]
+  r1 <- curves$rho_cons[curves$country == cc & curves$pi == 1]
   p <- ggplot(g) +
     geom_rect(aes(xmin = xmin, xmax = xmax, ymin = ymin, ymax = ymax,
                   fill = pmax(pmin(gain, lim), -lim)),
               colour = "white", linewidth = 0.15) +
     scale_fill_distiller(palette = "RdBu", direction = 1, limits = c(-lim, lim),
-                         name = "Welfare in Uniform relative to Autarky\n(% of EDE consumption NPV)") +
+                         name = "Consumption in Uniform relative to Autarky\n(% of consumption NPV)") +
     # crosshair at pi = 1, then the indifference curve on top
     annotate("segment", x = 1, xend = 1, y = min(ey), yend = r1,
              colour = "black", linetype = "dotted", linewidth = 0.4) +
