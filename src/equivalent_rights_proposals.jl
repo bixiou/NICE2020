@@ -2639,7 +2639,8 @@ function write_main_table(path::String, props, welf, cons; method = "B",
             for P in props
                 idx = intersect(entity_indices(e), P.members)
                 if isempty(idx)
-                    push!(cells, "0"); haspred(P) && push!(cells, "--"); push!(cells, "--", "--")
+                    push!(cells, "0"); haspred(P) && push!(cells, "--")
+                    append!(cells, fill("--", length(stores)))
                     continue
                 end
                 push!(cells, fmt_price(mean(P.tax[YEAR_IDX[2030], idx])))

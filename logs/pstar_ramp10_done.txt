@@ -2,3 +2,15 @@ cons/B/Wolfram
 ede/B/Wolfram
 cons/B/Duflo
 ede/B/Duflo
+cons/B/EqualRight5
+cons/B/EqualRight
+ede/B/EqualRight5
+ede/B/EqualRight
+cons/A/Wolfram
+ede/A/Wolfram
+cons/A/Duflo
+ede/A/Duflo
+cons/A/EqualRight5
+ede/A/EqualRight5
+cons/A/EqualRight
+ede/A/EqualRight
