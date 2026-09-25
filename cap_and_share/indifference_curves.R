@@ -77,6 +77,24 @@ grid_for <- function(cc, log_y = TRUE) {
 curve_for <- function(cc) {
   d <- read_pair(cc)
   u <- d$u[order(d$u$rho), ]; a <- d$a[order(d$a$pi), ]
+  # Inverting autarky welfare in pi requires it to fall with pi. It does for
+  # consumption, but not always for welfare with an equal per capita dividend:
+  # a higher domestic price then also funds a progressive dividend, and autarky
+  # welfare is flat, even slightly non-monotonic, at low pi. The curve is then
+  # traced as rho*(pi) instead, from the indifference rho solved at each pi of
+  # the grid (interpolated in rho, in which uniform welfare is monotonic), and
+  # stopped where it leaves the bottom of the panel.
+  if (any(diff(a[[metric]]) >= 0)) {
+    cv <- curves[curves$country == cc, c("pi", rho_col)]
+    names(cv) <- c("pi", "rho"); cv <- cv[order(cv$pi), ]
+    ymin <- min(RHO_SHOW); keep <- cv$rho >= ymin
+    k <- which(!keep)[1]
+    if (!is.na(k) && k > 1 && keep[k - 1]) {       # where the curve crosses the bottom edge
+      x0 <- cv$pi[k - 1] + (cv$pi[k] - cv$pi[k - 1]) * (cv$rho[k - 1] - ymin) / (cv$rho[k - 1] - cv$rho[k])
+      cv <- rbind(cv[seq_len(k - 1)[keep[seq_len(k - 1)]], ], data.frame(pi = x0, rho = ymin))
+    } else cv <- cv[keep, ]
+    return(cv)
+  }
   rho_dense <- exp(seq(log(min(RHO_SHOW)), log(max(RHO_SHOW)), length.out = 400))
   wu <- approx(u$rho, u[[metric]], xout = rho_dense, rule = 1)$y   # welfare under the uniform price
   # autarky welfare falls with pi, so invert it on the dense welfare values

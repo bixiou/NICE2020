@@ -1998,7 +1998,9 @@ function entity_rho(rho::Vector{Float64}, entity::String, P::Proposal)
     return den > 0 ? num / den : NaN
 end
 
-fmt(x; d = 3) = isnan(x) ? "--" : replace(string(round(x, digits = d)), "-" => "\$-\$")
+# fixed decimals ("1.50", not "1.5"), and no negative zero ("-0.00" for -0.004)
+fmt(x; d = 3) = isnan(x) ? "--" : (y = round(x, digits = d); y == 0 && (y = 0.0);
+                                   replace(@sprintf("%.*f", d, y), "-" => "\$-\$"))
 
 "Percentage with a LaTeX minus, e.g. \$-\$0.006\\%."
 fmt_pct(x)   = (x < 0 ? "\$-\$" : "") * @sprintf("%.3f\\%%", abs(x))
