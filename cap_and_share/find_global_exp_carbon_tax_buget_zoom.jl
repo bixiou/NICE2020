@@ -14,6 +14,11 @@ using Mimi, MimiFAIRv2, DataFrames, CSVFiles
 # --- Tax and budget start parameters ---
 const tax_start_year        = 2035     # tax start year (2025, 2030…)
 const evaluation_end_year   = 2100    # the end of the year for budgeting
+# First year of well-being counted (default: the year the tax reaches its plateau
+# value A, as before). Since 26 Sept 2026 the paper's p* counts welfare over
+# 2025-2100 (NICE_WELFARE_START=2025, NICE_WELFARE_END=2100): the same window as
+# every other NPV in the paper, starting with the first priced year.
+const welfare_start_year    = parse(Int, get(ENV, "NICE_WELFARE_START", string(tax_start_year)))
 const welfare_end_year      = parse(Int, get(ENV, "NICE_WELFARE_END", string(evaluation_end_year)))  # last year of well-being counted
                                       # (set to 2300, the model's horizon, so that the peak-warming ceiling is not
                                       # enforced through years whose welfare the objective ignores)
@@ -99,8 +104,8 @@ years_vec  = collect(2020:2020+nb_steps-1)
 mask = (years_vec .>= tax_start_year) .& (years_vec .<= evaluation_end_year)
 discount = (1 .+ rho) .^ collect(0:(evaluation_end_year - tax_start_year))
 bmask     = (years_vec .>= budget_start_year) .& (years_vec .<= evaluation_end_year)   # budget window
-wmask     = (years_vec .>= tax_start_year) .& (years_vec .<= welfare_end_year)
-wdiscount = (1 .+ rho) .^ collect(0:(welfare_end_year - tax_start_year))
+wmask     = (years_vec .>= welfare_start_year) .& (years_vec .<= welfare_end_year)
+wdiscount = (1 .+ rho) .^ collect(0:(welfare_end_year - welfare_start_year))
 
 # === Zoom-progressive search with carbon budget constraint ===
 const n_zoom    = parse(Int, get(ENV, "NICE_N_ZOOM", "3"))       # number of zoom iterations
@@ -273,4 +278,4 @@ em, wel, temp = test_global_exp_c_tax(232, .0416)
 # World max 2.00°C in 2100, ramp up 2030-30: 184, .002 ; carbon budget: 1349
 # World max 1.80°C in 2100, ramp up 2025-30: 216, .0128; carbon budget: 600
 # World max 2.00°C in 2100, ramp up 2025-30: 184, 0.0088   ; carbon budget:  950
-# TODO! display carbon budget when !use_budget and temp_max, temp 2100 when use_budget
+# TODO! display carbon budget when !use_budget and temp_max, temp 2100 when use_budget

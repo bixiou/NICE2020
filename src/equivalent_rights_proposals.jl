@@ -2220,15 +2220,16 @@ function ab_tabular(io, props; color = false, predicted = nothing, pred_kind = :
                         (m, P, r) -> fmt_pct(r.v1.welfare_gain_pct)))
     println(io, outcome("\\quad World consumption gain (\\%)", P -> "",
                         (m, P, r) -> fmt_pct(r.v1.cons_gain_pct)))
-    # isolated: v2 is uniform scaling, so v4 repeats it and is not printed
-    for (k, v, t) in ((2, :v2, "Increased consumption (variant 2)"),
+    # variant 2 (equal gains at the proposal's cap) is a joint problem: it is
+    # undefined for the isolated solve, which gets "n.a." rather than a stand-in
+    for (k, v, t) in ((2, :v2, "Increased consumption, equal gains (variant 2)"),
                       (3, :v3, "Surplus shared by marginal utility (variant 3)"),
                       (4, :v4, "Surplus shared by uniform scaling (variant 4)"))
         section(t)
         println(io, outcome("\\quad World welfare gain (\\%)", P -> "",
-                            (m, P, r) -> (m == "A" && k == 4) ? "=(2)" : fmt_pct(getfield(r, v).welfare_gain_pct)))
+                            (m, P, r) -> (m == "A" && k == 2) ? "n.a." : fmt_pct(getfield(r, v).welfare_gain_pct)))
         println(io, outcome("\\quad World consumption gain (\\%)", P -> "",
-                            (m, P, r) -> (m == "A" && k == 4) ? "=(2)" : fmt_pct(getfield(r, v).cons_gain_pct)))
+                            (m, P, r) -> (m == "A" && k == 2) ? "n.a." : fmt_pct(getfield(r, v).cons_gain_pct)))
     end
     println(io, "  \\bottomrule")
     println(io, "\\end{tabular}")
@@ -2362,9 +2363,9 @@ function write_combined_table(path::String, props; label = "tab:equiv_rights", p
                     "held exactly at its level under the proposal; in the isolated solve each country's ratio is ",
                     "solved with all others grandfathered, and the ratios are then applied together. Variants 2 to 4 ",
                     "(increased consumption) keep club emissions at the proposal's and share the surplus: ",
-                    "equalising the relative gains of all members (joint variant 2), by scaling the isolated ",
-                    "allocation up uniformly (isolated variant 2, also variant 4), and in proportion to population ",
-                    "times marginal utility (variant 3). The temperature row is the change from the proposal's own 2100 warming, ",
+                    "so as to equalise the relative gains of all members (variant 2), which requires solving all ",
+                    "members jointly and is therefore undefined for the isolated solve (n.a.), in proportion to population ",
+                    "times marginal utility (variant 3), and by scaling the allocation up uniformly (variant 4). The temperature row is the change from the proposal's own 2100 warming, ",
                     "which is ",
                     join([@sprintf("%.2f\\textdegree{}C for %s", P.temp_2100, display_name(P.name))
                           for P in props], ", ", " and "),
@@ -2450,7 +2451,9 @@ function write_losers_table(path::String, props; label = "tab:equiv_rights_loser
                 cells = String[]
                 for P in props, m in ms
                     r = got(m, P)
-                    push!(cells, r === nothing ? "--" : cell(count_below(getfield(r, f), P, fld)))
+                    # variant 2 is a joint problem, undefined for the isolated solve
+                    push!(cells, r === nothing ? "--" : (m == "A" && k == 2) ? "n.a." :
+                                 cell(count_below(getfield(r, f), P, fld)))
                 end
                 println(io, "  \\quad Variant ", k, " & ", join(cells, " & "), " \\\\")
             end
@@ -2464,7 +2467,8 @@ function write_losers_table(path::String, props; label = "tab:equiv_rights_loser
                     "every member indifferent by construction, so any count there is numerical noise. ",
                     "Variants 2 to 4 return the same surplus of rights under different sharing rules: ",
                     "a split chosen to minimise the largest relative shortfall (2), one proportional to ",
-                    "population times marginal utility (3), and uniform scaling (4).}")
+                    "population times marginal utility (3), and uniform scaling (4). Variant 2 requires a joint ",
+                    "solve and is undefined for the isolated one (n.a.).}")
         println(io, "\\end{table}")
     end
     @info "wrote table" path
@@ -2691,10 +2695,22 @@ function write_main_table(path::String, props, welf, cons; method = "B",
                         (P, r) -> fmt_pct(r.v1.cons_gain_pct)))
         cons_only || println(io, row("\\quad Members losing on welfare", nlose(:v1, :ede_gain)))
         cons_only || println(io, row("\\quad Members losing on consumption", nlose(:v1, :cons_gain)))
+        # Increased consumption is a joint problem (the surplus is shared among all
+        # members at the proposal's cap), so it has no isolated counterpart: the
+        # isolated table stops at reduced emissions.
+        if method == "A"
+            println(io, "  \\bottomrule")
+            println(io, "\\end{tabular}")
+            return
+        end
         println(io, "  \\midrule")
         println(io, "  \\multicolumn{", ncol, "}{l}{\\textit{Increased consumption: coalition emissions as under the proposal}} \\\\")
         cons_only || println(io, row("World welfare gain (\\%)", (P, r) -> fmt_pct(r.v2.welfare_gain_pct)))
-        println(io, row("World consumption gain (\\%)", (P, r) -> fmt_pct(r.v2.cons_gain_pct)))
+        # Table 2: the gain of the coalition's members, i.e. the smallest one
+        # (the maximin sharing equalises them); the world gain also averages in
+        # the non-members, whose consumption does not change
+        cons_only ? println(io, row("Coalition consumption gain (in \\%)", floor_(:v2, :cons_gain))) :
+                    println(io, row("World consumption gain (\\%)", (P, r) -> fmt_pct(r.v2.cons_gain_pct)))
         cons_only || println(io, row("\\quad Smallest member gain, welfare", floor_(:v2, :ede_gain)))
         # Table 2 drops the smallest-gain row: with the maximin sharing every member
         # gains the same, and the row only differed from the world gain through the
@@ -3299,6 +3315,9 @@ function solve_cell!(P::Proposal, method::String, props; variants_only = false)
     # uniform scaling: variant 2 of the isolated solve, variant 4 of the joint one
     vs = run_variant(P, rho, 4, "$(method)4/$(P.name)"; p_init = v1.price_path)
     v2 = if method == "A"
+        # Variant 2 (equal gains at the proposal's cap) needs every member solved
+        # at once, so it is undefined for the isolated solve. The slot repeats
+        # variant 4 only to keep the files' layout; no table reports it (n.a.).
         vs
     else
         # equal gains at the proposal's cap, started from the variant-1 shares
