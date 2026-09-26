@@ -132,7 +132,11 @@ RECYCLING in ("negishi", "equal_pc") || error("NICE_RECYCLING must be negishi or
 const OUTPUT_BASE   = RECYCLING == "equal_pc" ?
                       joinpath(ROOT, "cap_and_share", "output", "equal_pc") :
                       joinpath(ROOT, "cap_and_share", "output")
-const YEARS_NPV     = 2030:2100          # welfare NPV window (= paper convention)
+# Welfare/consumption NPV window (= paper convention). 2025:2100 since 25 Sept
+# 2026 (it was 2030:2100): prices start in 2025, so the first five years are part
+# of what a country gives up or gains. NICE_NPV_START=2030 reproduces the old runs.
+const YEARS_NPV     = parse(Int, get(ENV, "NICE_NPV_START", "2025")):2100
+const NPV_SPAN      = "$(first(YEARS_NPV))--$(last(YEARS_NPV))"   # for table notes
 const DISCOUNT_RATE = 0.03
 const ETA           = 1.5                # elasticity of marginal utility (welfare.jl default)
 
@@ -692,8 +696,8 @@ const CRITERION_VERSION = "popw-2026-09"
 # Everything cached below also depends on the recycling shares (set by the
 # reference run at p*) and on p* itself; hashing them into the keys means a new
 # price path can never be served results computed on an old one.
-const RUN_CONFIG = hash((CRITERION_VERSION, round.(RECYCLE_SHARE, digits = 10),
-                         round.(P_STAR, digits = 6)))
+run_config(share) = hash((CRITERION_VERSION, round.(share, digits = 10), round.(P_STAR, digits = 6)))
+const RUN_CONFIG = run_config(RECYCLE_SHARE)
 
 # ──────────────────────────────────────────────────────────────────────────────
 # SCENARIO DATA
@@ -768,9 +772,15 @@ the world welfare gain collapses to zero.
 """
 # Cache key of a proposal run. World per capita recycling enters it only when it
 # is on, so the keys (and caches) of the domestically recycled runs are unchanged.
-proposal_key(name, tax) = world_pc_recycling(name) ?
-    (name, round.(tax, digits = 6), RUN_CONFIG, :world_pc_recycling) :
-    (name, round.(tax, digits = 6), RUN_CONFIG)
+#
+# The NPV window enters too, since a Proposal carries its members' NPVs (the
+# solvers' targets); it is left out for the original 2030-2100 window so that the
+# caches of those runs keep their keys. p_ref does not depend on the window and
+# keeps its own key (cached_p_ref).
+const NPV_KEY = YEARS_NPV == 2030:2100 ? () : ((:npv_window, first(YEARS_NPV), last(YEARS_NPV)),)
+proposal_key(name, tax; cfg = RUN_CONFIG) = world_pc_recycling(name) ?
+    (name, round.(tax, digits = 6), cfg, :world_pc_recycling, NPV_KEY...) :
+    (name, round.(tax, digits = 6), cfg, NPV_KEY...)
 
 function build_proposal(name, tax)
     # A proposal is expensive to build (an autarky run plus the p_ref
@@ -1125,13 +1135,13 @@ end
 const PREDICTORS = Dict(
     :pc      => (predicted_rho_pc,
                  "the country's emissions per capita under the proposal over the club's, each year " *
-                 "weighted by the discounted uniform price over 2030--2100 (equation~\\eqref{eq:rhohat_dyn})"),
+                 "weighted by the discounted uniform price over $(NPV_SPAN) (equation~\\eqref{eq:rhohat_dyn})"),
     :formula => (predicted_rho_priced,
                  "the country's own emissions under the proposal over an equal-per-capita share of " *
-                 "the club's, each year weighted by the discounted club price over 2030--2100"),
+                 "the club's, each year weighted by the discounted club price over $(NPV_SPAN)"),
     :paper   => (predicted_rho_paper,
                  "the country's own emissions under the proposal over an equal-per-capita share of " *
-                 "the club's, both discounted over 2030--2100"),
+                 "the club's, both discounted over $(NPV_SPAN)"),
     :now     => (predicted_rho_now,
                  "the country's emissions per capita in 2025 over the world average"))
 
@@ -1988,7 +1998,9 @@ function entity_rho(rho::Vector{Float64}, entity::String, P::Proposal)
     return den > 0 ? num / den : NaN
 end
 
-fmt(x; d = 3) = isnan(x) ? "--" : replace(string(round(x, digits = d)), "-" => "\$-\$")
+# fixed decimals ("1.50", not "1.5"), and no negative zero ("-0.00" for -0.004)
+fmt(x; d = 3) = isnan(x) ? "--" : (y = round(x, digits = d); y == 0 && (y = 0.0);
+                                   replace(@sprintf("%.*f", d, y), "-" => "\$-\$"))
 
 "Percentage with a LaTeX minus, e.g. \$-\$0.006\\%."
 fmt_pct(x)   = (x < 0 ? "\$-\$" : "") * @sprintf("%.3f\\%%", abs(x))
@@ -2448,7 +2460,7 @@ function write_losers_table(path::String, props; label = "tab:equiv_rights_loser
         println(io, "\\label{", label, "}")
         println(io, "\\\\[4pt]")
         println(io, "{\\footnotesize Note: a member counts as losing when its NPV of consumption over ",
-                    "2030--2100 falls short of what it obtains under the proposal itself. Variant 1 makes ",
+                    NPV_SPAN, " falls short of what it obtains under the proposal itself. Variant 1 makes ",
                     "every member indifferent by construction, so any count there is numerical noise. ",
                     "Variants 2 to 4 return the same surplus of rights under different sharing rules: ",
                     "a split chosen to minimise the largest relative shortfall (2), one proportional to ",
@@ -2514,12 +2526,14 @@ tried first and the core files only fill what they miss. Reading them in that
 order is what lets a `tables` run rebuild the Equal Right columns: the core
 summary has no rows for those scenarios at all.
 """
-function read_results_for(tag::AbstractString, props)
+function read_results_for(tag::AbstractString, props; base = OUTPUT_BASE)
+    # `base`: the folder of a benchmark, since the other benchmark's results
+    # (the equal per capita recycling) live in a folder of their own
     want  = tag == "_ede" ? "ede" : "cons"
     store = Dict{Tuple{String,String},NamedTuple}()
     gains = Dict{Tuple{String,String,Int,Symbol},Vector{Float64}}()
     for suffix in ("_er", "")
-        gp = joinpath(OUTPUT_BASE, "country_gains$(suffix)$(tag).csv")
+        gp = joinpath(base, "country_gains$(suffix)$(tag).csv")
         isfile(gp) || continue
         gdf = read_csv_safe(gp)
         (gdf === nothing || !matches_target(gdf, want)) && continue
@@ -2540,7 +2554,7 @@ function read_results_for(tag::AbstractString, props)
         end
     end
     for suffix in ("_er", "")
-        path = joinpath(OUTPUT_BASE, "equivalent_rights_variants$(suffix)$(tag).csv")
+        path = joinpath(base, "equivalent_rights_variants$(suffix)$(tag).csv")
         isfile(path) || continue
         df = read_csv_safe(path)
         (df === nothing || !matches_target(df, want)) && continue
@@ -2548,7 +2562,9 @@ function read_results_for(tag::AbstractString, props)
             haskey(store, (m, P.name)) && continue
             rows = df[(String.(df.method) .== m) .& (String.(df.scenario) .== P.name), :]
             nrow(rows) >= 2 || continue
-            rp = joinpath(OUTPUT_BASE, "rho_$(lowercase(m))_$(lowercase(P.name))$(tag).csv")
+            # the writers spell the method in upper case (rho_A_..., rho_B_...); reading
+            # it in lower case only worked on case-insensitive file systems
+            rp = joinpath(base, "rho_$(m)_$(lowercase(P.name))$(tag).csv")
             isfile(rp) || continue
             rdf = read_csv_safe(rp)
             (rdf === nothing || !matches_target(rdf, want)) && continue
@@ -2642,10 +2658,8 @@ function write_main_table(path::String, props, welf, cons; method = "B",
         println(io, "  & ", join(["\\multicolumn{$(width(P))}{c}{\\textbf{$(display_name(P.name))}}" for P in props], " & "), " \\\\")
         starts = cumsum(vcat(2, [width(P) for P in props[1:end-1]]))
         println(io, "  ", join(["\\cmidrule(lr){$a-$(a + width(P) - 1)}" for (a, P) in zip(starts, props)], " "))
-        # sub-header: within each block, the two criteria columns are the equivalent rights
-        println(io, "  & ", join([join(vcat(fill("", 1 + haspred(P)),
-                                            ["\\multicolumn{$(length(stores))}{c}{Equivalent rights}"]), " & ") for P in props], " & "), " \\\\")
-        println(io, "  ", join(["\\cmidrule(lr){$(a + width(P) - length(stores))-$(a + width(P) - 1)}" for (a, P) in zip(starts, props)], " "))
+        # (the "Equivalent rights" sub-header over the rho columns was dropped in
+        # Sept 2026: the column symbols and the note already say what they are)
         println(io, "  \\textbf{Country} & ",
                 join([string("\$p_{2030}\$", haspred(P) ? " & \$\\hat\\rho\$" : "",
                              cons_only ? " & \$\\rho\$" : " & \$\\rho^{\\mathrm{welf}}\$ & \$\\rho^{\\mathrm{cons}}\$") for P in props], " & "), " \\\\")
@@ -2682,7 +2696,10 @@ function write_main_table(path::String, props, welf, cons; method = "B",
         cons_only || println(io, row("World welfare gain (\\%)", (P, r) -> fmt_pct(r.v2.welfare_gain_pct)))
         println(io, row("World consumption gain (\\%)", (P, r) -> fmt_pct(r.v2.cons_gain_pct)))
         cons_only || println(io, row("\\quad Smallest member gain, welfare", floor_(:v2, :ede_gain)))
-        println(io, row("\\quad Smallest member gain, consumption", floor_(:v2, :cons_gain)))
+        # Table 2 drops the smallest-gain row: with the maximin sharing every member
+        # gains the same, and the row only differed from the world gain through the
+        # non-members (see the note on the Wolfram et al. column in paper.tex)
+        cons_only || println(io, row("\\quad Smallest member gain, consumption", floor_(:v2, :cons_gain)))
         cons_only || println(io, row("\\quad Members losing on welfare", nlose(:v2, :ede_gain)))
         cons_only || println(io, row("\\quad Members losing on consumption", nlose(:v2, :cons_gain)))
         println(io, "  \\bottomrule")
@@ -2881,7 +2898,7 @@ function write_targets_table(path::String, props, ede, cons;
                     join([@sprintf("%.2f\\textdegree{}C (%s)", P.temp_2100, display_name(P.name))
                           for P in props], ", ", " and "),
                     " in 2100. ",
-                    losers ? "A member counts as losing when its NPV over 2030--2100 falls short of \
+                    losers ? "A member counts as losing when its NPV over $(NPV_SPAN) falls short of \
                               what the proposal itself gives it on that measure; variant 1 makes \
                               every member indifferent on the measure it was solved for, so a count \
                               there is the within-country residue described in the text. " : "",
@@ -2927,14 +2944,15 @@ function write_target_tables(props)
                          cons_only = true)
         # the previous layout (both criteria, welfare aggregates, loser counts), kept as a backup
         write_main_table(joinpath(OUTPUT_BASE, "equivalent_rights_main_both_criteria.tex"), vcat(core, er5), ede, cons)
+        # the appendix tables follow Table 2's layout (consumption criterion only)
         write_main_table(joinpath(OUTPUT_BASE, "equivalent_rights_main_isolated.tex"), vcat(core, er5), ede, cons;
-                         method = "A")
+                         method = "A", cons_only = true)
     end
     er = [P for P in props if P.name == "EqualRight"]
     if !isempty(er)
         for m in ("A", "B")
             write_main_table(joinpath(OUTPUT_BASE, "equivalent_rights_equalright_$(m == "A" ? "isolated" : "joint").tex"),
-                             vcat(er, er5), ede, cons; method = m, predicted = nothing)
+                             vcat(er, er5), ede, cons; method = m, predicted = nothing, cons_only = true)
         end
     end
     isempty(er5) || write_targets_table(
@@ -2951,6 +2969,116 @@ function write_pred_target_tables(props, ede, cons)
                             props, ede, cons; losers = true,
                             label = "tab:equiv_rights_targets_er5_losers", kw...)
     end
+end
+
+# ──────────────────────────────────────────────────────────────────────────────
+# THE TWO BENCHMARKS SIDE BY SIDE (Online Appendix, Sept 2026)
+#
+# The paper presents every result under two variants:
+#   "cons"  NPV of total consumption, carbon revenue recycled within each country
+#           in proportion to c^eta (Negishi weights)     NICE_TARGET=cons NICE_RECYCLING=negishi
+#   "welf"  NPV of EDE consumption (welfare), revenue recycled as an equal per
+#           capita dividend within each country          NICE_TARGET=ede  NICE_RECYCLING=equal_pc
+# Each is solved in its own session, into its own folder; the table below reads
+# both off disk. Only the joint solve (option B) is shown.
+# ──────────────────────────────────────────────────────────────────────────────
+const BENCHMARKS = (
+    (label = "cons", recycling = "negishi",  target = "cons", tag = "",
+     base = joinpath(ROOT, "cap_and_share", "output")),
+    (label = "welf", recycling = "equal_pc", target = "ede",  tag = "_ede",
+     base = joinpath(ROOT, "cap_and_share", "output", "equal_pc")))
+
+recycle_share_for(recycling) = recycling == "equal_pc" ? fill(1 / NB_QUANTILE, NB_COUNTRY, NB_QUANTILE) :
+                                                         negishi_recycle_shares(REFERENCE_RUN)
+
+"""
+    cached_proposal_for(name, tax, recycling)
+
+The proposal as built by a session run under `recycling`: this session's own
+`build_proposal` for its own rule, the other rule's cache otherwise (it carries
+that benchmark's targets and temperature), or `nothing` if that session has not
+built it yet.
+"""
+function cached_proposal_for(name, tax, recycling)
+    recycling == RECYCLING && return build_proposal(name, tax)
+    b    = only(filter(x -> x.recycling == recycling, BENCHMARKS))
+    key  = string(hash(proposal_key(name, tax; cfg = run_config(recycle_share_for(recycling)))), base = 16)
+    path = joinpath(b.base, "cache", "proposal_$(lowercase(name))_$key.jls")
+    isfile(path) || (@warn "no cached proposal for the other benchmark" name recycling path; return nothing)
+    return Serialization.deserialize(path)::Proposal
+end
+
+"""
+    write_benchmarks_table(path)
+
+Online Appendix table: the joint-solve allocations of the three schedules of
+Table 2 under the two benchmarks, in Table 2's layout, with every summary row
+read under both. A cell not solved yet is `--`.
+"""
+function write_benchmarks_table(path::String)
+    specs = [("Wolfram", proposal_tax_matrix(wolfram_rate)), ("Duflo", proposal_tax_matrix(duflo_rate)),
+             ("EqualRight5", equal_right_tax_matrix(escalation = :common))]
+    cols = NamedTuple[]
+    for b in BENCHMARKS
+        props = [cached_proposal_for(n, t, b.recycling) for (n, t) in specs]
+        any(isnothing, props) && (@warn "benchmark not built yet: not writing" b.label path; return)
+        push!(cols, (b = b, props = props, store = read_results_for(b.tag, props; base = b.base)))
+    end
+    nb, np = length(cols), length(specs)
+    width  = 1 + nb
+    ncol   = 1 + np * width
+    got(k, j) = get(cols[j].store, ("B", cols[j].props[k].name), nothing)
+    function row(lbl, f)
+        cells = String[]
+        for k in 1:np
+            push!(cells, "")
+            for j in 1:nb
+                r = got(k, j)
+                push!(cells, r === nothing ? "--" : f(cols[j].props[k], r))
+            end
+        end
+        return "  " * lbl * " & " * join(cells, " & ") * " \\\\"
+    end
+    open(path, "w") do io
+        println(io, "% Generated by src/equivalent_rights_proposals.jl (write_benchmarks_table) -- do not edit by hand.")
+        println(io, "\\begin{tabular}{l", "c"^(np * width), "}")
+        println(io, "  \\toprule")
+        println(io, "  & ", join(["\\multicolumn{$width}{c}{\\textbf{$(display_name(P.name))}}" for P in cols[1].props], " & "), " \\\\")
+        println(io, "  ", join(["\\cmidrule(lr){$(2 + (k - 1) * width)-$(1 + k * width)}" for k in 1:np], " "))
+        println(io, "  \\textbf{Country} & ",
+                join(["\$p_{2030}\$ & " * join(["\$\\rho^{\\mathrm{$(c.b.label)}}\$" for c in cols], " & ") for _ in 1:np], " & "), " \\\\")
+        println(io, "  \\midrule")
+        for e in report_order(cols[1].props)
+            cells = String[]
+            for k in 1:np
+                P1  = cols[1].props[k]
+                idx = intersect(entity_indices(e), P1.members)
+                if isempty(idx)
+                    push!(cells, "0"); append!(cells, fill("--", nb))
+                    continue
+                end
+                push!(cells, fmt_price(mean(P1.tax[YEAR_IDX[2030], idx])))
+                for j in 1:nb
+                    r = got(k, j)
+                    push!(cells, r === nothing ? "--" : fmt(entity_rho(r.rho, e, cols[j].props[k]); d = 2))
+                end
+            end
+            println(io, "  ", entity_name(e), " & ", join(cells, " & "), " \\\\")
+        end
+        println(io, "  \\midrule")
+        println(io, "  \\multicolumn{", ncol, "}{l}{\\textit{Reduced emissions: every member as well off as under the proposal}} \\\\")
+        println(io, row("World temp.~2100, change (\\textdegree{}C)", (P, r) -> fmt_delta(r.v1.temp_2100 - P.temp_2100)))
+        println(io, row("Emissions change in the coalition (\\%)", (P, r) -> fmt_pct_1(r.v1.emissions_change_pct)))
+        println(io, row("Post-damage consumption gain (\\%)", (P, r) -> fmt_pct(r.v1.cons_gain_pct)))
+        println(io, row("Post-damage welfare gain (\\%)", (P, r) -> fmt_pct(r.v1.welfare_gain_pct)))
+        println(io, "  \\midrule")
+        println(io, "  \\multicolumn{", ncol, "}{l}{\\textit{Increased consumption: coalition emissions as under the proposal}} \\\\")
+        println(io, row("World consumption gain (\\%)", (P, r) -> fmt_pct(r.v2.cons_gain_pct)))
+        println(io, row("World welfare gain (\\%)", (P, r) -> fmt_pct(r.v2.welfare_gain_pct)))
+        println(io, "  \\bottomrule")
+        println(io, "\\end{tabular}")
+    end
+    @info "wrote table" path
 end
 
 is_equal_right(P::Proposal) = startswith(P.name, "EqualRight")
@@ -3027,7 +3155,8 @@ function write_table_set(props, suffix; combined_props = props)
         end
     end
     isempty(rows_c) ||
-        CSV.write(joinpath(OUTPUT_BASE, "country_gains$(suffix)$(TAG).csv"), DataFrame(rows_c))
+        CSV.write(joinpath(OUTPUT_BASE, "country_gains$(suffix)$(TAG).csv"),
+                  merge_with_disk(joinpath(OUTPUT_BASE, "country_gains$(suffix)$(TAG).csv"), DataFrame(rows_c)))
 
     write_losers_table(joinpath(OUTPUT_BASE, "equivalent_rights_losers$(suffix)$(TAG).tex"), props;
                        label = "tab:equiv_rights_losers$(suffix)$(TAG)")
@@ -3055,8 +3184,35 @@ function write_table_set(props, suffix; combined_props = props)
         @warn "no results to write: leaving the existing outputs alone" suffix
         return summary
     end
-    CSV.write(joinpath(OUTPUT_BASE, "equivalent_rights_variants$(suffix)$(TAG).csv"), summary)
+    CSV.write(joinpath(OUTPUT_BASE, "equivalent_rights_variants$(suffix)$(TAG).csv"),
+              merge_with_disk(joinpath(OUTPUT_BASE, "equivalent_rights_variants$(suffix)$(TAG).csv"), summary))
     return summary
+end
+
+"""
+    merge_with_disk(path, df)
+
+`df`, plus the rows of the file at `path` for the (method, scenario) cells that
+`df` does not hold. Several sessions can then solve different cells of the same
+criterion at once -- each writes only what it solved and keeps what the others
+wrote -- instead of the last one to finish overwriting the file with its own
+cells alone. Rows solved on another criterion are dropped, as everywhere else.
+"""
+function merge_with_disk(path::AbstractString, df::DataFrame)
+    isfile(path) || return df
+    old = read_csv_safe(path)
+    (old === nothing || !hasproperty(old, :method) || !hasproperty(old, :scenario)) && return df
+    hasproperty(old, :target) && (old = old[String.(old.target) .== TARGET, :])
+    mine = Set(zip(String.(df.method), String.(df.scenario)))
+    keep = [!((String(r.method), String(r.scenario)) in mine) for r in eachrow(old)]
+    any(keep) || return df
+    # CSV reads short strings as InlineStrings: bring them back to String so that
+    # the two frames stack
+    old = old[keep, :]
+    for c in names(old)
+        eltype(old[!, c]) <: Union{Missing,AbstractString} && (old[!, c] = String.(coalesce.(old[!, c], "")))
+    end
+    return vcat(df, old; cols = :union)
 end
 
 """
@@ -3085,7 +3241,7 @@ definition of a variant changes rather than the equivalence itself.
 """
 function saved_rho(method::String, P::Proposal)
     FRESH && return nothing
-    path = joinpath(OUTPUT_BASE, "rho_$(lowercase(method))_$(lowercase(P.name))$(TAG).csv")
+    path = joinpath(OUTPUT_BASE, "rho_$(method)_$(lowercase(P.name))$(TAG).csv")   # as written: rho_A_/rho_B_
     isfile(path) || return nothing
     df = CSV.read(path, DataFrame)
     produced_under_target(df) || return nothing
@@ -3245,6 +3401,9 @@ if myid() == 1 && get(ENV, "NICE_AUTORUN", "1") != "0" &&
         end
         load_prior_results!(props)
         println(flush_outputs(props))
+    elseif length(ARGS) >= 1 && ARGS[1] == "benchmarks"
+        # the Online Appendix table of the two benchmarks, from both folders
+        write_benchmarks_table(joinpath(ROOT, "cap_and_share", "output", "equivalent_rights_benchmarks.tex"))
     elseif length(ARGS) >= 1 && ARGS[1] == "chunk"
         run_chunk(ARGS[2], parse(Int, ARGS[3]), parse(Int, ARGS[4]))
     elseif length(ARGS) >= 1 && uppercase(ARGS[1]) in ("A", "B")
