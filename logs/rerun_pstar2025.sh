@@ -1,6 +1,7 @@
 #!/bin/bash
 # 26 Sept 2026: full re-run after p* is re-searched with welfare counted over
-# 2025-2100 (it was 2035-2300), in the two variants of the paper. The previous
+# 2025-2300 (it was 2035-2300; a first attempt over 2025-2100 was abandoned,
+# logs/pstar2025/zoom_welfare2025_2100.log), in the two variants of the paper. The previous
 # results (NPV over 2025-2100, old p*) are in
 # cap_and_share/output/_backup_pstar_welf2035_20260926/.
 # Run from the repository root, on a 4-core machine.
@@ -11,7 +12,7 @@ W=$O/_backup_pstar_welf2035_20260926/indifference     # rest-of-world prices of 
 
 # 1. the p* search (launched separately):
 #   NICE_USE_BUDGET=1 NICE_BUDGET_EXACT=1 NICE_BUDGET_LIMIT=1000 NICE_BUDGET_START=2025 \
-#   NICE_WELFARE_START=2025 NICE_WELFARE_END=2100 NICE_N_ZOOM=3 NICE_B_MIN=0.0 NICE_B_MAX=0.10 \
+#   NICE_WELFARE_START=2025 NICE_WELFARE_END=2300 NICE_N_ZOOM=3 NICE_B_MIN=-0.02 NICE_B_MAX=0.06 \
 #   julia --project=. cap_and_share/find_global_exp_carbon_tax_buget_zoom.jl > logs/pstar2025/zoom.log
 until grep -aqE "Written:.*calibrated_global_exp|ERROR" $L/zoom.log 2>/dev/null; do sleep 60; done
 grep -aq "ERROR" $L/zoom.log && { echo "p* search failed"; exit 1; }
