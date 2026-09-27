@@ -17,8 +17,9 @@ params = CSV.read(joinpath(ROOT, "data", "uniform_exp_tax_path_params.csv"), Dat
 A, B = Float64(params[1, 1]), Float64(params[2, 1])
 
 # the same arguments as test_global_exp_c_tax in the search
-path  = exp_tax_trajectory(tax_start_value = A, g_rate = B, year_tax_start = 2030,
-                           year_tax_end = 2200, ramp_up = 5)
+# (tax_start_year = 2035 and ramp_up = 10 since the 10-year ramp of 24 Sept 2026)
+path  = exp_tax_trajectory(tax_start_value = A, g_rate = B, year_tax_start = 2035,
+                           year_tax_end = 2200, ramp_up = 10)
 years = collect(2020:(2020 + length(path) - 1))
 out   = joinpath(ROOT, "cap_and_share", "data", "output", "calibrated_global_exp.csv")
 CSV.write(out, DataFrame(time = years, global_tax = path))

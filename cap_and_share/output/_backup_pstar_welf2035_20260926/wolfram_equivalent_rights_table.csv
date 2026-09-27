@@ -1,0 +1,9 @@
+country,rho_wolfram,rho_numeric,flag,target_welfare
+USA,4.843,4.8433680198669435,converged,1170.41
+COD,< 0.0001,0.0001,below_range,164.87
+CHN,0.667,0.6667531608581543,converged,529.46
+IND,0.581,0.5806940208435059,converged,255.88
+EU27,< 0.0001,0.0001,below_range,1247.15
+RUS,3.909,3.908924449920654,converged,857.29
+NGA,< 0.0001,0.0001,below_range,264.58
+TUR,1.877,1.877379431915283,converged,769.83
