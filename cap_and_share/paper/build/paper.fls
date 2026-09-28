@@ -1079,12 +1079,12 @@ INPUT c:/texlive/2022/texmf-dist/fonts/vf/adobe/palatino/pplb7t.vf
 INPUT c:/texlive/2022/texmf-dist/fonts/tfm/adobe/palatino/pplb8r.tfm
 INPUT c:/texlive/2022/texmf-dist/fonts/vf/adobe/palatino/pplr7t.vf
 INPUT c:/texlive/2022/texmf-dist/fonts/tfm/adobe/palatino/pplr8r.tfm
-INPUT c:/texlive/2022/texmf-dist/fonts/vf/adobe/palatino/pplr7t.vf
-INPUT c:/texlive/2022/texmf-dist/fonts/tfm/adobe/palatino/pplr8r.tfm
 INPUT c:/texlive/2022/texmf-dist/fonts/vf/adobe/palatino/pplr8c.vf
 INPUT c:/texlive/2022/texmf-dist/fonts/tfm/adobe/palatino/pplr8r.tfm
 INPUT c:/texlive/2022/texmf-dist/fonts/tfm/public/mathpazo/fplmr.tfm
 INPUT c:/texlive/2022/texmf-dist/fonts/vf/adobe/palatino/pplr7t.vf
+INPUT c:/texlive/2022/texmf-dist/fonts/vf/adobe/palatino/pplr7t.vf
+INPUT c:/texlive/2022/texmf-dist/fonts/tfm/adobe/palatino/pplr8r.tfm
 INPUT c:/texlive/2022/texmf-dist/fonts/tfm/adobe/palatino/pplr7t.tfm
 INPUT c:/texlive/2022/texmf-dist/fonts/tfm/adobe/palatino/pplb7t.tfm
 INPUT build/paper.toc
@@ -1124,8 +1124,6 @@ INPUT c:/texlive/2022/texmf-dist/fonts/tfm/adobe/palatino/pplri7t.tfm
 INPUT c:/texlive/2022/texmf-dist/fonts/vf/adobe/palatino/pplr7t.vf
 INPUT c:/texlive/2022/texmf-dist/fonts/vf/adobe/palatino/pplri7t.vf
 INPUT c:/texlive/2022/texmf-dist/fonts/tfm/adobe/palatino/pplri8r.tfm
-INPUT c:/texlive/2022/texmf-dist/fonts/vf/public/mathpazo/zplmr7y.vf
-INPUT c:/texlive/2022/texmf-dist/fonts/tfm/public/cm/cmsy10.tfm
 INPUT c:/texlive/2022/texmf-dist/fonts/tfm/adobe/palatino/pplri7t.tfm
 INPUT c:/texlive/2022/texmf-dist/fonts/tfm/adobe/palatino/pplb7t.tfm
 INPUT c:/texlive/2022/texmf-dist/fonts/vf/adobe/palatino/pplri7t.vf
@@ -1144,6 +1142,8 @@ INPUT c:/texlive/2022/texmf-dist/fonts/tfm/adobe/palatino/pplri8r.tfm
 INPUT c:/texlive/2022/texmf-dist/fonts/vf/public/mathpazo/zplmr7y.vf
 INPUT c:/texlive/2022/texmf-dist/fonts/tfm/public/cm/cmsy10.tfm
 INPUT c:/texlive/2022/texmf-dist/fonts/tfm/public/mathpazo/fplmr.tfm
+INPUT c:/texlive/2022/texmf-dist/fonts/vf/public/mathpazo/zplmr7y.vf
+INPUT c:/texlive/2022/texmf-dist/fonts/tfm/public/cm/cmsy10.tfm
 INPUT c:/texlive/2022/texmf-dist/fonts/vf/public/mathpazo/zplmr7v.vf
 INPUT c:/texlive/2022/texmf-dist/fonts/tfm/public/cm/cmex10.tfm
 INPUT c:/texlive/2022/texmf-dist/fonts/tfm/public/cm/cmex10.tfm
