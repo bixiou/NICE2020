@@ -1,0 +1,418 @@
+using Query, JSON, DataFrames, CSVFiles, CSV
+
+nice_inputs = JSON.parsefile("data/nice_inputs.json") # This file contains the economic and emissions calibration and the list of used country codes
+# the json file reads in a several nested dictionaries, where in each case the "last" dictionary contains the keys, "units", "dimensions", "notes", and "x". The "x" key always contains the data to be read into a DataFrame.
+
+countries = nice_inputs["country_set_ssp_183"]["x"]["countrycode"] # country set (ISO3 codes in alphabetic order)countries = string.(countries)
+
+# REMOVE SOMALIA, VENEZUELA, NEW CALEDONIA, and TRINIDAD AND TOBAGO
+filter!( x-> !(x in ["SOM", "VEN", "NCL", "TTO" ]), countries )
+
+sort!(countries) # Sort country names to be in alphabetical order.
+
+#-----------------------------------------------------------------
+# Load mapping of countries to World Population Prospects regions
+#----------------------------------------------------------------
+
+mapping_wpp_regions = DataFrame(load("data/WPP_regions_country_list.csv"))
+
+# Filter countries in the country set and sort
+filter!(:countrycode => in(countries), mapping_wpp_regions )
+sort!(mapping_wpp_regions, :countrycode)
+
+# Extract region index as vector
+map_country_region_wpp = mapping_wpp_regions[:, :WPP_region_number]
+
+# Extract vector of regions names in order of region numbers
+names_regions_df = unique(mapping_wpp_regions[:, [:WPP_region_name,:WPP_region_number] ])
+sort!(names_regions_df, :WPP_region_number)
+wpp_regions = names_regions_df[:, :WPP_region_name]
+
+#-----------------------------------------------------------------
+# Load mapping of countries participating in each scenario
+#----------------------------------------------------------------
+
+# Fonction utilitaire pour créer un vecteur binaire de participation
+function participation_vector(participants::Vector{Symbol}, all_countries::Vector{Symbol})
+    return [country in participants ? 1 : 0 for country in all_countries]
+end
+
+# Scenario labels
+scenarios = [:All_World, :All_Except_Oil_Countries, :Optimistic, :Generous_EU, :Partnership, :Union, :JPN, :KOR, :CHN, :WEU]
+
+# Correspondence dictionary name → index
+scenario_index = Dict(
+    :All_World     => 1,
+    :All_Except_Oil_Countries    => 2,
+    :Optimistic    => 3,
+    :Generous_EU   => 4,
+    :Partnership   => 5,
+    :Union         => 7,
+    :JPN           => 8,
+    :KOR           => 9,
+    :CHN           => 10,
+    :WEU           => 11,
+)
+
+rich_oil_countries = ["RUS", "KAZ", "SAU", "QAT", "KWT", "AZE", "OMN", "BHR", "MYS"]
+
+# Scenario 2 : All except rich oil countries
+all_except_oil_countries = filter(country -> !(country in rich_oil_countries), countries)
+
+#Scenario 3 : Optimistic scenario: Africa + Latin America + South Asia + South-East Asia + China + EU28 + Norway + Switzerland + Canada + Japan + Korea + NZ
+optimistic_regions = [2, 5, 8, 9, 15, 18, 3, 13, 14, 16]
+optimistic_countries = filter(row -> row[:WPP_region_number] in optimistic_regions, mapping_wpp_regions)[:, :countrycode]
+
+
+additional_countries = ["CHN", "NOR", "CHE", "CAN", "JPN", "NZL", "KOR"]
+eu28_countries = ["AUT", "BEL", "BGR", "HRV", "CYP", "CZE", "DNK", "EST", "FIN", "FRA", "DEU", "GRC", "HUN", 
+"IRL", "ITA", "LVA", "LTU", "LUX", "MLT", "NLD", "POL", "PRT", "ROU", "SVK", "SVN", "ESP", "SWE", "GBR"]
+
+
+optimistic_scenario_countries = unique(vcat(optimistic_countries, additional_countries, eu28_countries))
+
+#Scenario 4: Generous EU: EU27 + China + Africa + Latin America + South Asia + South-East Asia
+
+eu27_countries = ["AUT", "BEL", "BGR", "HRV", "CYP", "CZE", "DNK", "EST", "FIN", "FRA", "DEU", "GRC", "HUN", 
+"IRL", "ITA", "LVA", "LTU", "LUX", "MLT", "NLD", "POL", "PRT", "ROU", "SVK", "SVN", "ESP", "SWE"]
+
+generous_eu_countries = unique(vcat(eu27_countries, optimistic_countries, ["CHN"]))
+
+#Scenario 5 : Africa-EU partnership : Africa + EU_27
+africa_regions=[5, 8, 9, 15, 18]
+africa_countries = filter(row -> row[:WPP_region_number] in africa_regions, mapping_wpp_regions)[:, :countrycode]
+
+partnership_countries =unique(vcat(eu27_countries, africa_countries))
+
+#Scenario 6 : personalized scenario (add you own countries)
+#groups available : eu27_countries, eu28_countries, africa_countries, optimistic Northern countries (additional_countries), latin_america_countries
+
+latin_american_countries = filter(row -> row[:WPP_region_number] in [2, 3, 13], mapping_wpp_regions)[:, :countrycode]
+
+#add the groups of countries that participate in the personalized scenario in here
+personalized_countries = unique(vcat(eu27_countries, africa_countries, ["NOR", "CHN", "CHE"]))
+
+
+#Scenario 7 : Union 
+union_countries = ["AFG", "AGO", "ALB", "ARG", "AUT", "BDI", "BEL", "BEN", "BFA", "BGD", "BGR", "BHS", "BIH", "BLZ", "BOL",
+"BRA", "BRB", "BTN", "BWA", "CAF", "CHE", "CHL", "CHN", "CIV", "CMR", "COD", "COG", "COL", "COM", "CPV",
+"CRI", "CUB", "CYP", "CZE", "DEU", "DJI", "DNK", "DOM", "DZA", "ECU", "EGY", "ERI", "ESP", "EST", "ETH",
+"FIN", "FRA", "GAB", "GBR", "GHA", "GIN", "GMB", "GNB", "GNQ", "GRC", "GTM", "GUY", "HND", "HRV", "HTI",
+"HUN", "IDN", "IND", "IRL", "IRN", "ISL", "ITA", "JAM", "JPN", "KEN", "KHM", "KOR", "LAO", "LBR", "LBY",
+"LKA", "LSO", "LTU", "LUX", "LVA", "MAR", "MDA", "MDG", "MDV", "MEX", "MLI", "MLT", "MMR", "MNG", "MOZ",
+"MRT", "MUS", "MWI", "MYS", "NAM", "NER", "NGA", "NIC", "NLD", "NOR", "NPL", "PAK", "PAN", "PER", "PHL",
+"PNG", "POL", "PRT", "PRY", "ROU", "RWA", "SDN", "SEN", "SGP", "SLE", "SLV", "SRB", "SUR", "SVK", "SVN",
+"SWE", "SWZ", "TCD", "TGO", "THA", "TKM", "TLS", "TUN" ,"TZA", "UGA", "URY", "VNM", "ZAF", "ZMB", 
+"ZWE", 
+"ARM", "GEO", "IRQ", "JOR", "SYR", "TKM", "TUR", "UKR", "UZB", "YEM" # , "TWN"
+]
+
+# Scenarios 8-11
+WEU = ["AUT", "BEL", "CHE", "DEU", "DNK", "ESP", "FIN", "FRA", "GBR", "GRC", "HUN", "IRL", "ISL", "ITA", "LTU", "LUX", "LVA", "MDA", "MLT", "NLD", "NOR", "PRT", "SWE"]
+
+JPN = ["JPN"]
+KOR = ["KOR"]
+CHN = ["CHN"]
+
+club_countries = [
+    Symbol.(countries),                            # Scenario 1
+    Symbol.(all_except_oil_countries),             # Scenario 2
+    Symbol.(optimistic_scenario_countries),        # Scenario 3
+    Symbol.(generous_eu_countries),                # Scenario 4
+    Symbol.(partnership_countries),                # Scenario 5
+    Symbol.(personalized_countries),                # Scenario 6
+    Symbol.(union_countries),                       # Scenario 7
+    Symbol.(JPN),                       # Scenario 8
+    Symbol.(KOR),                       # Scenario 9
+    Symbol.(CHN),                       # Scenario 10
+    Symbol.(WEU)                       # Scenario 11
+]
+
+# Final binary participation matrix per scenario
+club_country = transpose(reduce(hcat,[
+    fill(1, length(countries)),                                                         # Scenario 1
+    participation_vector(Symbol.(all_except_oil_countries), Symbol.(countries)),        # Scenario 2
+    participation_vector(Symbol.(optimistic_scenario_countries), Symbol.(countries)),   # Scenario 3
+    participation_vector(Symbol.(generous_eu_countries), Symbol.(countries)),           # Scenario 4
+    participation_vector(Symbol.(partnership_countries), Symbol.(countries)),           # Scenario 5
+    participation_vector(Symbol.(personalized_countries), Symbol.(countries)),           # Scenario 6
+    participation_vector(Symbol.(union_countries), Symbol.(countries)), 
+    participation_vector(Symbol.(JPN), Symbol.(countries)), 
+    participation_vector(Symbol.(KOR), Symbol.(countries)), 
+    participation_vector(Symbol.(CHN), Symbol.(countries)), 
+    participation_vector(Symbol.(WEU), Symbol.(countries))
+]))
+
+#-----------------------------------------
+# Load World Bank income group classification
+#----------------------------------------
+#Venezuela (VEN) and Ethiopia (ETH) are excluded from the classification, we chose to classify them as UMIC and LMIC respectively according to their GDP per capita
+
+LIC_LMIC =  ["AFG", "AGO", "BGD", "BEN", "BTN", "BOL", "BFA", "BDI", "KHM", "CMR", "CAF", "TCD", "COM", "COD", "COG", "CIV", "DJI", "EGY", "ERI", "ETH","SWZ", "GMB", "GHA", "GIN", "GNB", "HTI", "HND", "IND", "JOR", "KEN", "KIR", "PRK", "KGZ", "LAO", "LBN", "LSO", "LBR", "MDG", "MWI", "MLI", "MRT", "FSM", "MAR", "MOZ", "MMR", "NAM", "NPL", "NIC", "NER", "NGA", "PAK", "PNG", "PHL", "RWA", "STP", "SEN", "SLE", "SLB", "SOM", "SSD", "LKA", "SDN", "SYR", "TJK", "TZA", "TLS", "TGO", "TUN", "UGA", "UZB", "VUT", "VNM", "PSE", "YEM", "ZMB", "ZWE"]
+LIC = ["AFG", "BFA", "BDI", "CAF", "TCD", "COD", "ERI", "GMB", "GNB", "PRK", "LBR", "MDG", "MWI", "MLI", "MOZ", "NER", "RWA", "SLE", "SOM", "SSD", "SDN", "SYR", "TGO", "UGA", "YEM"]
+LMIC = ["AGO", "BGD", "BEN", "BTN", "BOL", "KHM", "CMR", "COM", "COG", "CIV", "DJI", "EGY", "ETH","SWZ", "GHA", "GIN", "HTI", "HND", "IND", "JOR", "KEN", "KIR", "KGZ", "LAO", "LBN", "LSO", "MRT", "FSM", "MAR", "MMR", "NAM", "NPL", "NIC", "NGA", "PAK", "PNG", "PHL", "STP", "SEN", "SLB", "LKA", "TJK", "TZA", "TLS", "TUN", "UZB", "VUT", "VNM", "PSE", "ZMB", "ZWE"]
+UMIC = ["ALB", "DZA", "ARG", "ARM", "AZE", "BLR", "BLZ", "BIH", "BWA", "BRA", "CPV", "CHN", "COL", "CUB", "DMA", "DOM", "ECU", "SLV", "GNQ", "FJI", "GAB", "GEO", "GRD", "GTM", "IDN", "IRN", "IRQ", "JAM", "KAZ", "XKX", "LBY", "MYS", "MDV", "MHL", "MUS", "MEX", "MDA", "MNG", "MNE", "MKD", "PRY", "PER", "WSM", "SRB", "ZAF", "LCA", "VCT", "SUR", "THA", "TON", "TUR", "TKM", "TUV", "UKR", "VEN"]
+HIC = ["ASM", "AND", "ATG", "ABW", "AUS", "AUT", "BHS", "BHR", "BRB", "BEL", "BMU", "VGB", "BRN", "BGR", "CAN", "CYM", "CHI", "CHL", "CRI", "HRV", "CUW", "CYP", "CZE", "DNK", "EST", "FRO", "FIN", "FRA", "PYF", "DEU", "GIB", "GRC", "GRL", "GUM", "GUY", "HKG", "HUN", "ISL", "IRL", "IMN", "ISR", "ITA", "JPN", "KOR", "KWT", "LVA", "LIE", "LTU", "LUX", "MAC", "MLT", "MCO", "NRU", "NLD", "NCL", "NZL", "MNP", "NOR", "OMN", "PLW", "PAN", "POL", "PRT", "PRI", "QAT", "ROU", "RUS", "SMR", "SAU", "SYC", "SGP", "SXM", "SVK", "SVN", "ESP", "KNA", "MAF", "SWE", "CHE", "TWN", "TTO", "TCA", "ARE", "GBR", "USA", "URY", "VIR"]
+
+#-----------------------------------------
+# Load economic and emissions calibration
+#----------------------------------------
+
+## Population
+
+pop_raw = DataFrame(nice_inputs["economy"]["pop_projected"]["x"])
+filter!(:countrycode => in(countries), pop_raw ) #Filter countries in list
+
+# Unstack the dataframe to have year x country dimensions.
+pop_unstack = unstack(pop_raw, :year, :countrycode, :pop_projected, allowduplicates=true)
+
+# Sort the columns (country names) into alphabetical order.
+pop = select(pop_unstack, countries)
+
+## Initial capital
+
+init_capital_raw = DataFrame(nice_inputs["economy"]["k0"]["x"])
+filter!(:countrycode => in(countries), init_capital_raw)
+
+# Sort the country rows into alphabetical order
+initial_capital = sort(init_capital_raw, :countrycode)
+
+# Extract vector of initial capital
+k0 = initial_capital[:, :k0]
+
+## Total factor productivity
+
+productivity_raw = DataFrame(nice_inputs["economy"]["tfp"]["x"])
+filter!(:countrycode => in(countries), productivity_raw)
+
+# Unstack the dataframe to have year x country dimensions.
+productivity_unstack = unstack(productivity_raw, :year, :countrycode, :tfp, allowduplicates=true)
+
+# Sort the columns (country names) into alphabetical order.
+productivity = select(productivity_unstack, countries)
+
+## Savings rate
+
+srate_raw = DataFrame(nice_inputs["economy"]["srate"]["x"])
+filter!(:countrycode => in(countries), srate_raw)
+
+# Unstack the dataframe to have year x country dimensions.
+srate_unstack = unstack(srate_raw, :year, :countrycode, :srate, allowduplicates=true)
+
+# Sort the columns (country names) into alphabetical order.
+srate = select(srate_unstack, countries)
+
+## Depreciation
+
+depreciation_raw = DataFrame(nice_inputs["economy"]["depreciation"]["x"])
+filter!(:countrycode => in(countries), depreciation_raw)
+
+# Unstack the dataframe to have year x country dimensions.
+depreciation_unstack = unstack(depreciation_raw, :year, :countrycode, :depreciation, allowduplicates=true)
+
+# Sort the columns (country names) into alphabetical order.
+depreciation = select(depreciation_unstack, countries)
+
+
+## Emissions intensity 
+# in Gt CO2 per year per US dollar
+# Growth rates determined by regressing year on growth rates predicted from the projected emission using an OLS model at regional level
+
+# old code
+# emissionsrate_raw = DataFrame(load("data/emission_intensity.csv",header_exists=true))
+# filter!(:countrycode => in(countries), emissionsrate_raw)
+
+# Unstack the dataframe to have year x country dimensions.
+# emissionsrate_unstack = unstack(emissionsrate_raw, :year, :countrycode, :intensity, allowduplicates=true)
+
+# Sort the columns (country names) into alphabetical order.
+# emissionsrate = select(emissionsrate_unstack, countries)
+
+# Creates a version with consumption-based instead of territorial emissions, using a fixed ratio based on 2022 data from the Global Carbon Project
+# footprint_over_territorial = CSV.read("data/footprint_over_territorial_2022.csv", DataFrame)
+# emissionsrate_footprint = Matrix(emissionsrate) .* transpose(footprint_over_territorial[:,2])
+
+### updated trajectories for the EU and China that i'll add to the initial intensiy dataset
+emissionsrate_raw = DataFrame(load("data/emission_intensity.csv",header_exists=true))
+filter!(:countrycode => in(countries), emissionsrate_raw)
+
+emissionsrate_unstack = unstack(emissionsrate_raw, :year, :countrycode, :intensity, allowduplicates=true)
+emissionsrate = select(emissionsrate_unstack, countries)
+
+footprint_over_territorial = CSV.read("data/footprint_over_territorial_2022.csv", DataFrame)
+
+# now i'm updating the emissionsrate DataFrame with the new targets from the combined EU+China trajectories, by converting E_gtco2 to intensity using GDP
+# extract the raw arrays from the JSON
+gdp_x = nice_inputs["economy"]["gdp_calibrated"]["x"]
+json_countries = gdp_x["countrycode"]
+json_years     = gdp_x["year"]
+json_values    = gdp_x["gdp_calibrated"]
+
+# this is a lookup dictionary: (country, year) => GDP_value
+gdp_lookup = Dict{Tuple{String, Int64}, Float64}()
+for i in 1:length(json_values)
+    c = json_countries[i]
+    y = Int64(json_years[i]) # Ensure it's an integer for matching row.time
+    v = Float64(json_values[i])
+    gdp_lookup[(c, y)] = v
+end
+
+# this is the dataset that contains the new emissions targets for the EU and China
+df_ndc = CSV.read("cap_and_share/data/input/ndc_trajectories.csv", DataFrame)
+
+for row in eachrow(df_ndc)
+    c_str    = row.country
+    year     = row.time
+    E_target = row.E_gtco2
+
+    year_idx = findfirst(==(year), emissionsrate_unstack.year)
+    
+    if c_str in countries && !isnothing(year_idx)
+        
+        # look up using the tuple key (country, year)
+        Y_val = get(gdp_lookup, (c_str, year), 0.0)
+        
+        if Y_val == 0.0
+            @warn "No GDP for $c_str in $year in the JSON."
+            continue
+        end
+
+        if Y_val > 0.0
+            # compute intensity : σ = E / Y
+            new_sigma = E_target / Y_val
+            
+            emissionsrate[year_idx, c_str] = new_sigma
+        end
+    end
+end
+
+footprint_dict = Dict(
+    string(row[1]) => Float64(row[2]) 
+    for row in eachrow(footprint_over_territorial)
+)
+
+df_countries = names(emissionsrate)
+aligned_footprint_vector = [get(footprint_dict, c, 1.0) for c in df_countries]
+
+emissions_matrix = Matrix(emissionsrate)
+emissionsrate_footprint = emissions_matrix .* transpose(aligned_footprint_vector)
+
+# Budget Carbone total cumulé de l'UE-27 entre 2020 et 2050 (en GtCO2)
+# 1. On filtre les lignes de df_ndc pour garder l'UE-27 et les bonnes années
+
+include(joinpath(@__DIR__, "..", "cap_and_share", "eu_and_china_emissions.jl"))
+
+df_eu = filter(row -> row.country in EU27 && 2020 <= row.time <= 2050, df_ndc)
+
+# 2. On fait la somme de la colonne E_gtco2
+eu_budget_2020_2050 = sum(df_eu.E_gtco2)
+
+println("Nouveau budget cumulé UE (2020-2050) : ", round(eu_budget_2020_2050; digits=3), " GtCO2")
+#----------------------------------------
+# Load inequality calibration
+#----------------------------------------
+
+## Income distribution for 2020
+deciles = ["d1", "d2", "d3", "d4", "d5", "d6", "d7", "d8", "d9", "d10"]
+consumption_deciles_2020_raw = DataFrame(load("data/consumption_deciles_2020.csv",header_exists=true))
+#consumption_deciles_2020_raw = DataFrame(nice_inputs["income_quantile_2020"]["x"])
+filter!(:countrycode => in(countries), consumption_deciles_2020_raw)
+
+consumption_distribution = Matrix(select!(consumption_deciles_2020_raw, deciles))
+
+# Consumption distribution varying with time
+consumption_deciles_2020_2100_raw = DataFrame(load("data/consumption_deciles_2020_2100.csv",  header_exists=false))
+consumption_deciles_2020_2100_countries = filter(:Column1 => x -> x in countries, consumption_deciles_2020_2100_raw )
+consumption_deciles_2020_2100_mat = Matrix(consumption_deciles_2020_2100_countries[:,2:end])
+
+consumption_distribution_2020_2300=zeros(Float64, length(2020:2300), length(countries), 10)
+
+for c in 1:length(countries)
+    for t in 0:1:80
+        for d in 1:10
+            consumption_distribution_2020_2300[t+1,c,d] = consumption_deciles_2020_2100_mat[c, t*10 + d ]
+        end
+    end
+    for t in 81:280
+        for d in 1:10
+            consumption_distribution_2020_2300[t+1,c,d] = consumption_distribution_2020_2300[81, c, d] # repeat last value
+        end
+    end
+end
+
+#--------------------------------------
+# Load parameters for revenue recycling
+#--------------------------------------
+
+# Results from the  meta-regression based on study results to calculate elasticity vs. ln gdp per capita relationship.
+meta_intercept = 3.22
+meta_slope =  -0.22
+meta_min_study_gdp = 647
+meta_max_study_gdp = 48892
+
+#--------------------------------
+# Load abatement cost parameters
+#-------------------------------
+
+## Global Backstop price from DICE 2023, in 2017USD per tCO2
+initial_pback = 670
+pback_decrease_rate_2020_2050 = 0.01
+pback_decrease_rate_after_2050 = 0.001
+
+pbacktime_2020_2050 = [initial_pback * (1-pback_decrease_rate_2020_2050)^(t-2020) for t in 2020:1:2050 ]
+pbacktime_after_2050 = [ pbacktime_2020_2050[end] * (1-pback_decrease_rate_after_2050)^(t-2050) for t in 2051:1:2300 ]
+
+full_pbacktime = [pbacktime_2020_2050; pbacktime_after_2050 ]
+
+#----------------------------------------------
+# Load country-level damage function parameters
+#----------------------------------------------
+
+## Extract parameters for the country level damage functions based on Kalkuhl and Wenz
+
+country_damage_coeffs = DataFrame(load("data/country_damage_coefficients.csv",header_exists=true))
+filter!(:countrycode => in(countries), country_damage_coeffs ) #Filter countries in list
+sort!(country_damage_coeffs, :countrycode)
+
+beta1_KW = country_damage_coeffs[!, :beta1_KW]
+beta2_KW = country_damage_coeffs[!, :beta2_KW]
+
+
+#----------------------------------------
+# Load FAIR initial conditions for 2020
+#----------------------------------------
+
+# This loads FAIR output for the year 2020 saved from a default run started in 1750 (making it possible to initialize FAIR in 2020).
+init_aerosol     = DataFrame(load(joinpath(@__DIR__, "fair_initialize_2020", "aerosol.csv")))
+init_ch4         = DataFrame(load(joinpath(@__DIR__, "fair_initialize_2020", "ch4.csv")))
+init_co2         = DataFrame(load(joinpath(@__DIR__, "fair_initialize_2020", "co2.csv")))
+init_flourinated = DataFrame(load(joinpath(@__DIR__, "fair_initialize_2020", "flourinated.csv")))
+init_montreal    = DataFrame(load(joinpath(@__DIR__, "fair_initialize_2020", "montreal.csv")))
+init_n2o         = DataFrame(load(joinpath(@__DIR__, "fair_initialize_2020", "n2o.csv")))
+init_temperature = DataFrame(load(joinpath(@__DIR__, "fair_initialize_2020", "temperature.csv")))
+init_tj          = DataFrame(load(joinpath(@__DIR__, "fair_initialize_2020", "tj.csv")))
+
+
+#-------------------------------------------------------
+# Load country-level temperature pattern scaling values
+#-------------------------------------------------------
+
+# For now, just use a single CMIP6 model.
+cmip6_model = "CESM2"
+
+# Set the SSP scenario.
+ssp_scenario = "ssp2"
+
+# Select pattern type (options = "patterns.area", "patterns.gdp.2000", "patterns.pop.2000", "patterns.gdp.2100", "patterns.pop.2100")
+pattern_type = Symbol("patterns.pop.2100")
+
+# Load raw pattern file and extract relevant model+scenario coefficients for each country.
+raw_patterns = load(joinpath(@__DIR__, "cmip6_patterns_by_country.csv")) |>
+               @filter(_.source == cmip6_model && _.scenario == ssp_scenario) |>
+               @orderby(_.iso3) |>
+               @filter(_.iso3 in countries) |> DataFrame
+
+# Select pattern type from varios options.
+cmip_pattern = raw_patterns[!, pattern_type]
+
+
