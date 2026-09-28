@@ -1,0 +1,49 @@
+This is BibTeX, Version 0.99d (TeX Live 2022)
+Capacity: max_strings=200000, hash_size=200000, hash_prime=170003
+The top-level auxiliary file: paper_diff.aux
+The style file: plainnaturl_clean.bst
+Database file #1: price_rights.bib
+Warning--empty journal in banerjee_grand_2025
+Warning--empty journal in fabre_public_2025
+You've used 30 entries,
+            2497 wiz_defined-function locations,
+            816 strings with 12829 characters,
+and the built_in function-call counts, 11929 in all, are:
+= -- 1072
+> -- 834
+< -- 17
++ -- 285
+- -- 255
+* -- 913
+:= -- 2057
+add.period$ -- 120
+call.type$ -- 30
+change.case$ -- 175
+chr.to.int$ -- 30
+cite$ -- 62
+duplicate$ -- 515
+empty$ -- 797
+format.name$ -- 297
+if$ -- 2404
+int.to.chr$ -- 1
+int.to.str$ -- 1
+missing$ -- 27
+newline$ -- 188
+num.names$ -- 121
+pop$ -- 282
+preamble$ -- 1
+purify$ -- 145
+quote$ -- 0
+skip$ -- 374
+stack$ -- 0
+substring$ -- 60
+swap$ -- 26
+text.length$ -- 0
+text.prefix$ -- 0
+top$ -- 0
+type$ -- 320
+warning$ -- 2
+while$ -- 90
+width$ -- 0
+write$ -- 428
+(There were 2 warnings)
