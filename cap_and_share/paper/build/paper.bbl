@@ -1,4 +1,4 @@
-\begin{thebibliography}{29}
+\begin{thebibliography}{30}
 \providecommand{\natexlab}[1]{#1}
 \providecommand{\url}[1]{\texttt{#1}}
 \expandafter\ifx\csname urlstyle\endcsname\relax
@@ -69,6 +69,13 @@ J.~Chateau, F.~Jaumotte, \& G.~Schwerhoff.
 \newblock Global climate policy with differentiated carbon price floors.
 \newblock \emph{Climate Policy}, 2024.
 \newblock \url{https://doi.org/10.1080/14693062.2023.2205376}.
+
+\bibitem[Chichilnisky \& Heal(1994)]{chichilnisky_who_1994}
+G.~Chichilnisky \& G.~Heal.
+\newblock Who should abate carbon emissions?: {{An}} international viewpoint.
+\newblock \emph{Economics Letters}, 1994.
+\newblock
+  \url{http://www.sciencedirect.com/science/article/pii/0165176594901198}.
 
 \bibitem[Cramton et~al.(2017)Cramton, MacKay, \&
   Ockenfels]{cramton_global_2017}

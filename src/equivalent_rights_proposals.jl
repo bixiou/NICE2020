@@ -1709,6 +1709,31 @@ function write_variant_paths(P::Proposal, method::String, rho::Vector{Float64}, 
     CSV.write(joinpath(OUTPUT_BASE, "rho_variants_$stem"), rhos)
 end
 
+"""
+    write_transfers(P, method, rho; p_init)
+
+The explicit transfers of the equivalent allocation, in its reduced-emissions form
+(variant 1): each member's net sales of rights at the coalition price,
+p*_t (R_it - E*_it), which to first order equal the implicit transfers of the
+schedule (Proposition 1). Written to `transfers_<method>_<proposal>.csv`: NPV over
+the NPV window of the transfer and of gross output (USD2017), and the transfer in
+2030 (USD2017). Positive: the member is a net seller of rights.
+"""
+function write_transfers(P::Proposal, method::String, rho::Vector{Float64}; p_init = P.p_ref)
+    m = make_uniform_model(RECYCLE_SHARE, P.members)
+    rights, cap = variant_rights(P, rho, 1)
+    p, _ = calibrate_price_to_cap(m, rights, cap; p_init, tol = 3e-5, label = "transfers/$(P.name)")
+    run_uniform!(m, rights, p)
+    tr = f64(m[:revenue_recycle, :transfer])                 # USD2017 per year
+    y  = f64(m[:grosseconomy, :YGROSS]) .* 1e6               # USD2017 per year
+    df = DataFrame(country = string.(COUNTRIES), member = [c in P.members for c in 1:NB_COUNTRY],
+                   npv_transfer = [npv(tr[:, c]) for c in 1:NB_COUNTRY],
+                   npv_gdp = [npv(y[:, c]) for c in 1:NB_COUNTRY],
+                   transfer_2030 = tr[YEAR_IDX[2030], :])
+    CSV.write(joinpath(OUTPUT_BASE, "transfers_$(method)_$(lowercase(P.name))$(TAG).csv"), df)
+    return df
+end
+
 struct VariantResult
     label::String
     total_rights::Float64      # NPV-window cumulated club rights (GtCO2)
@@ -2649,7 +2674,8 @@ const LOSS_TOL = 0.005   # %, threshold for counting a member as losing
 # members, and with the reduced-emissions gain labelled post-damage (it is
 # computed with damages endogenous, so it carries the avoided damages).
 function write_main_table(path::String, props, welf, cons; method = "B",
-                          predicted = "Duflo", pred_kind = :formula, cons_only = false)
+                          predicted = "Duflo", pred_kind = :formula, cons_only = false,
+                          transfers = method == "B" ? predicted : nothing)
     stores = cons_only ? (("cons", cons),) : (("welf", welf), ("cons", cons))
     got(store, P) = get(store, (method, P.name), nothing)
     any(P -> any(s -> got(s[2], P) !== nothing, stores), props) || begin
@@ -2657,7 +2683,18 @@ function write_main_table(path::String, props, welf, cons; method = "B",
         return
     end
     haspred(P) = predicted !== nothing && P.name == predicted
-    width(P)   = 1 + length(stores) + haspred(P)
+    # the transfer column (written by write_transfers) is shown for one schedule,
+    # and only if its file is on disk
+    trfile(P)  = joinpath(OUTPUT_BASE, "transfers_$(method)_$(lowercase(P.name))$(TAG).csv")
+    hastr(P)   = transfers !== nothing && P.name == transfers && isfile(trfile(P))
+    trdata     = Dict(P.name => CSV.read(trfile(P), DataFrame) for P in props if hastr(P))
+    function transfer_pct(e, P)
+        df  = trdata[P.name]
+        idx = intersect(entity_indices(e), P.members)
+        sel = [findfirst(==(string(COUNTRIES[c])), df.country) for c in idx]
+        return 100 * sum(df.npv_transfer[sel]) / sum(df.npv_gdp[sel])
+    end
+    width(P)   = 1 + length(stores) + haspred(P) + hastr(P)
     ncol       = 1 + sum(width, props)
     # summary rows leave the price (and prediction) cells empty, so that each
     # number sits under the rho column of the criterion it was solved on
@@ -2670,6 +2707,7 @@ function write_main_table(path::String, props, welf, cons; method = "B",
                 r = got(st, P)
                 push!(cells, r === nothing ? "--" : f(P, r))
             end
+            hastr(P) && push!(cells, "")
         end
         return cells
     end
@@ -2691,7 +2729,8 @@ function write_main_table(path::String, props, welf, cons; method = "B",
         # Sept 2026: the column symbols and the note already say what they are)
         println(io, "  \\textbf{Country} & ",
                 join([string("\$p_{2030}\$", haspred(P) ? " & \$\\hat\\rho\$" : "",
-                             cons_only ? " & \$\\rho\$" : " & \$\\rho^{\\mathrm{welf}}\$ & \$\\rho^{\\mathrm{cons}}\$") for P in props], " & "), " \\\\")
+                             cons_only ? " & \$\\rho\$" : " & \$\\rho^{\\mathrm{welf}}\$ & \$\\rho^{\\mathrm{cons}}\$",
+                             hastr(P) ? " & \$\\tau\$ (\\%)" : "") for P in props], " & "), " \\\\")
         println(io, "  \\midrule")
         for e in report_order(props)
             cells = String[]
@@ -2700,6 +2739,7 @@ function write_main_table(path::String, props, welf, cons; method = "B",
                 if isempty(idx)
                     push!(cells, "0"); haspred(P) && push!(cells, "--")
                     append!(cells, fill("--", length(stores)))
+                    hastr(P) && push!(cells, "--")
                     continue
                 end
                 push!(cells, fmt_price(mean(P.tax[YEAR_IDX[2030], idx])))
@@ -2708,11 +2748,12 @@ function write_main_table(path::String, props, welf, cons; method = "B",
                     r = got(st, P)
                     push!(cells, r === nothing ? "--" : fmt(entity_rho(r.rho, e, P); d = 2))
                 end
+                hastr(P) && push!(cells, fmt(transfer_pct(e, P); d = 2))
             end
-            println(io, "  ", entity_name(e), " & ", join(cells, " & "), " \\\\")
+            println(io, "  ", entity_name(e), e == "EU27" ? " (average)" : "", " & ", join(cells, " & "), " \\\\")
         end
         println(io, "  \\midrule")
-        println(io, "  \\multicolumn{", ncol, "}{l}{\\textit{Reduced emissions: every member as well off as under the proposal}} \\\\")
+        println(io, "  \\multicolumn{", ncol, "}{l}{\\textit{Reduced emissions: every member as well off as under the proposal (ignoring avoided damages)}} \\\\")
         println(io, row("World temp.~2100, change (\\textdegree{}C)", (P, r) -> fmt_delta(r.v1.temp_2100 - P.temp_2100)))
         println(io, row("Emissions change in the coalition (\\%)", (P, r) -> fmt_pct_1(r.v1.emissions_change_pct)))
         cons_only || println(io, row("World welfare gain (\\%)", (P, r) -> fmt_pct(r.v1.welfare_gain_pct)))
@@ -2981,12 +3022,15 @@ function write_target_tables(props)
         write_pred_target_tables(vcat(core, er5), ede, cons)
         # Sept 2026 paper tables: main text (joint), appendix (isolated, and the
         # Equal Right schedule on its own escalation path)
-        write_main_table(joinpath(OUTPUT_BASE, "equivalent_rights_main.tex"), vcat(core, er5), ede, cons;
+        # Banerjee et al. first: it carries the prediction and transfer columns
+        # and is the running example of the text
+        main = vcat(filter(P -> P.name == "Duflo", core), filter(P -> P.name != "Duflo", core), er5)
+        write_main_table(joinpath(OUTPUT_BASE, "equivalent_rights_main.tex"), main, ede, cons;
                          cons_only = true)
         # the previous layout (both criteria, welfare aggregates, loser counts), kept as a backup
         write_main_table(joinpath(OUTPUT_BASE, "equivalent_rights_main_both_criteria.tex"), vcat(core, er5), ede, cons)
         # the appendix tables follow Table 2's layout (consumption criterion only)
-        write_main_table(joinpath(OUTPUT_BASE, "equivalent_rights_main_isolated.tex"), vcat(core, er5), ede, cons;
+        write_main_table(joinpath(OUTPUT_BASE, "equivalent_rights_main_isolated.tex"), main, ede, cons;
                          method = "A", cons_only = true)
     end
     er = [P for P in props if P.name == "EqualRight"]
@@ -3361,6 +3405,7 @@ function solve_cell!(P::Proposal, method::String, props; variants_only = false)
     v4 = vs
     RESULTS[(method, P.name)] = (; rho, v1, v2, v3, v4)
     write_variant_paths(P, method, rho, (v1, v2, v3, v4))
+    method == "B" && write_transfers(P, method, rho; p_init = v1.price_path)
     flush_outputs(props)
     @printf("  [%s/%s] done in %.1f min -- tables updated\n", method, P.name, (time() - t0) / 60)
     flush(stdout)
