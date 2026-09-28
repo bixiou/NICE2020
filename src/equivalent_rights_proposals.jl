@@ -1684,6 +1684,31 @@ end
 # VARIANTS
 # ──────────────────────────────────────────────────────────────────────────────
 
+"""
+    write_variant_paths(P, method, rho, variants)
+
+Stores what the tables do not keep: each variant's uniform price path, next to
+the proposal's p_ref and its emission-weighted mean price pbar = D/E (the world
+revenue under the schedule over the club's emissions), in
+`price_paths_<method>_<proposal>.csv`; and the solved rho with the ratio each
+variant actually allocates (after rescaling), in `rho_variants_<method>_<proposal>.csv`.
+"""
+function write_variant_paths(P::Proposal, method::String, rho::Vector{Float64}, variants)
+    stem = "$(method)_$(lowercase(P.name))$(TAG).csv"
+    pbar = [sum(P.tax[t, c] * P.emissions[t, c] for c in P.members) / P.club_emissions[t]
+            for t in 1:NB_STEPS]
+    paths = DataFrame(time = YEARS, p_ref = P.p_ref, pbar = pbar)
+    rhos  = DataFrame(country = string.(COUNTRIES), member = [c in P.members for c in 1:NB_COUNTRY],
+                      rho = rho)
+    for (k, v) in enumerate(variants)
+        v === nothing && continue
+        paths[!, "p_v$k"] = v.price_path
+        rhos[!, "rho_eff_v$k"] = v.rho_eff
+    end
+    CSV.write(joinpath(OUTPUT_BASE, "price_paths_$stem"), paths)
+    CSV.write(joinpath(OUTPUT_BASE, "rho_variants_$stem"), rhos)
+end
+
 struct VariantResult
     label::String
     total_rights::Float64      # NPV-window cumulated club rights (GtCO2)
@@ -3335,6 +3360,7 @@ function solve_cell!(P::Proposal, method::String, props; variants_only = false)
     v3 = run_variant(P, rho, 3, "$(method)3/$(P.name)"; p_init = vs.price_path)
     v4 = vs
     RESULTS[(method, P.name)] = (; rho, v1, v2, v3, v4)
+    write_variant_paths(P, method, rho, (v1, v2, v3, v4))
     flush_outputs(props)
     @printf("  [%s/%s] done in %.1f min -- tables updated\n", method, P.name, (time() - t0) / 60)
     flush(stdout)
