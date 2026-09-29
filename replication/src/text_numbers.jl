@@ -69,8 +69,20 @@ let m = REFERENCE_RUN
     num!("pstar_2050", "4.2", "p* in 2050 (USD/tCO2)", P_STAR[yr(2050)], 0, "179")
     num!("pstar_2100", "4.2", "p* in 2100 (USD/tCO2)", P_STAR[yr(2100)], 0, "402")
     E = world_emissions(m)
-    num!("pstar_budget", "4.2", "world emissions 2025-2100 at p* (GtCO2)", sum(E[yr(2025):yr(2100)]), 0, "1000";
-         ok = abs(sum(E[yr(2025):yr(2100)]) - 1000) < 1)
+    # the budget is spent exactly in the configuration of the p* search (territorial
+    # emissions, no recycling: cap_and_share/find_global_exp_carbon_tax_buget_zoom.jl) ...
+    let ms = MimiNICE2020.create_nice2020()
+        update_param!(ms, :switch_recycle, 0)
+        update_param!(ms, :abatement, :control_regime, 1)
+        update_param!(ms, :policy_scenario, MimiNICE2020.scenario_index[:All_World])
+        update_param!(ms, :abatement, :global_carbon_tax, P_STAR)
+        run(ms)
+        num!("pstar_budget_search", "4.2", "world emissions 2025-2100 at p*, p* search configuration (GtCO2)",
+             sum(world_emissions(ms)[yr(2025):yr(2100)]), 0, "1000")
+    end
+    # ... not quite in the configuration of the results (consumption-based emissions, recycling)
+    num!("pstar_budget_results", "4.2", "world emissions 2025-2100 at p*, configuration of the results (GtCO2)",
+         sum(E[yr(2025):yr(2100)]), 0, "1000")
     for (y, p) in ((2025, "38"), (2030, "28"), (2035, "21"), (2100, "2"))
         num!("E_world_$y", "4.2", "world emissions in $y at p* (GtCO2)", E[yr(y)], 0, p)
     end
@@ -172,6 +184,10 @@ let rho = RC[("B", "Duflo")].rho
     r = pc("NGA") / pc("IND")
     num!("NGA_over_IND_pc", "5.3", "Nigeria's emissions p.c. over India's, 2030, under the schedule", r, 2, "a tenth";
          ok = 0.08 <= r <= 0.12)
+    t1 = CSV.read(joinpath(OUT_CONS, "indifference", "table_rho1.csv"), DataFrame)
+    rw = only(t1[String.(t1.country) .== "NGA", :emissions_pc_rel_2025])
+    num!("NGA_over_world_pc", "5.3", "Nigeria's emissions p.c. over the world average, 2025 (Table 1)", rw, 2, "a tenth";
+         ok = 0.08 <= rw <= 0.15)
 end
 
 # the implicit transfers of the Banerjee et al. schedule (write_transfers)
@@ -210,12 +226,13 @@ let pp = CSV.read(joinpath(OUT_CONS, "price_paths_B_equalright5.csv"), DataFrame
     num!("ER5_pref_p1", "5.3", "Equal Right: p_ref / p* (tighter cap)", ratio(pref, p1), 2, "0.85")
     num!("ER5_pbar_pref", "5.3", "Equal Right: pbar / p_ref (composition effect)", ratio(pbar, pref), 2, "0.75")
     # "the tonnes that survive sit in the $15-42/t tiers": share of the schedule's
-    # price-weighted discounted emissions from members charged at most $42/t in 2025
+    # emissions from members charged at most $42/t in 2025, by year
     low = [c for c in ER5.members if ER5.tax[yr(2025), c] <= 42 + 1e-9]
-    sh(cs) = sum(NPV_DISC[k] * p1[YEARS[t]] * sum(ER5.emissions[t, c] for c in cs) for (k, t) in enumerate(NPV_IDX))
-    s = sh(low) / sh(ER5.members)
-    num!("ER5_low_tiers", "5.3", "Equal Right: share of price-weighted emissions from members at <= \$42/t (%)", 100 * s, 0,
-         "most"; ok = s > 0.5)
+    for (y, ok_) in ((2030, nothing), (2050, true), (2060, true))
+        s = sum(ER5.emissions[yr(y), c] for c in low) / ER5.club_emissions[yr(y)]
+        num!("ER5_low_tiers_$y", "5.3", "Equal Right: share of the schedule's emissions from members at <= \$42/t, $y (%)",
+             100 * s, 0, ok_ === nothing ? "(not claimed)" : "most"; ok = ok_ === nothing ? true : s > 0.5)
+    end
 end
 let r1 = RC[("B", "EqualRight5")].rho, r2 = RC[("B", "EqualRight5")].v2.rho_eff
     num!("rho_ER5_COD", "5.3", "DRC's equivalent rights, Equal Right, reduced emissions", r1[ci("COD")], 2, "0.68")
@@ -283,6 +300,7 @@ let coef = CSV.read(joinpath(ROOT, "data", "country_damage_coefficients.csv"), D
     b1 = Dict(String(r.countrycode) => Float64(r.beta1_KW) for r in eachrow(coef))
     b2 = Dict(String(r.countrycode) => Float64(r.beta2_KW) for r in eachrow(coef))
     neg(t) = count(c -> (e = string(COUNTRIES[c]); b1[e] < 0 && T[t, c] < -b1[e] / (2 * b2[e])), 1:NB_COUNTRY)
+    num!("beta1_negative", "App. A", "countries with beta1 < 0 (Kalkuhl-Wenz)", count(c -> b1[string(c)] < 0, COUNTRIES), 0, "13")
     num!("neg_marginal_damage", "App. A", "countries with beta1 < 0 and local anomaly below -beta1/(2 beta2), 2100, Banerjee et al.",
          neg(yr(2100)), 0, "13")
 end
