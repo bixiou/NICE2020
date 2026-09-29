@@ -260,6 +260,16 @@ end
 # this is the dataset that contains the new emissions targets for the EU and China
 df_ndc = CSV.read("cap_and_share/data/input/ndc_trajectories.csv", DataFrame)
 
+# Optional: replace the baseline (no carbon price) emission intensity of the EU27
+# member states and China by their NDC trajectories, sigma = E_NDC / GDP. Since
+# emissions are YGROSS * sigma * (1 - mu) and abatement costs scale with sigma,
+# these trajectories then become the countries' emissions *without* a carbon
+# price. Off by default: NICE2020's own intensities are kept.
+# NICE_NDC_BASELINES=1 turns the replacement on.
+const NDC_BASELINES = get(ENV, "NICE_NDC_BASELINES", "0") in ("1", "true")
+NDC_BASELINES && @info "EU27 and China: baseline emission intensities replaced by their NDC trajectories (NICE_NDC_BASELINES=1)"
+
+if NDC_BASELINES
 for row in eachrow(df_ndc)
     c_str    = row.country
     year     = row.time
@@ -285,6 +295,7 @@ for row in eachrow(df_ndc)
         end
     end
 end
+end   # NDC_BASELINES
 
 footprint_dict = Dict(
     string(row[1]) => Float64(row[2]) 

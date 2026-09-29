@@ -694,9 +694,11 @@ const CACHE_DIR = joinpath(OUTPUT_BASE, "cache")
 const CRITERION_VERSION = "popw-2026-09"
 
 # Everything cached below also depends on the recycling shares (set by the
-# reference run at p*) and on p* itself; hashing them into the keys means a new
-# price path can never be served results computed on an old one.
-run_config(share) = hash((CRITERION_VERSION, round.(share, digits = 10), round.(P_STAR, digits = 6)))
+# reference run at p*), on p* itself and on the baseline emission intensities
+# (NICE_NDC_BASELINES, data/parameters.jl); hashing them into the keys means a
+# new price path or baseline can never be served results computed on an old one.
+run_config(share) = hash((CRITERION_VERSION, round.(share, digits = 10), round.(P_STAR, digits = 6),
+                          MimiNICE2020.emissionsrate_footprint))
 const RUN_CONFIG = run_config(RECYCLE_SHARE)
 
 # ──────────────────────────────────────────────────────────────────────────────
