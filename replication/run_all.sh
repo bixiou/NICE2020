@@ -93,14 +93,14 @@ if want tables; then
   env $CONS $J src/equivalent_rights_proposals.jl benchmarks > $L/tables_bench.log 2>&1
 fi
 
-# ── 4. numbers quoted in the text only (logs/text_numbers/) ─────────────────
+# ── 4. numbers quoted in the text ───────────────────────────────────────────
+# text_numbers.csv: every model-derived number of the text, next to the paper's
+# figure. _diag_ndc_baseline.jl: effect of the EU27/China NDC baselines (README).
 if want numbers; then
-  say "computing the in-text numbers (logs: $L/text_numbers/)"
-  mkdir -p $L/text_numbers
-  env $CONS $J src/_diag_pstar.jl    > $L/text_numbers/pstar_path.log 2>&1   # Section 4.2: p*, emissions, warming
-  env $CONS $J src/_diag_growth.jl   > $L/text_numbers/growth.log 2>&1       # footnote of Section 4.2: g, PRTP
-  env $CONS $J src/_diag_losers.jl   > $L/text_numbers/losers.log 2>&1       # Section 5.3 and Online Appendix A: Mongolia & co.
-  env $CONS $J src/paper_numbers.jl  > $L/text_numbers/section5.log 2>&1     # Section 5.3: implicit transfers, pbar/p*
+  say "computing the numbers quoted in the text (log: $L/text_numbers.log)"
+  $J src/text_numbers.jl       > $L/text_numbers.log 2>&1
+  $J src/_diag_ndc_baseline.jl > $L/ndc_baseline.log 2>&1
+  tail -1 $L/text_numbers.log
 fi
 
 # ── 5. figures (Figure 1 and Figure A1) ─────────────────────────────────────

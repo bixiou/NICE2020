@@ -1710,27 +1710,40 @@ function write_variant_paths(P::Proposal, method::String, rho::Vector{Float64}, 
 end
 
 """
-    write_transfers(P, method, rho; p_init)
+    write_transfers(P; p_init)
 
-The explicit transfers of the equivalent allocation, in its reduced-emissions form
-(variant 1): each member's net sales of rights at the coalition price,
-p*_t (R_it - E*_it), which to first order equal the implicit transfers of the
-schedule (Proposition 1). Written to `transfers_<method>_<proposal>.csv`: NPV over
-the NPV window of the transfer and of gross output (USD2017), and the transfer in
-2030 (USD2017). Positive: the member is a net seller of rights.
+The implicit transfers of the schedule (Proposition 1): p*_t (E^A_it - E*_it), the
+value at the coalition price of the rights each member would sell (positive) or
+buy (negative) if granted its emissions under the schedule. Computed by running
+the uniform regime with these grandfathered rights, at the proposal's cap (so the
+price is p_ref). Unlike the constant-rho allocation of the tables, this one has
+the schedule's own timing, so its yearly flows are the schedule's transfers; the
+two coincide only in present value, to first order.
+
+Written to `implicit_transfers_<proposal>.csv`: NPV over the NPV window of the
+transfer, of gross output and of consumption (the criterion, `country_cons_npv`),
+and the transfer and consumption in 2030 and 2050 (all USD2017).
 """
-function write_transfers(P::Proposal, method::String, rho::Vector{Float64}; p_init = P.p_ref)
+function write_transfers(P::Proposal; p_init = P.p_ref)
     m = make_uniform_model(RECYCLE_SHARE, P.members)
-    rights, cap = variant_rights(P, rho, 1)
-    p, _ = calibrate_price_to_cap(m, rights, cap; p_init, tol = 3e-5, label = "transfers/$(P.name)")
+    rights = zeros(Float64, NB_STEPS, NB_COUNTRY)
+    for c in P.members
+        rights[:, c] .= P.emissions[:, c]
+    end
+    p, _ = calibrate_price_to_cap(m, rights, P.club_emissions; p_init, tol = 3e-5,
+                                  label = "transfers/$(P.name)")
     run_uniform!(m, rights, p)
-    tr = f64(m[:revenue_recycle, :transfer])                 # USD2017 per year
-    y  = f64(m[:grosseconomy, :YGROSS]) .* 1e6               # USD2017 per year
+    tr   = f64(m[:revenue_recycle, :transfer])                                     # USD2017 per year
+    y    = f64(m[:grosseconomy, :YGROSS]) .* 1e6                                   # USD2017 per year
+    cons = f64(m[:quantile_recycle, :sum_conso_pc_post_recycle]) ./ NB_QUANTILE .*
+           population(m) .* 1e6                                                    # USD2017 per year
     df = DataFrame(country = string.(COUNTRIES), member = [c in P.members for c in 1:NB_COUNTRY],
                    npv_transfer = [npv(tr[:, c]) for c in 1:NB_COUNTRY],
                    npv_gdp = [npv(y[:, c]) for c in 1:NB_COUNTRY],
-                   transfer_2030 = tr[YEAR_IDX[2030], :])
-    CSV.write(joinpath(OUTPUT_BASE, "transfers_$(method)_$(lowercase(P.name))$(TAG).csv"), df)
+                   npv_consumption = country_cons_npv(m) .* 1e6,
+                   transfer_2030 = tr[YEAR_IDX[2030], :], transfer_2050 = tr[YEAR_IDX[2050], :],
+                   consumption_2030 = cons[YEAR_IDX[2030], :], consumption_2050 = cons[YEAR_IDX[2050], :])
+    CSV.write(joinpath(OUTPUT_BASE, "implicit_transfers_$(lowercase(P.name))$(TAG).csv"), df)
     return df
 end
 
@@ -2683,16 +2696,16 @@ function write_main_table(path::String, props, welf, cons; method = "B",
         return
     end
     haspred(P) = predicted !== nothing && P.name == predicted
-    # the transfer column (written by write_transfers) is shown for one schedule,
-    # and only if its file is on disk
-    trfile(P)  = joinpath(OUTPUT_BASE, "transfers_$(method)_$(lowercase(P.name))$(TAG).csv")
+    # the transfer column (implicit transfers in % of consumption, written by
+    # write_transfers) is shown for one schedule, and only if its file is on disk
+    trfile(P)  = joinpath(OUTPUT_BASE, "implicit_transfers_$(lowercase(P.name))$(TAG).csv")
     hastr(P)   = transfers !== nothing && P.name == transfers && isfile(trfile(P))
     trdata     = Dict(P.name => CSV.read(trfile(P), DataFrame) for P in props if hastr(P))
     function transfer_pct(e, P)
         df  = trdata[P.name]
         idx = intersect(entity_indices(e), P.members)
         sel = [findfirst(==(string(COUNTRIES[c])), df.country) for c in idx]
-        return 100 * sum(df.npv_transfer[sel]) / sum(df.npv_gdp[sel])
+        return 100 * sum(df.npv_transfer[sel]) / sum(df.npv_consumption[sel])
     end
     width(P)   = 1 + length(stores) + haspred(P) + hastr(P)
     ncol       = 1 + sum(width, props)
@@ -3405,7 +3418,7 @@ function solve_cell!(P::Proposal, method::String, props; variants_only = false)
     v4 = vs
     RESULTS[(method, P.name)] = (; rho, v1, v2, v3, v4)
     write_variant_paths(P, method, rho, (v1, v2, v3, v4))
-    method == "B" && write_transfers(P, method, rho; p_init = v1.price_path)
+    method == "B" && write_transfers(P)
     flush_outputs(props)
     @printf("  [%s/%s] done in %.1f min -- tables updated\n", method, P.name, (time() - t0) / 60)
     flush(stdout)
