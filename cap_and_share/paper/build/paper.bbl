@@ -1,4 +1,4 @@
-\begin{thebibliography}{30}
+\begin{thebibliography}{31}
 \providecommand{\natexlab}[1]{#1}
 \providecommand{\url}[1]{\texttt{#1}}
 \expandafter\ifx\csname urlstyle\endcsname\relax
@@ -132,6 +132,13 @@ A.~L. Fanning \& J.~Hickel.
 \newblock Compensation for atmospheric appropriation.
 \newblock \emph{Nature Sustainability}, 2023.
 \newblock \url{https://www.nature.com/articles/s41893-023-01130-8}.
+
+\bibitem[Fleurbaey et~al.(2025)Fleurbaey, Kornek, \&
+  Edenhofer]{fleurbaey_when_2025}
+M.~Fleurbaey, U.~Kornek, \& O.~Edenhofer.
+\newblock When non-uniform carbon prices are efficient and fair:
+  {{Implications}} for transfer schemes and carbon markets.
+\newblock Discussion {{Paper}} DP20723, CEPR, 2025.
 
 \bibitem[Gollier \& Tirole(2015)]{gollier_negotiating_2015}
 C.~Gollier \& J.~Tirole.
