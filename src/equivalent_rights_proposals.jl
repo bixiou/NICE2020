@@ -2742,7 +2742,7 @@ function write_main_table(path::String, props, welf, cons; method = "B",
         # Sept 2026: the column symbols and the note already say what they are)
         println(io, "  \\textbf{Country} & ",
                 join([string("\$p_{2030}\$", haspred(P) ? " & \$\\hat\\rho\$" : "",
-                             cons_only ? " & \$\\rho\$" : " & \$\\rho^{\\mathrm{welf}}\$ & \$\\rho^{\\mathrm{cons}}\$",
+                             cons_only ? " & \$\\tilde\\rho\$" : " & \$\\rho^{\\mathrm{welf}}\$ & \$\\rho^{\\mathrm{cons}}\$",
                              hastr(P) ? " & \$\\tau\$ (\\%)" : "") for P in props], " & "), " \\\\")
         println(io, "  \\midrule")
         for e in report_order(props)

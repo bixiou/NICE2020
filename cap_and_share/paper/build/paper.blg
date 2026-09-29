@@ -5,45 +5,45 @@ The style file: plainnaturl_clean.bst
 Database file #1: price_rights.bib
 Warning--empty journal in banerjee_grand_2025
 Warning--empty journal in fabre_public_2025
-You've used 30 entries,
+You've used 31 entries,
             2497 wiz_defined-function locations,
-            816 strings with 12819 characters,
-and the built_in function-call counts, 11929 in all, are:
-= -- 1072
-> -- 834
-< -- 17
-+ -- 285
-- -- 255
-* -- 913
-:= -- 2057
-add.period$ -- 120
-call.type$ -- 30
-change.case$ -- 175
-chr.to.int$ -- 30
-cite$ -- 62
-duplicate$ -- 515
-empty$ -- 797
-format.name$ -- 297
-if$ -- 2404
+            822 strings with 13036 characters,
+and the built_in function-call counts, 12318 in all, are:
+= -- 1107
+> -- 864
+< -- 18
++ -- 295
+- -- 264
+* -- 947
+:= -- 2125
+add.period$ -- 123
+call.type$ -- 31
+change.case$ -- 181
+chr.to.int$ -- 31
+cite$ -- 64
+duplicate$ -- 531
+empty$ -- 819
+format.name$ -- 307
+if$ -- 2480
 int.to.chr$ -- 1
 int.to.str$ -- 1
 missing$ -- 27
-newline$ -- 188
-num.names$ -- 121
-pop$ -- 282
+newline$ -- 193
+num.names$ -- 125
+pop$ -- 290
 preamble$ -- 1
-purify$ -- 145
+purify$ -- 150
 quote$ -- 0
-skip$ -- 374
+skip$ -- 386
 stack$ -- 0
-substring$ -- 60
-swap$ -- 26
-text.length$ -- 0
+substring$ -- 62
+swap$ -- 27
+text.length$ -- 1
 text.prefix$ -- 0
 top$ -- 0
-type$ -- 320
+type$ -- 331
 warning$ -- 2
-while$ -- 90
+while$ -- 93
 width$ -- 0
-write$ -- 428
+write$ -- 441
 (There were 2 warnings)
