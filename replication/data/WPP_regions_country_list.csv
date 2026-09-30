@@ -1,0 +1,247 @@
+countrycode,WPP_region_name,WPP_code,WPP_region_number
+AUS,Australia and New Zealand,WPP_AUS,1
+CXR,Australia and New Zealand,WPP_AUS,1
+CCK,Australia and New Zealand,WPP_AUS,1
+HMD,Australia and New Zealand,WPP_AUS,1
+NZL,Australia and New Zealand,WPP_AUS,1
+NFK,Australia and New Zealand,WPP_AUS,1
+AIA,Caribbean,WPP_CAR,2
+ATG,Caribbean,WPP_CAR,2
+ABW,Caribbean,WPP_CAR,2
+BHS,Caribbean,WPP_CAR,2
+BRB,Caribbean,WPP_CAR,2
+BES,Caribbean,WPP_CAR,2
+CYM,Caribbean,WPP_CAR,2
+CUB,Caribbean,WPP_CAR,2
+CUW,Caribbean,WPP_CAR,2
+DMA,Caribbean,WPP_CAR,2
+DOM,Caribbean,WPP_CAR,2
+GRD,Caribbean,WPP_CAR,2
+GLP,Caribbean,WPP_CAR,2
+HTI,Caribbean,WPP_CAR,2
+JAM,Caribbean,WPP_CAR,2
+MTQ,Caribbean,WPP_CAR,2
+MSR,Caribbean,WPP_CAR,2
+PRI,Caribbean,WPP_CAR,2
+BLM,Caribbean,WPP_CAR,2
+KNA,Caribbean,WPP_CAR,2
+LCA,Caribbean,WPP_CAR,2
+MAF,Caribbean,WPP_CAR,2
+VCT,Caribbean,WPP_CAR,2
+SXM,Caribbean,WPP_CAR,2
+TTO,Caribbean,WPP_CAR,2
+TCA,Caribbean,WPP_CAR,2
+VGB,Caribbean,WPP_CAR,2
+VIR,Caribbean,WPP_CAR,2
+BLZ,Central America,WPP_CAM,3
+CRI,Central America,WPP_CAM,3
+SLV,Central America,WPP_CAM,3
+GTM,Central America,WPP_CAM,3
+HND,Central America,WPP_CAM,3
+MEX,Central America,WPP_CAM,3
+NIC,Central America,WPP_CAM,3
+PAN,Central America,WPP_CAM,3
+KAZ,Central Asia,WPP_CAS,4
+KGZ,Central Asia,WPP_CAS,4
+TJK,Central Asia,WPP_CAS,4
+TKM,Central Asia,WPP_CAS,4
+UZB,Central Asia,WPP_CAS,4
+IOT,Eastern Africa,WPP_EAF,5
+BDI,Eastern Africa,WPP_EAF,5
+COM,Eastern Africa,WPP_EAF,5
+DJI,Eastern Africa,WPP_EAF,5
+ERI,Eastern Africa,WPP_EAF,5
+ETH,Eastern Africa,WPP_EAF,5
+ATF,Eastern Africa,WPP_EAF,5
+KEN,Eastern Africa,WPP_EAF,5
+MDG,Eastern Africa,WPP_EAF,5
+MWI,Eastern Africa,WPP_EAF,5
+MUS,Eastern Africa,WPP_EAF,5
+MYT,Eastern Africa,WPP_EAF,5
+MOZ,Eastern Africa,WPP_EAF,5
+REU,Eastern Africa,WPP_EAF,5
+RWA,Eastern Africa,WPP_EAF,5
+SYC,Eastern Africa,WPP_EAF,5
+SOM,Eastern Africa,WPP_EAF,5
+SSD,Eastern Africa,WPP_EAF,5
+TZA,Eastern Africa,WPP_EAF,5
+UGA,Eastern Africa,WPP_EAF,5
+ZMB,Eastern Africa,WPP_EAF,5
+ZWE,Eastern Africa,WPP_EAF,5
+CHN,Eastern Asia,WPP_EAS,6
+HKG,Eastern Asia,WPP_EAS,6
+JPN,Eastern Asia,WPP_EAS,6
+PRK,Eastern Asia,WPP_EAS,6
+KOR,Eastern Asia,WPP_EAS,6
+MAC,Eastern Asia,WPP_EAS,6
+MNG,Eastern Asia,WPP_EAS,6
+TWN,Eastern Asia,WPP_EAS,6
+BLR,Eastern Europe,WPP_EEU,7
+BGR,Eastern Europe,WPP_EEU,7
+CZE,Eastern Europe,WPP_EEU,7
+HUN,Eastern Europe,WPP_EEU,7
+MDA,Eastern Europe,WPP_EEU,7
+POL,Eastern Europe,WPP_EEU,7
+ROU,Eastern Europe,WPP_EEU,7
+RUS,Eastern Europe,WPP_EEU,7
+SVK,Eastern Europe,WPP_EEU,7
+UKR,Eastern Europe,WPP_EEU,7
+AGO,Middle Africa,WPP_MAF,8
+CMR,Middle Africa,WPP_MAF,8
+CAF,Middle Africa,WPP_MAF,8
+TCD,Middle Africa,WPP_MAF,8
+COG,Middle Africa,WPP_MAF,8
+COD,Middle Africa,WPP_MAF,8
+GNQ,Middle Africa,WPP_MAF,8
+GAB,Middle Africa,WPP_MAF,8
+STP,Middle Africa,WPP_MAF,8
+DZA,Northern Africa,WPP_NAF,9
+EGY,Northern Africa,WPP_NAF,9
+LBY,Northern Africa,WPP_NAF,9
+MAR,Northern Africa,WPP_NAF,9
+SDN,Northern Africa,WPP_NAF,9
+TUN,Northern Africa,WPP_NAF,9
+ESH,Northern Africa,WPP_NAF,9
+BMU,Northern America,WPP_NAM,10
+CAN,Northern America,WPP_NAM,10
+GRL,Northern America,WPP_NAM,10
+SPM,Northern America,WPP_NAM,10
+USA,Northern America,WPP_NAM,10
+ALA,Northern Europe,WPP_NEU,11
+DNK,Northern Europe,WPP_NEU,11
+EST,Northern Europe,WPP_NEU,11
+FRO,Northern Europe,WPP_NEU,11
+FIN,Northern Europe,WPP_NEU,11
+ISL,Northern Europe,WPP_NEU,11
+IRL,Northern Europe,WPP_NEU,11
+IMN,Northern Europe,WPP_NEU,11
+LVA,Northern Europe,WPP_NEU,11
+LTU,Northern Europe,WPP_NEU,11
+NOR,Northern Europe,WPP_NEU,11
+SJM,Northern Europe,WPP_NEU,11
+SWE,Northern Europe,WPP_NEU,11
+GBR,Northern Europe,WPP_NEU,11
+FJI,Oceania,WPP_OCE,12
+NCL,Oceania,WPP_OCE,12
+PNG,Oceania,WPP_OCE,12
+SLB,Oceania,WPP_OCE,12
+VUT,Oceania,WPP_OCE,12
+GUM,Oceania,WPP_OCE,12
+KIR,Oceania,WPP_OCE,12
+MHL,Oceania,WPP_OCE,12
+FSM,Oceania,WPP_OCE,12
+NRU,Oceania,WPP_OCE,12
+MNP,Oceania,WPP_OCE,12
+PLW,Oceania,WPP_OCE,12
+UMI,Oceania,WPP_OCE,12
+ASM,Oceania,WPP_OCE,12
+COK,Oceania,WPP_OCE,12
+PYF,Oceania,WPP_OCE,12
+NIU,Oceania,WPP_OCE,12
+PCN,Oceania,WPP_OCE,12
+WSM,Oceania,WPP_OCE,12
+TKL,Oceania,WPP_OCE,12
+TON,Oceania,WPP_OCE,12
+TUV,Oceania,WPP_OCE,12
+WLF,Oceania,WPP_OCE,12
+ARG,South America,WPP_SAM,13
+BOL,South America,WPP_SAM,13
+BVT,South America,WPP_SAM,13
+BRA,South America,WPP_SAM,13
+CHL,South America,WPP_SAM,13
+COL,South America,WPP_SAM,13
+ECU,South America,WPP_SAM,13
+FLK,South America,WPP_SAM,13
+GUF,South America,WPP_SAM,13
+GUY,South America,WPP_SAM,13
+PRY,South America,WPP_SAM,13
+PER,South America,WPP_SAM,13
+SGS,South America,WPP_SAM,13
+SUR,South America,WPP_SAM,13
+URY,South America,WPP_SAM,13
+VEN,South America,WPP_SAM,13
+BRN,South-eastern Asia,WPP_SEAS,14
+KHM,South-eastern Asia,WPP_SEAS,14
+IDN,South-eastern Asia,WPP_SEAS,14
+LAO,South-eastern Asia,WPP_SEAS,14
+MYS,South-eastern Asia,WPP_SEAS,14
+MMR,South-eastern Asia,WPP_SEAS,14
+PHL,South-eastern Asia,WPP_SEAS,14
+SGP,South-eastern Asia,WPP_SEAS,14
+THA,South-eastern Asia,WPP_SEAS,14
+TLS,South-eastern Asia,WPP_SEAS,14
+VNM,South-eastern Asia,WPP_SEAS,14
+BWA,Southern Africa,WPP_SAF,15
+SWZ,Southern Africa,WPP_SAF,15
+LSO,Southern Africa,WPP_SAF,15
+NAM,Southern Africa,WPP_SAF,15
+ZAF,Southern Africa,WPP_SAF,15
+AFG,Southern Asia,WPP_SAF,16
+BGD,Southern Asia,WPP_SAF,16
+BTN,Southern Asia,WPP_SAF,16
+IND,Southern Asia,WPP_SAF,16
+IRN,Southern Asia,WPP_SAF,16
+MDV,Southern Asia,WPP_SAF,16
+NPL,Southern Asia,WPP_SAF,16
+PAK,Southern Asia,WPP_SAF,16
+LKA,Southern Asia,WPP_SAF,16
+ALB,Southern Europe,WPP_SAS,17
+AND,Southern Europe,WPP_SAS,17
+BIH,Southern Europe,WPP_SAS,17
+HRV,Southern Europe,WPP_SAS,17
+GIB,Southern Europe,WPP_SAS,17
+GRC,Southern Europe,WPP_SAS,17
+VAT,Southern Europe,WPP_SAS,17
+ITA,Southern Europe,WPP_SAS,17
+MLT,Southern Europe,WPP_SAS,17
+MNE,Southern Europe,WPP_SAS,17
+MKD,Southern Europe,WPP_SAS,17
+PRT,Southern Europe,WPP_SAS,17
+SMR,Southern Europe,WPP_SAS,17
+SRB,Southern Europe,WPP_SAS,17
+SVN,Southern Europe,WPP_SAS,17
+ESP,Southern Europe,WPP_SAS,17
+BEN,Western Africa,WPP_WAF,18
+BFA,Western Africa,WPP_WAF,18
+CPV,Western Africa,WPP_WAF,18
+CIV,Western Africa,WPP_WAF,18
+GMB,Western Africa,WPP_WAF,18
+GHA,Western Africa,WPP_WAF,18
+GIN,Western Africa,WPP_WAF,18
+GNB,Western Africa,WPP_WAF,18
+LBR,Western Africa,WPP_WAF,18
+MLI,Western Africa,WPP_WAF,18
+MRT,Western Africa,WPP_WAF,18
+NER,Western Africa,WPP_WAF,18
+NGA,Western Africa,WPP_WAF,18
+SHN,Western Africa,WPP_WAF,18
+SEN,Western Africa,WPP_WAF,18
+SLE,Western Africa,WPP_WAF,18
+TGO,Western Africa,WPP_WAF,18
+ARM,Western Asia,WPP_WAS,19
+AZE,Western Asia,WPP_WAS,19
+BHR,Western Asia,WPP_WAS,19
+CYP,Western Asia,WPP_WAS,19
+GEO,Western Asia,WPP_WAS,19
+IRQ,Western Asia,WPP_WAS,19
+ISR,Western Asia,WPP_WAS,19
+JOR,Western Asia,WPP_WAS,19
+KWT,Western Asia,WPP_WAS,19
+LBN,Western Asia,WPP_WAS,19
+OMN,Western Asia,WPP_WAS,19
+PSE,Western Asia,WPP_WAS,19
+QAT,Western Asia,WPP_WAS,19
+SAU,Western Asia,WPP_WAS,19
+SYR,Western Asia,WPP_WAS,19
+TUR,Western Asia,WPP_WAS,19
+ARE,Western Asia,WPP_WAS,19
+YEM,Western Asia,WPP_WAS,19
+AUT,Western Europe,WPP_WEU,20
+BEL,Western Europe,WPP_WEU,20
+FRA,Western Europe,WPP_WEU,20
+DEU,Western Europe,WPP_WEU,20
+LIE,Western Europe,WPP_WEU,20
+LUX,Western Europe,WPP_WEU,20
+MCO,Western Europe,WPP_WEU,20
+NLD,Western Europe,WPP_WEU,20
+CHE,Western Europe,WPP_WEU,20
