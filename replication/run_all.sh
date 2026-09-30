@@ -7,6 +7,11 @@
 #   ONLY=paper ./run_all.sh      one step: setup|pstar|solves|tables|numbers|figures|paper
 #   NJOBS=2 ./run_all.sh         number of Julia processes run in parallel (default 4)
 #
+# Each Julia process needs about 2-3 GB of RAM: with 16 GB, NJOBS=4 is the maximum.
+# An interrupted run can be restarted with SKIP_PSTAR=1 ONLY=solves, then the later
+# steps: the solves skip the cells already finished (NICE_RESUME) and the
+# indifference grids the points already stored.
+#
 # Each Julia process needs about 2-3 GB of RAM. Logs go to logs/.
 # This is the sequence of logs/rerun_pstar2025.sh in the development repository
 # (the run behind the submitted paper), without its warm starts from earlier runs.
@@ -15,6 +20,9 @@ cd "$(dirname "$0")"
 
 J="julia --heap-size-hint=2G --project=."
 NJOBS=${NJOBS:-4}
+# one Julia process per job: the scripts would otherwise spawn their own worker
+# processes (min(4, CPU/2) of them), each loading the whole model
+export NICE_WORKERS=${NICE_WORKERS:-1}
 ONLY=${ONLY:-all}
 L=logs
 O=cap_and_share/output
@@ -79,7 +87,7 @@ $CONS NICE_METHODS=A NICE_A_FULL=1 NICE_PROPOSALS=Wolfram NICE_DONE_FILE=$L/done
 $CONS NICE_METHODS=B NICE_PROPOSALS=Wolfram NICE_DONE_FILE=$L/done_10 $J $R > $L/cons_B_wolfram.log 2>&1
 EOF
   say "running $(wc -l < $L/jobs.txt) solves, $NJOBS at a time (logs: $L/*.log)"
-  xargs -P "$NJOBS" -I{} bash -c "export NICE_WORKERS=1; env {}" < $L/jobs.txt
+  xargs -P "$NJOBS" -I{} bash -c "export NICE_RESUME=1; env {}" < $L/jobs.txt
 fi
 
 # ── 3. tables ───────────────────────────────────────────────────────────────
