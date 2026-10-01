@@ -1,49 +1,50 @@
-This is BibTeX, Version 0.99d (TeX Live 2023/Debian)
+This is BibTeX, Version 0.99d (TeX Live 2022)
 Capacity: max_strings=200000, hash_size=200000, hash_prime=170003
 The top-level auxiliary file: paper.aux
 The style file: plainnaturl_clean.bst
 Database file #1: price_rights.bib
+Warning--I didn't find a database entry for "fleurbaey_when_2025"
 Warning--empty journal in banerjee_grand_2025
 Warning--empty journal in fabre_public_2025
 You've used 31 entries,
             2497 wiz_defined-function locations,
-            822 strings with 13036 characters,
-and the built_in function-call counts, 12318 in all, are:
-= -- 1107
-> -- 864
-< -- 18
-+ -- 295
-- -- 264
-* -- 947
-:= -- 2125
-add.period$ -- 123
+            826 strings with 13301 characters,
+and the built_in function-call counts, 12890 in all, are:
+= -- 1142
+> -- 963
+< -- 17
++ -- 328
+- -- 297
+* -- 1014
+:= -- 2226
+add.period$ -- 124
 call.type$ -- 31
-change.case$ -- 181
+change.case$ -- 192
 chr.to.int$ -- 31
 cite$ -- 64
-duplicate$ -- 531
-empty$ -- 819
-format.name$ -- 307
-if$ -- 2480
+duplicate$ -- 533
+empty$ -- 824
+format.name$ -- 340
+if$ -- 2586
 int.to.chr$ -- 1
 int.to.str$ -- 1
-missing$ -- 27
-newline$ -- 193
+missing$ -- 28
+newline$ -- 194
 num.names$ -- 125
-pop$ -- 290
+pop$ -- 313
 preamble$ -- 1
-purify$ -- 150
+purify$ -- 161
 quote$ -- 0
-skip$ -- 386
+skip$ -- 397
 stack$ -- 0
 substring$ -- 62
 swap$ -- 27
-text.length$ -- 1
+text.length$ -- 0
 text.prefix$ -- 0
 top$ -- 0
 type$ -- 331
 warning$ -- 2
 while$ -- 93
 width$ -- 0
-write$ -- 441
-(There were 2 warnings)
+write$ -- 442
+(There were 3 warnings)
