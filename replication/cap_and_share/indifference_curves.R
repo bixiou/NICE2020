@@ -43,7 +43,12 @@ edges <- function(x) {                  # tile boundaries for an uneven grid
 # they serve the indifference curve, not the cells.
 PI_SHOW  <- seq(0, 4.75, by = 0.25)
 RHO_SHOW <- c(0.02, 0.05, 0.1, 0.2, 0.5, 1, 2, 5, 10)
-EX <- edges(PI_SHOW)                               # identical for every country
+# Largest autarky price factor drawn (NICE_PI_MAX): 2 for Figure 1, the whole
+# grid (4.75) for its welfare-variant analogue. The colour scale is computed on
+# the whole grid either way, so a cell has the same colour whatever the range.
+PI_MAX <- as.numeric(Sys.getenv("NICE_PI_MAX", if (recycling == "equal_pc") "4.75" else "2"))
+PI_FIG <- PI_SHOW[PI_SHOW <= PI_MAX + 1e-9]
+EX <- edges(PI_FIG)                                # identical for every country
 # the rho ladder is drawn on a log axis, so its cell boundaries are the
 # midpoints in log space: taking them in levels would stretch the bottom cell
 # from 0.02 down to 0.005 and make the axis look as if it started at zero
@@ -54,9 +59,9 @@ read_pair <- function(cc) list(
   u = read.csv(file.path(dir_in, paste0("uniform_", cc, ".csv"))),
   a = read.csv(file.path(dir_in, paste0("autarky_", cc, ".csv"))))
 
-grid_for <- function(cc, log_y = TRUE) {
+grid_for <- function(cc, log_y = TRUE, pis = PI_FIG) {
   d <- read_pair(cc)
-  u <- d$u[d$u$rho %in% RHO_SHOW, ]; a <- d$a[d$a$pi %in% PI_SHOW, ]
+  u <- d$u[d$u$rho %in% RHO_SHOW, ]; a <- d$a[d$a$pi %in% pis, ]
   u <- u[order(u$rho), ]; a <- a[order(a$pi), ]
   g <- expand.grid(i = seq_len(nrow(u)), j = seq_len(nrow(a)))
   g$rho <- u$rho[g$i]; g$pi <- a$pi[g$j]
@@ -108,11 +113,13 @@ curves <- curves[is.finite(curves[[rho_col]]), ]
 # Colour limits: symmetric, at the 95th percentile of |gain| over all countries,
 # the rule used by the figures this replaces (a few cells -- very large
 # allocations to small emitters -- reach hundreds of percent).
-all_gain <- unlist(lapply(countries, function(cc) grid_for(cc)$gain))
+all_gain <- unlist(lapply(countries, function(cc) grid_for(cc, pis = PI_SHOW)$gain))
 lim <- as.numeric(quantile(abs(all_gain), 0.95, na.rm = TRUE))
 message(sprintf("colour limit (95th percentile of |gain|): %.2f", lim))
 
-xbreaks <- seq(0, 4.75, by = 0.5)
+xbreaks <- seq(0, PI_MAX, by = 0.5)
+# x position at a given fraction of the panel width (places the key whatever PI_MAX)
+xat <- function(f) min(EX) + f * diff(range(EX))
 ybreaks <- c(0.02, 0.05, 0.1, 0.2, 0.5, 1, 2, 5, 10)
 
 plot_heat <- function(cc, log_y) {
@@ -157,18 +164,20 @@ plot_heat <- function(cc, log_y) {
   if (nrow(fr)) p <- p + geom_point(data = fr, aes(x = pi, y = rho), shape = 4, size = 1.3,
                                     colour = "black", stroke = 0.4)
   # the key of the figures this replaces, drawn last so the flags do not cross it;
-  # the second entry appears only where the flag itself does
-  if (log_y) {
+  # the second entry appears only where the flag itself does. On a narrower x-axis
+  # (Figure 1, pi up to 2) it would cover the rho_1 label, so it is left out: the
+  # figure note explains the diamond and the crosses.
+  if (log_y && PI_MAX >= 4) {
     two <- nrow(fr) > 0
     p <- p +
-      annotate("rect", xmin = 2.62, xmax = 4.72, ymin = if (two) 3.1 else 5.0, ymax = 13.6,
+      annotate("rect", xmin = xat(0.549), xmax = xat(0.969), ymin = if (two) 3.1 else 5.0, ymax = 13.6,
                fill = "white", colour = "black", linewidth = 0.3) +
-      annotate("point", x = 2.82, y = 8.6, shape = 18, size = 2.6, colour = "black") +
-      annotate("text", x = 2.98, y = 8.6, hjust = 0, size = 3.4, colour = "black",
+      annotate("point", x = xat(0.589), y = 8.6, shape = 18, size = 2.6, colour = "black") +
+      annotate("text", x = xat(0.621), y = 8.6, hjust = 0, size = 3.4, colour = "black",
                label = "rho[i]~at~pi[i]==1~(rho[1])", parse = TRUE)
     if (two) p <- p +
-      annotate("point", x = 2.82, y = 4.6, shape = 4, size = 1.9, colour = "black", stroke = 0.6) +
-      annotate("text", x = 2.98, y = 4.6, hjust = 0, size = 3.4, colour = "black",
+      annotate("point", x = xat(0.589), y = 4.6, shape = 4, size = 1.9, colour = "black", stroke = 0.6) +
+      annotate("text", x = xat(0.621), y = 4.6, hjust = 0, size = 3.4, colour = "black",
                label = "RoW~rights < 0", parse = TRUE)
   }
   # identical axes for every country
