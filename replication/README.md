@@ -52,13 +52,42 @@ Tested on Ubuntu 24.04 (4 cores, 15 GB of RAM) with the versions in brackets.
 
 ## Computing time
 
-VERIFICATION_TIMES
+Measured on the test machine (4 cores, 15 GB of RAM), with the main repository's run going
+on at the same time on the same machine, so with 2 cores per run (`NJOBS=2`):
 
-Each Julia process needs 2–3 GB of RAM (`--heap-size-hint=2G`).
+| Step | Wall time |
+|---|---|
+| `setup` | 4 min (download and precompilation of the Julia packages) |
+| `pstar` | 1 h (33 growth rates, about 2 min each) |
+| `solves` | about 10.5 h (the Equal Right joint solves are the longest cells, 3–4 h each from a cold start) |
+| `tables`, `numbers`, `figures`, `paper` | about 20 min together |
+
+With `NJOBS=4` on 4 free cores, the `solves` step should take roughly half as long; we did not
+time it. An interrupted run resumes where it stopped: `SKIP_PSTAR=1 ./run_all.sh` skips the
+finished solves (the test run was interrupted three times by restarts of the machine, and
+resumed this way).
+
+Each Julia process needs about 2 GB of RAM (`--heap-size-hint=2G`; 4 processes used 8 GB in
+the test run). `run_all.sh` runs one Julia process per job (`NICE_WORKERS=1`): left to
+themselves, the scripts start up to four worker processes each, which exhausted 15 GB.
 
 ## Verification
 
-VERIFICATION_RESULTS
+The whole pipeline was run twice from scratch on 30 Sept–1 Oct 2026, in this package (in a
+fresh copy, without `reference_output/`) and in the development repository, with its own
+environment (which still lists the unused packages, installed from the Mimi registry).
+
+- **The two runs agree exactly.** Both p* searches return the same path (\$191.82/t in 2035,
+  1.264% a year); all 215 files the run writes to `cap_and_share/output/` (tables, CSVs,
+  `text_numbers.csv`) are byte-identical; the 34 figures are identical pixel for pixel; the two
+  compiled papers have the same text (32 pages), the comment-free `paper.tex` of this package
+  included.
+- **Every number of the text is computed.** `text_numbers.csv` lists 127 of them.
+- **`reference_output/` holds the results of this run**, i.e. of the default configuration
+  (NICE2020's own baseline emissions, see below). The results with the NDC baselines, which
+  the text of the paper still reports, are in the development repository under
+  `cap_and_share/output/_backup_ndc_baselines_20260929/`. Against the text of the paper, 81 of
+  the 127 numbers differ: the text has not been updated to the new results.
 
 ## Where each result comes from
 
@@ -132,49 +161,50 @@ reads its inputs through paths relative to it.
   the Equal Right proposal by country and its escalation path (Equal Right, 2023).
 - `cap_and_share/data/output/calibrated_global_exp.csv` and
   `data/uniform_exp_tax_path_params.csv`: $p^*$, as found by the `pstar` step
-  (\$142.10/t in 2035, growing at 1.68% a year).
+  (\$191.82/t in 2035, growing at 1.264% a year).
 
 ### The baselines of the EU27 and China
 
-`data/parameters.jl` (the block after `df_ndc = CSV.read(...)`) replaces, for every year from
-2020 to 2300, the emission intensity σ of the 27 EU member states and China by
-σ = E_NDC / GDP_calibrated, where E_NDC is the trajectory of `ndc_trajectories.csv`. In NICE,
-emissions are E = YGROSS · σ · (1 − μ) (`src/components/emissions.jl`) and the abatement cost
-coefficient is proportional to σ (`src/components/abatement.jl`): these trajectories therefore
-become the 28 countries' emissions *without any carbon price*, from which every price then
-abates. `src/_diag_ndc_baseline.jl` runs the model with the original and the overwritten σ:
+`data/parameters.jl` can replace, for every year from 2020 to 2300, the emission intensity σ of
+the 27 EU member states and China by σ = E_NDC / GDP_calibrated, where E_NDC is the trajectory
+of `ndc_trajectories.csv`. **This is off by default** (NICE2020's own intensities are used);
+`NICE_NDC_BASELINES=1` turns it on. In NICE, emissions are E = YGROSS · σ · (1 − μ)
+(`src/components/emissions.jl`) and the abatement cost coefficient is proportional to σ
+(`src/components/abatement.jl`): with the replacement, the NDC trajectories become the 28
+countries' emissions *without any carbon price*, from which every price then abates. The
+scenario cache keys include σ, so results computed under one setting are never reused under
+the other. `src/_diag_ndc_baseline.jl` (`logs/ndc_baseline.log`) runs the model both ways:
 
-| | original σ | NDC σ |
+| | NICE σ (default) | NDC σ |
 |---|---|---|
 | China, emissions 2025–2100 without a carbon price (GtCO₂) | 598 | 229 (zero from 2071) |
 | EU27, same (GtCO₂) | 176 | 30 (zero from 2050) |
 | World, same (GtCO₂) | 2,844 | 2,330 |
-| China's share of world emissions at p*, price-weighted and discounted (the quantity behind $\hat\rho$) | 23.7% | 14.3% |
-| EU27's share, same | 6.8% | 1.7% |
-| Warming in 2100 at p* | 1.92 °C | 1.84 °C |
+| China's share of world emissions at p*, price-weighted and discounted (the quantity behind $\hat\rho$) | 24.1% | 15.5% |
+| EU27's share, same | 7.0% | 1.9% |
 
-The paper's results use the NDC σ; its text does not mention it. China's and the EU's
-equivalent rights (e.g. $\rho_1$ = 0.95 and 0.37 in Table 1) depend on it directly, and the
-other countries' through p* and the world average.
+(at the default p*, \$191.82/t in 2035.) With the NICE baselines, China's $\rho_1$ is 1.62
+instead of 0.95, the EU27's 1.54 instead of 0.37, India's 0.72 instead of 0.91; the coalition
+emissions cut of the Banerjee et al. schedule is 3.9% instead of 4.8%
+(`cap_and_share/output/text_numbers.csv`).
 
 ## Notes on reproducibility
 
 - **Numerical tolerance.** The equivalence solves stop when every member is within 0.002% of its
   target. A fresh run starts the joint solves from the closed-form prediction (or from the
-  isolated solve, if that has finished first), while the published run was warm-started from
-  earlier solves. Expect differences in the last printed digit of some $\rho$;
-  `compare_to_reference.sh` lists them.
+  isolated solve, if that has finished first). Two runs from scratch on the same machine gave
+  identical results; across machines, expect at most differences in the last printed digit of
+  some $\rho$. `compare_to_reference.sh` lists them.
 - **Parallel jobs.** The solves of the two variants write into separate folders; within a
   variant, the jobs share the scenario cache that the first part of the `solves` step builds.
-- **Differences with the development repository** (`github.com/bixiou/NICE2020`, commit
-  `21a36f2`, 29 Sept 2026). Files are copied unchanged, except: `paper.tex`, stripped of its
+- **Differences with the development repository** (`github.com/bixiou/NICE2020`, same
+  commit). Files are copied unchanged, except: `paper.tex`, stripped of its
   comments (the text of the PDF is identical); `Project.toml` and `Manifest-v1.12.toml`, without
   six packages the code never loads (Graphs, JLD2, LaTeXStrings, Measures, MimiDICE2010,
   PrettyTables; MimiDICE2010 is not in the General registry, which made the environment
   impossible to instantiate on a fresh machine), every other version unchanged. New:
   `run_all.sh` (the sequence of `logs/rerun_pstar2025.sh`, which produced the submitted
-  results), `use_reference_outputs.sh`, `compare_to_reference.sh`, `src/text_numbers.jl`,
-  `src/_diag_ndc_baseline.jl` and this README.
+  results), `use_reference_outputs.sh`, `compare_to_reference.sh` and this README.
 
 ## Citation
 
