@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Compares the tables and in-text CSVs of a run with the published ones in
+# Compares the tables and in-text CSVs of a run with the reference ones in
 # reference_output/. Numerical solves stop at a tolerance (0.002% of each
 # member's consumption), and joint solves start from a different point in a
 # fresh run, so the last printed digit of a rho can differ.
@@ -16,7 +16,7 @@ done
 for f in reference_output/figures/*.pdf; do
   [[ -f cap_and_share/paper/figures/$(basename "$f") ]] || { echo "MISSING  figure $(basename "$f")"; status=1; }
 done
-# numbers of the text: printed values of this run against the published run,
+# numbers of the text: printed values of this run against the reference run,
 # and the numbers that disagree with the paper (in either run)
 new=cap_and_share/output/text_numbers.csv; ref=reference_output/output/text_numbers.csv
 if [[ -f $new ]]; then
@@ -29,9 +29,9 @@ for r in new:
     o = ref.get(r["id"])
     if o is None or o["printed"] != r["printed"]:
         bad = 1
-        print(f"NUMBER   {r['id']}: {o['printed'] if o else '(new)'} published, {r['printed']} now")
+        print(f"NUMBER   {r['id']}: {o['printed'] if o else '(new)'} reference, {r['printed']} now")
 off = [r for r in new if r["match"] != "true"]
-print(f"text numbers: {len(new)} computed, {sum(1 for r in new if ref.get(r['id'], {}).get('printed') == r['printed'])} as in the published run, {len(off)} differ from the paper:")
+print(f"text numbers: {len(new)} computed, {sum(1 for r in new if ref.get(r['id'], {}).get('printed') == r['printed'])} as in the reference run, {len(off)} differ from the paper:")
 for r in off:
     print(f"         {r['id']:24s} {r['printed']:>10s}  paper: {r['paper']}  ({r['quantity']})")
 sys.exit(bad)
