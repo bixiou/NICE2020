@@ -1,4 +1,4 @@
-\begin{thebibliography}{31}
+\begin{thebibliography}{32}
 \providecommand{\natexlab}[1]{#1}
 \providecommand{\url}[1]{\texttt{#1}}
 \expandafter\ifx\csname urlstyle\endcsname\relax
@@ -98,6 +98,16 @@ P.~A. Diamond \& J.~A. Mirrlees.
   Efficiency}}.
 \newblock \emph{The American Economic Review}, 1971.
 \newblock \url{https://www.jstor.org/stable/1910538}.
+
+\bibitem[Du et~al.(2026)Du, Dong, Li, He, Yang, Zhang, Wang, Peng, Chang, Tong,
+  Hu, Gu, Ou, \& Fang]{du_toward_2026}
+E.~Du, W.~Dong, Z.~Li, J.~He, X.~Yang, W.~Zhang, H.~Wang, T.~Peng, S.~Chang,
+  Q.~Tong, B.~Hu, A.~Gu, X.~Ou, \& Y.~Fang.
+\newblock Toward greenhouse gas neutrality: {{China}}'s post-2030 transition
+  pathway and policy.
+\newblock \emph{Environmental Science and Ecotechnology}, 2026.
+\newblock
+  \url{https://www.sciencedirect.com/science/article/pii/S2666498426000402}.
 
 \bibitem[Equal~Right(2023)]{equal_right_climate_2023}
 L.~B. Equal~Right.
