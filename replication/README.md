@@ -84,10 +84,11 @@ environment (which still lists the unused packages, installed from the Mimi regi
   included.
 - **Every number of the text is computed.** `text_numbers.csv` lists 127 of them.
 - **`reference_output/` holds the results of this run**, i.e. of the default configuration
-  (NICE2020's own baseline emissions, see below). The results with the NDC baselines, which
-  the text of the paper still reports, are in the development repository under
-  `cap_and_share/output/_backup_ndc_baselines_20260929/`. Against the text of the paper, 81 of
-  the 127 numbers differ: the text has not been updated to the new results.
+  (NICE2020's own baseline emissions, see below), and the paper's text reports them: all 127
+  numbers agree with the text but one, the 1000 GtCO₂ budget of p*, which holds in the
+  configuration of the p* search (996 GtCO₂ in that of the results). The results with the NDC
+  baselines are in the development repository under
+  `cap_and_share/output/_backup_ndc_baselines_20260929/`.
 
 ## Where each result comes from
 
