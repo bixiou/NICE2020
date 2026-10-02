@@ -42,7 +42,11 @@ edges <- function(x) {                  # tile boundaries for an uneven grid
 # rho on the log-spaced ladder -- plus pi = 0. The runs cover more rho values;
 # they serve the indifference curve, not the cells.
 PI_SHOW  <- seq(0, 4.75, by = 0.25)
+# Top of the rho ladder shown (NICE_RHO_TOP): 5 for Figure 1, 10 for its
+# welfare-variant analogue (Figure A1).
+RHO_TOP  <- as.numeric(Sys.getenv("NICE_RHO_TOP", if (recycling == "equal_pc") "10" else "5"))
 RHO_SHOW <- c(0.02, 0.05, 0.1, 0.2, 0.5, 1, 2, 5, 10)
+RHO_SHOW <- RHO_SHOW[RHO_SHOW <= RHO_TOP + 1e-9]
 # Largest autarky price factor drawn (NICE_PI_MAX): 2 for Figure 1, the whole
 # grid (4.75) for its welfare-variant analogue. The colour scale is computed on
 # the whole grid either way, so a cell has the same colour whatever the range.
@@ -102,7 +106,7 @@ curve_for <- function(cc) {
     } else cv <- cv[keep, ]
     return(cv)
   }
-  rho_dense <- exp(seq(log(min(RHO_SHOW)), log(max(RHO_SHOW)), length.out = 400))
+  rho_dense <- exp(seq(log(min(RHO_SHOW)), log(max(EY)), length.out = 400))   # up to the panel top
   wu <- approx(u$rho, u[[metric]], xout = rho_dense, rule = 1)$y   # welfare under the uniform price
   # autarky welfare falls with pi, so invert it on the dense welfare values
   pi_star <- approx(a[[metric]], a$pi, xout = wu, rule = 1)$y
@@ -112,29 +116,57 @@ curve_for <- function(cc) {
 curves <- read.csv(file.path(dir_in, "indifference_curves.csv"))
 curves <- curves[is.finite(curves[[rho_col]]), ]
 
-# Colour limits: symmetric, at the 95th percentile of |gain| over all countries,
-# the rule used by the figures this replaces (a few cells -- very large
-# allocations to small emitters -- reach hundreds of percent).
-all_gain <- unlist(lapply(countries, function(cc) grid_for(cc, pis = PI_SHOW)$gain))
-lim <- as.numeric(quantile(abs(all_gain), 0.95, na.rm = TRUE))
-message(sprintf("colour limit (95th percentile of |gain|): %.2f", lim))
+# Colour limits. Figure 1 (consumption variant): the range of the cells shown
+# over its seven countries, rounded outward to 0.5, with white at zero and each
+# arm running to full colour at its own end. Figure A1 (welfare variant):
+# symmetric, at the 95th percentile of |gain| over the whole grid (a few cells,
+# very large allocations to small emitters, reach hundreds of percent).
+FIG1 <- c("USA", "RUS", "CHN", "EU27", "IND", "NGA", "COD")
+if (recycling == "equal_pc") {
+  all_gain <- unlist(lapply(countries, function(cc) grid_for(cc, pis = PI_SHOW)$gain))
+  lim <- as.numeric(quantile(abs(all_gain), 0.95, na.rm = TRUE))
+  lim_lo <- -lim; lim_hi <- lim
+} else {
+  shown  <- unlist(lapply(intersect(FIG1, countries), function(cc) grid_for(cc)$gain))
+  lim_lo <- floor(min(shown, na.rm = TRUE) * 2) / 2
+  lim_hi <- ceiling(max(shown, na.rm = TRUE) * 2) / 2
+}
+message(sprintf("colour limits: %.2f to %.2f", lim_lo, lim_hi))
+RDBU <- rev(c("#053061", "#2166ac", "#4393c3", "#92c5de", "#d1e5f0", "#f7f7f7",
+              "#fddbc7", "#f4a582", "#d6604d", "#b2182b", "#67001f"))   # red -> white -> blue
+z <- (0 - lim_lo) / (lim_hi - lim_lo)                                  # position of zero
+fill_continuous <- scale_fill_gradientn(colours = RDBU, limits = c(lim_lo, lim_hi), name = fill_title,
+                                        breaks = if (recycling == "equal_pc") waiver() else c(-3, 0, 5, 10, 15),
+                                        values = c(seq(0, z, length.out = 6), seq(z, 1, length.out = 6)[-1]))
+# Discrete version (Figure 1 only): five classes on each side of zero, so that
+# the sign of every cell is unambiguous (10-class ColorBrewer RdBu, no neutral class).
+BREAKS <- c(lim_lo, -2, -1, -0.5, -0.1, 0, 0.1, 0.5, 2, 5, lim_hi)
+RDBU10 <- c("#67001f", "#b2182b", "#d6604d", "#f4a582", "#fddbc7",
+            "#d1e5f0", "#92c5de", "#4393c3", "#2166ac", "#053061")
+fmt_b  <- function(x) format(x, trim = TRUE, drop0trailing = TRUE)   # plain hyphen: the pdf device cannot encode a Unicode minus
+BINLAB <- sprintf("%s to %s", fmt_b(head(BREAKS, -1)), fmt_b(tail(BREAKS, -1)))
+bin_of <- function(g) factor(BINLAB[findInterval(pmin(pmax(g, lim_lo), lim_hi), BREAKS,
+                                                 rightmost.closed = TRUE, all.inside = TRUE)],
+                             levels = BINLAB)
+fill_discrete <- scale_fill_manual(values = setNames(RDBU10, BINLAB), drop = FALSE, name = fill_title,
+                                   breaks = rev(BINLAB))
 
 xbreaks <- seq(0, PI_MAX, by = 0.5)
 # x position at a given fraction of the panel width (places the key whatever PI_MAX)
 xat <- function(f) min(EX) + f * diff(range(EX))
 ybreaks <- c(0.02, 0.05, 0.1, 0.2, 0.5, 1, 2, 5, 10)
 
-plot_heat <- function(cc, log_y) {
+plot_heat <- function(cc, log_y, discrete = FALSE) {
   g  <- grid_for(cc, log_y)
+  g$fillv <- pmax(pmin(g$gain, lim_hi), lim_lo)
   ey <- if (log_y) EY else EY_LIN
   cv <- curve_for(cc)
   r1 <- curves[[rho_col]][curves$country == cc & curves$pi == 1]
   p <- ggplot(g) +
     geom_rect(aes(xmin = xmin, xmax = xmax, ymin = ymin, ymax = ymax,
-                  fill = pmax(pmin(gain, lim), -lim)),
+                  fill = if (discrete) bin_of(gain) else fillv),
               colour = "white", linewidth = 0.15) +
-    scale_fill_distiller(palette = "RdBu", direction = 1, limits = c(-lim, lim),
-                         name = fill_title) +
+    (if (discrete) fill_discrete else fill_continuous) +
     # crosshair at pi = 1, then the indifference curve on top
     annotate("segment", x = 1, xend = 1, y = min(ey), yend = r1,
              colour = "black", linetype = "dotted", linewidth = 0.4) +
@@ -142,7 +174,9 @@ plot_heat <- function(cc, log_y) {
              colour = "black", linetype = "dotted", linewidth = 0.4) +
     geom_line(data = cv, aes(pi, rho), linewidth = 0.9, colour = "black") +
     annotate("point", x = 1, y = r1, shape = 18, size = 2.6, colour = "black") +
-    annotate("text", x = 1.12, y = r1, hjust = 0, vjust = -0.7, size = 4, colour = "black",
+    # a translucent white backing keeps the label legible over dark cells
+    annotate("label", x = 1.12, y = r1, hjust = 0, vjust = -0.45, size = 4, colour = "black",
+             fill = scales::alpha("white", 0.75), label.size = 0, label.padding = unit(0.12, "lines"),
              label = sprintf("rho[1] == %.2f", r1), parse = TRUE) +
     labs(x = expression("Autarky: price factor " * pi[i] * "  (" * p[i] == pi[i] %.% p^"*" * ")"),
          y = expression(atop("Uniform price:", "rights factor " * rho[i] * "  (" * r[i] == rho[i] %.% bar(e) * ")"))) +
@@ -156,7 +190,8 @@ plot_heat <- function(cc, log_y) {
           legend.text = element_text(size = 9),
           legend.key.height = unit(1.1, "cm"),
           legend.spacing.y = unit(0.1, "cm")) +
-    guides(fill = guide_colorbar(title.position = "right"))
+    guides(fill = if (discrete) guide_legend(title.position = "right", keyheight = unit(0.42, "cm"))
+                  else guide_colorbar(title.position = "right"))
   # viability flags, as before: circles where the rest of the world would need a
   # negative price, crosses where it would be left with negative rights
   fx <- g[g$row_price_neg & !g$row_rights_neg, ]
@@ -199,6 +234,12 @@ for (cc in countries) {
          width = 6.6, height = 3.5)
   ggsave(file.path(dir_out, paste0("heatmap_linear_", tag, cc, ".pdf")), plot_heat(cc, FALSE),
          width = 6.6, height = 3.5)
+  if (recycling != "equal_pc") {     # Figure 1 with discrete colour classes
+    ggsave(file.path(dir_out, paste0("heatmap_discrete_", cc, ".pdf")), plot_heat(cc, TRUE, TRUE),
+           width = 6.6, height = 3.5)
+    ggsave(file.path(dir_out, paste0("heatmap_discrete_linear_", cc, ".pdf")), plot_heat(cc, FALSE, TRUE),
+           width = 6.6, height = 3.5)
+  }
 }
 
 cv <- curves[curves$country %in% countries, ]
