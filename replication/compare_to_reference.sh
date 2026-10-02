@@ -1,26 +1,36 @@
 #!/usr/bin/env bash
-# Compares the tables and in-text CSVs of a run with the reference ones in
-# reference_output/. Numerical solves stop at a tolerance (0.002% of each
-# member's consumption), and joint solves start from a different point in a
-# fresh run, so the last printed digit of a rho can differ.
+# Compares the results of a run with the shipped ones. The reference is the
+# committed version of each file (git HEAD), or, in a copy that is not a git
+# repository, an untouched copy of the package: REF=<its root> ./compare_to_reference.sh
+# Numerical solves stop at a tolerance (0.002% of each member's consumption),
+# and joint solves start from a different point in a fresh run, so the last
+# printed digit of a rho can differ.
 cd "$(dirname "$0")"
+REF=${REF:-}
+if [[ -z $REF ]] && ! git rev-parse --git-dir > /dev/null 2>&1; then
+  echo "not a git repository: set REF to the root of an untouched copy of the package"; exit 2
+fi
+ref() { if [[ -n $REF ]]; then cat "$REF/$1"; else git show "HEAD:./$1"; fi; }   # reference version of a file
+tmp=$(mktemp -d); trap 'rm -rf "$tmp"' EXIT
 status=0
 for f in rho1_table.tex equivalent_rights_main.tex equivalent_rights_combined.tex \
          equivalent_rights_benchmarks.tex equivalent_rights_equalright_joint.tex \
-         equal_pc/rho1_table.tex implicit_transfers_duflo.csv; do
-  new=cap_and_share/output/$f; ref=reference_output/output/$f
+         implicit_transfers_duflo.csv; do
+  new=cap_and_share/output/$f
+  ref "$new" > "$tmp/ref" 2> /dev/null || { echo "NO REF   $f"; status=1; continue; }
   if [[ ! -f $new ]]; then echo "MISSING  $new"; status=1
-  elif diff -q -I '^%' "$ref" "$new" > /dev/null; then echo "same     $f"
-  else echo "DIFFERS  $f"; diff -I '^%' "$ref" "$new" | head -20; status=1; fi
+  elif diff -q -I '^%' "$tmp/ref" "$new" > /dev/null; then echo "same     $f"
+  else echo "DIFFERS  $f"; diff -I '^%' "$tmp/ref" "$new" | head -20; status=1; fi
 done
-for f in reference_output/figures/*.pdf; do
-  [[ -f cap_and_share/paper/figures/$(basename "$f") ]] || { echo "MISSING  figure $(basename "$f")"; status=1; }
-done
+# figures: all present (they are redrawn by the run, so their bytes can differ)
+figs=$(if [[ -n $REF ]]; then (cd "$REF" && find cap_and_share/paper/figures -name '*.pdf'); \
+       else git ls-files cap_and_share/paper/figures; fi)
+for f in $figs; do [[ -f $f ]] || { echo "MISSING  figure $f"; status=1; }; done
 # numbers of the text: printed values of this run against the reference run,
 # and the numbers that disagree with the paper (in either run)
-new=cap_and_share/output/text_numbers.csv; ref=reference_output/output/text_numbers.csv
-if [[ -f $new ]]; then
-  python3 - "$ref" "$new" <<'PY' || status=1
+new=cap_and_share/output/text_numbers.csv
+if [[ -f $new ]] && ref "$new" > "$tmp/numbers.csv" 2> /dev/null; then
+  python3 - "$tmp/numbers.csv" "$new" <<'PY' || status=1
 import csv, sys
 ref = {r["id"]: r for r in csv.DictReader(open(sys.argv[1]))}
 new = list(csv.DictReader(open(sys.argv[2])))
@@ -37,6 +47,11 @@ for r in off:
 sys.exit(bad)
 PY
 else
-  echo "MISSING  $new"; status=1
+  echo "MISSING  $new (or its reference)"; status=1
+fi
+# every other file of the run that differs from the reference
+if [[ -z $REF ]]; then
+  echo "files that differ from the committed ones (git diff --stat):"
+  git diff --stat -- cap_and_share/output | tail -1
 fi
 exit $status

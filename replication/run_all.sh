@@ -1,18 +1,27 @@
 #!/usr/bin/env bash
 # Reproduces every result of "International Transfers or Differentiated Carbon
-# Prices?" (Fabre & Gorge), from the raw inputs to paper.pdf.
+# Prices?" (Fabre & Gorge), from the raw inputs to the PDFs of the paper.
 #
-#   ./run_all.sh                 everything (about 1-2 days on 4 cores, see README)
+#   ./run_all.sh                 everything (about 12 h with NJOBS=2, see README)
 #   SKIP_PSTAR=1 ./run_all.sh    keep the shipped benchmark price path p*
 #   ONLY=paper ./run_all.sh      one step: setup|pstar|solves|tables|numbers|figures|paper
 #   NJOBS=2 ./run_all.sh         number of Julia processes run in parallel (default 4)
+#   RESUME=1 SKIP_PSTAR=1 ./run_all.sh   resume an interrupted full run
 #
-# Each Julia process needs about 2-3 GB of RAM: with 16 GB, NJOBS=4 is the maximum.
-# An interrupted run can be restarted with SKIP_PSTAR=1 ONLY=solves, then the later
-# steps: the solves skip the cells already finished (NICE_RESUME) and the
-# indifference grids the points already stored.
+# The results of the paper are shipped at the paths where this script writes
+# them, so ONLY=paper compiles the paper without running the model. A full run
+# (no ONLY) starts from scratch: its solves step first deletes
+# cap_and_share/output/ (git checkout restores it), since the scripts would
+# otherwise reuse the results they find there instead of recomputing them.
+# A single step (ONLY=...) resumes instead (RESUME=1 is then the default), as
+# does a full run with RESUME=1. compare_to_reference.sh then compares the new
+# results with the committed ones.
 #
-# Each Julia process needs about 2-3 GB of RAM. Logs go to logs/.
+# Each Julia process needs about 2-3 GB of RAM: with 16 GB, NJOBS=4 is the
+# maximum. Logs go to logs/. When resuming, the solves step keeps what an
+# interrupted run left: the solves skip the cells already finished
+# (NICE_RESUME) and the indifference grids the points already stored.
+#
 # This is the sequence of logs/rerun_pstar2025.sh in the development repository
 # (the run behind the submitted paper), without its warm starts from earlier runs.
 set -euo pipefail
@@ -24,6 +33,8 @@ NJOBS=${NJOBS:-4}
 # processes (min(4, CPU/2) of them), each loading the whole model
 export NICE_WORKERS=${NICE_WORKERS:-1}
 ONLY=${ONLY:-all}
+# a full run starts afresh, a single step resumes
+if [[ "$ONLY" == all ]]; then RESUME=${RESUME:-0}; else RESUME=${RESUME:-1}; fi
 L=logs
 O=cap_and_share/output
 mkdir -p $L $O/equal_pc cap_and_share/paper/figures
@@ -57,6 +68,11 @@ fi
 
 # ── 2. model solves ─────────────────────────────────────────────────────────
 if want solves; then
+  if [[ "$RESUME" != 1 ]]; then
+    say "deleting the previous results in $O/ (restore the shipped ones with: git checkout -- $O)"
+    rm -rf "$O" $L/done_*
+    mkdir -p $O/equal_pc
+  fi
   # Build each variant's proposal scenarios once, so that the parallel jobs
   # below read them from the cache instead of writing it concurrently. With no
   # solve on disk yet, the table step of this call may complain: only the cache
@@ -119,10 +135,11 @@ if want figures; then
 fi
 
 # ── 6. the paper ────────────────────────────────────────────────────────────
-# Compiled in paper/build/ so that the source folder holds only the PDF.
+# Compiled in paper/build/ so that the source folder holds only the PDFs:
+# paper.pdf (full), paper_blind.pdf (anonymised), title_page.pdf and
+# declaration_competing_interest.pdf.
 if want paper; then
   say "compiling the paper"
-  ( cd cap_and_share/paper && latexmk -pdf -interaction=nonstopmode -outdir=build paper.tex > build.log 2>&1 \
-      && cp build/paper.pdf paper.pdf && mv build.log build/ )
+  cap_and_share/paper/compile_versions.sh
   say "done: cap_and_share/paper/paper.pdf"
 fi

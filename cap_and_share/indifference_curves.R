@@ -243,6 +243,19 @@ for (cc in countries) {
   }
 }
 
+# Figure 1 uses copies of these panels without their white margins, in
+# figures/cropped/ (pdfcrop ships with TeX Live and MiKTeX).
+if (recycling != "equal_pc") {
+  crop_dir <- file.path(dir_out, "cropped")
+  if (nzchar(Sys.which("pdfcrop"))) {
+    dir.create(crop_dir, showWarnings = FALSE)
+    for (f in list.files(dir_out, pattern = "^heatmap_(linear_|discrete_|discrete_linear_)?[A-Z0-9]+\\.pdf$"))
+      system2("pdfcrop", c("--margins", "1", shQuote(file.path(dir_out, f)), shQuote(file.path(crop_dir, f))),
+              stdout = FALSE, stderr = FALSE)
+    message("cropped copies written to ", crop_dir)
+  } else message("pdfcrop not found: ", crop_dir, " not updated")
+}
+
 cv <- curves[curves$country %in% countries, ]
 cv$label <- factor(labels[cv$country], levels = labels[countries])
 p <- ggplot(cv, aes(pi)) +

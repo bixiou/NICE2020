@@ -108,11 +108,9 @@ let t1 = CSV.read(joinpath(OUT_CONS, "indifference", "table_rho1.csv"), DataFram
     num!("rel_2025_EU27", "4.3", "EU27's 2025 emissions p.c. over world average", row("EU27").emissions_pc_rel_2025, 1, "1.7")
     num!("rho1_EU27", "4.3", "EU27's rho_1", row("EU27").rho1_cons, 2, "1.54")
     num!("rho0_NGA", "Intro, 4.3", "Nigeria's equivalent rights at a zero autarky price", at("NGA", 0.0, :rho_cons), 2, "0.25")
-    num!("rho0_NGA_pct", "Conclusion", "Nigeria's zero-price bound below 30% of an equal share", at("NGA", 0.0, :rho_cons), 2, "< 0.30";
-         ok = at("NGA", 0.0, :rho_cons) < 0.30)
+    num!("rho0_NGA_pct", "Intro, Conclusion", "Nigeria's equivalent rights at a zero autarky price (% of an equal share)", 100 * at("NGA", 0.0, :rho_cons), 0, "25")
     num!("rho0_COD", "4.3", "DRC's equivalent rights at a zero autarky price", at("COD", 0.0, :rho_cons), 2, "0.05")
-    num!("rho0_COD_pct", "Conclusion", "DRC's zero-price bound below 6% of an equal share", at("COD", 0.0, :rho_cons), 2, "< 0.06";
-         ok = at("COD", 0.0, :rho_cons) < 0.06)
+    num!("rho0_COD_pct", "Conclusion", "DRC's equivalent rights at a zero autarky price (% of an equal share)", 100 * at("COD", 0.0, :rho_cons), 0, "5")
 end
 
 # ══ Section 5.1: the proposals ════════════════════════════════════════════════
@@ -231,7 +229,8 @@ let r1 = RC[("B", "EqualRight5")].rho, r2 = RC[("B", "EqualRight5")].v2.rho_eff
     for (e, s) in (("COD", "0.85"), ("NGA", "0.97"), ("IND", "1.39"), ("CHN", "1.21"), ("IDN", "1.13"))
         num!("rho2_ER5_$e", "5.3", "$e's rights, Equal Right, increased consumption", r2[ci(e)], 2, s)
     end
-    num!("ER5_negative", "5.3", "members with a negative equivalent ratio, Equal Right", count(c -> r1[c] < 0, ER5.members), 0, "6")
+    num!("ER5_negative", "5.3", "members with a negative equivalent ratio, Equal Right", count(c -> r1[c] < 0, ER5.members), 0, "six";
+         ok = count(c -> r1[c] < 0, ER5.members) == 6)
     num!("rho_ER5_USA", "5.3", "United States' equivalent rights, Equal Right", r1[ci("USA")], 2, "-0.16")
 end
 
@@ -344,6 +343,22 @@ end
 num!("cut_ER", "App. C", "coalition emissions cut, Equal Right on its own path (%)", cut(RC, "B", "EqualRight"), 1, "14.7")
 num!("dT_ER", "App. C", "change in 2100 warming, Equal Right on its own path (C)", RC[("B", "EqualRight")].v1.temp_2100 - ER.temp_2100, 3, "-0.010")
 num!("dT_ER5", "App. C", "change in 2100 warming, Equal Right at 5%/yr (C)", RC[("B", "EqualRight5")].v1.temp_2100 - ER5.temp_2100, 3, "-0.036")
+
+# ── the figures must also be in the paper ─────────────────────────────────────
+# A value that matches its `paper` string checks nothing if that string is no
+# longer printed in the text (it once hid a stale 0.28 for Nigeria): every
+# numeric `paper` string must appear in the text, comments excluded.
+let tex  = joinpath(ROOT, "cap_and_share", "paper", "paper.tex")
+    body = join((replace(l, r"(?<!\\)%.*" => "") for l in eachline(tex)), "\n")
+    body = body[first(findfirst("\\section{Introduction}", body)):end]
+    for (k, r) in enumerate(ROWS)
+        p = lstrip(r.paper, '-')
+        occursin(r"^\d[\d.]*$", p) || continue
+        occursin(Regex("(?<![\\d.])" * replace(p, "." => "\\.") * "(?!\\d)"), body) && continue
+        ROWS[k] = merge(r, (match = false,))
+        @printf("DIFF %-34s %s is not printed in the paper\n", r.id, r.paper)
+    end
+end
 
 # ── write ─────────────────────────────────────────────────────────────────────
 out = joinpath(OUT_CONS, "text_numbers.csv")
