@@ -54,6 +54,8 @@ EX <- edges(PI_FIG)                                # identical for every country
 # from 0.02 down to 0.005 and make the axis look as if it started at zero
 EY     <- 10^edges(log10(RHO_SHOW))
 EY_LIN <- edges(RHO_SHOW)
+# top of the y-axis of the linear-scale panels (Figure 1a), NICE_RHO_MAX_LIN
+RHO_MAX_LIN <- as.numeric(Sys.getenv("NICE_RHO_MAX_LIN", "6"))
 
 read_pair <- function(cc) list(
   u = read.csv(file.path(dir_in, paste0("uniform_", cc, ".csv"))),
@@ -187,7 +189,7 @@ plot_heat <- function(cc, log_y) {
       coord_cartesian(xlim = range(EX), ylim = range(EY), expand = FALSE)
   } else {
     p <- p + scale_x_continuous(breaks = xbreaks) +
-      coord_cartesian(xlim = range(EX), ylim = c(0, max(EY_LIN)), expand = FALSE)
+      coord_cartesian(xlim = range(EX), ylim = c(0, RHO_MAX_LIN), expand = FALSE)
   }
   p
 }
