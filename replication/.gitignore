@@ -35,9 +35,9 @@ cap_and_share/output/**
 # versions: discrete colours, other axes, the uncropped panels)
 cap_and_share/paper/figures/**
 !cap_and_share/paper/figures/**/
-!cap_and_share/paper/figures/heatmap_USA.pdf
 !cap_and_share/paper/figures/heatmap_eqpc_[A-Z]*.pdf
 !cap_and_share/paper/figures/cropped/heatmap_linear_USA.pdf
+!cap_and_share/paper/figures/cropped/heatmap_USA.pdf
 !cap_and_share/paper/figures/cropped/heatmap_RUS.pdf
 !cap_and_share/paper/figures/cropped/heatmap_CHN.pdf
 !cap_and_share/paper/figures/cropped/heatmap_EU27.pdf

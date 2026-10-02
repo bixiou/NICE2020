@@ -37,7 +37,7 @@ ONLY=paper ./run_all.sh            # -> cap_and_share/paper/paper.pdf, paper_bli
 | `tables` | writes the LaTeX tables from the solves | `cap_and_share/output/*.tex` |
 | `numbers` | recomputes every number quoted in the text and checks it against the paper | `cap_and_share/output/text_numbers.csv`, `logs/ndc_baseline.log` |
 | `figures` | draws the heatmaps | `cap_and_share/paper/figures/*.pdf` |
-| `paper` | runs `cap_and_share/paper/compile_versions.sh`: compiles the paper in `cap_and_share/paper/build/` and copies the PDFs next to its source | `cap_and_share/paper/paper.pdf` (full), `paper_blind.pdf` (anonymised), `title_page.pdf`, `declaration_competing_interest.pdf` |
+| `paper` | runs `cap_and_share/paper/compile_versions.sh`: compiles the paper in `cap_and_share/paper/build/` and copies the PDFs next to its source | `cap_and_share/paper/paper.pdf` (full), `paper_blind.pdf` (anonymised), `title_page.pdf` |
 
 ## Requirements
 
@@ -103,7 +103,7 @@ paper (`NICE_RECYCLING=negishi NICE_TARGET=cons`), "welf" the welfare variant
 
 | Exhibit | File | Produced by |
 |---|---|---|
-| Figure 1 | `cap_and_share/paper/figures/heatmap_USA.pdf`, `cap_and_share/paper/figures/cropped/heatmap_{linear_USA,RUS,CHN,EU27,IND,NGA,COD}.pdf` | `src/indifference_curves.jl` (cons), then `cap_and_share/indifference_curves.R` |
+| Figure 1 | `cap_and_share/paper/figures/cropped/heatmap_{linear_USA,USA,RUS,CHN,EU27,IND,NGA,COD}.pdf` | `src/indifference_curves.jl` (cons), then `cap_and_share/indifference_curves.R` |
 | Table 1 | `cap_and_share/output/rho1_table.tex` | `src/indifference_curves.jl` (cons) |
 | Table 2 | `cap_and_share/output/equivalent_rights_main.tex` | `src/run_solves_sept2026.jl` (cons, A and B; the B solves also write the implicit transfers of column τ), then `src/equivalent_rights_proposals.jl tables` |
 | Table A1 | `cap_and_share/output/equivalent_rights_combined.tex` | same as Table 2 |
@@ -142,9 +142,9 @@ cap_and_share/
   data/                       Equal Right price schedule, NDC trajectories, p*
   paper/                      paper.tex, price_rights.bib, plainnaturl_clean.bst;
                               compile_versions.sh builds the full paper, the anonymised
-                              manuscript, the title page and the declaration of competing
-                              interest (paper.tex: \version = full | blind | titlepage)
-    figures/                  the heatmaps of Figures 1 and A1 (most of Figure 1 in cropped/,
+                              manuscript and the title page (paper.tex: \version = full |
+                              blind | titlepage)
+    figures/                  the heatmaps of Figures 1 and A1 (Figure 1 in cropped/,
                               made by pdfcrop); the figures step also draws versions the
                               paper does not show, which .gitignore lists as ignored
     *.pdf                     the compiled paper, as published
@@ -198,7 +198,7 @@ the other. `src/_diag_ndc_baseline.jl` (`logs/ndc_baseline.log`) runs the model 
 | China's share of world emissions at p*, price-weighted and discounted (the quantity behind $\hat\rho$) | 24.1% | 15.5% |
 | EU27's share, same | 7.0% | 1.9% |
 
-(at the default p*, \$191.82/t in 2035.) With the NICE baselines, China's $\rho_1$ is 1.62
+(at the default p*, \$191.82/t in 2035.) With the NICE baselines, China's $\rho^*_1$ is 1.62
 instead of 0.95, the EU27's 1.54 instead of 0.37, India's 0.72 instead of 0.91; the coalition
 emissions cut of the Banerjee et al. schedule is 3.9% instead of 4.8%
 (`cap_and_share/output/text_numbers.csv`).

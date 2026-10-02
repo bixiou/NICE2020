@@ -178,7 +178,7 @@ plot_heat <- function(cc, log_y, discrete = FALSE) {
     # a translucent white backing keeps the label legible over dark cells
     annotate("label", x = 1.12, y = r1, hjust = 0, vjust = -0.45, size = 4, colour = "black",
              fill = scales::alpha("white", 0.75), label.size = 0, label.padding = unit(0.12, "lines"),
-             label = sprintf("rho[1] == %.2f", r1), parse = TRUE) +
+             label = sprintf("rho[1]^'*' == %.2f", r1), parse = TRUE) +
     labs(x = expression("Autarky: price factor " * pi[i] * "  (" * p[i] == pi[i] %.% p^"*" * ")"),
          y = expression(atop("Uniform price:", "rights factor " * rho[i] * "  (" * r[i] == rho[i] %.% bar(e) * ")"))) +
     theme_bw(base_size = 14) +
@@ -203,7 +203,7 @@ plot_heat <- function(cc, log_y, discrete = FALSE) {
                                     colour = "black", stroke = 0.4)
   # the key of the figures this replaces, drawn last so the flags do not cross it;
   # the second entry appears only where the flag itself does. On a narrower x-axis
-  # (Figure 1, pi up to 2) it would cover the rho_1 label, so it is left out: the
+  # (Figure 1, pi up to 2) it would cover the rho*_1 label, so it is left out: the
   # figure note explains the diamond and the crosses.
   if (log_y && PI_MAX >= 4) {
     two <- nrow(fr) > 0
@@ -212,7 +212,7 @@ plot_heat <- function(cc, log_y, discrete = FALSE) {
                fill = "white", colour = "black", linewidth = 0.3) +
       annotate("point", x = xat(0.589), y = 8.6, shape = 18, size = 2.6, colour = "black") +
       annotate("text", x = xat(0.621), y = 8.6, hjust = 0, size = 3.4, colour = "black",
-               label = "rho[i]~at~pi[i]==1~(rho[1])", parse = TRUE)
+               label = "rho[i]^'*'~at~pi[i]==1~(rho[1]^'*')", parse = TRUE)
     if (two) p <- p +
       annotate("point", x = xat(0.589), y = 4.6, shape = 4, size = 1.9, colour = "black", stroke = 0.6) +
       annotate("text", x = xat(0.621), y = 4.6, hjust = 0, size = 3.4, colour = "black",
@@ -266,7 +266,7 @@ p <- ggplot(cv, aes(pi)) +
   geom_line(aes(y = rho_hat, colour = "First-order prediction"), linetype = "dashed") +
   facet_wrap(~label, scales = "free_y", ncol = 4) +
   scale_colour_manual(values = c("Simulated" = "black", "First-order prediction" = "#c0392b"), name = NULL) +
-  labs(x = expression("Autarky price factor " * pi[i]), y = expression("Equivalent rights factor " * rho[i])) +
+  labs(x = expression("Autarky price factor " * pi[i]), y = expression("Equivalent rights factor " * rho[i]^"*")) +
   expand_limits(y = 0) +
   theme_minimal(base_size = 10) + theme(legend.position = "bottom")
 ggsave(file.path(dir_out, if (tag == "") "indifference_curves.pdf" else "indifference_curves_eqpc.pdf"), p, width = 8, height = 4.6)

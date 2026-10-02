@@ -12,16 +12,15 @@ E_world_2100,4.2,world emissions in 2100 at p* (GtCO2),1.735118519732705,2,2,tru
 T_2100_pstar,4.2,warming in 2100 at p* (C),1.8363150397110952,1.84,1.84,true
 growth_cpc,4.2 fn,growth of consumption per capita 2025-2100 (%/yr),1.7732066236837873,1.8,1.8,true
 prtp,4.2 fn,pure rate of time preference implied (%),0.319887688045295,0.3,0.3,true
-rel_2025_CHN,4.3,China's 2025 emissions p.c. over world average,1.5437736092154142,1.5,1.5,true
-rho1_CHN,4.3,China's rho_1,1.6210822102586702,1.62,1.62,true
 rel_2025_IND,4.3,India's 2025 emissions p.c. over world average,0.40860585398146443,0.4,0.4,true
-rho1_IND,4.3,India's rho_1,0.7247692022945857,0.72,0.72,true
+rho1_IND,4.3,India's rho*_1,0.7247692022945857,0.72,0.72,true
 rel_2025_EU27,4.3,EU27's 2025 emissions p.c. over world average,1.727009659749663,1.7,1.7,true
-rho1_EU27,4.3,EU27's rho_1,1.5405897750219137,1.54,1.54,true
+rho1_EU27,4.3,EU27's rho*_1,1.5405897750219137,1.54,1.54,true
 rho0_NGA,"Intro, 4.3",Nigeria's equivalent rights at a zero autarky price,0.25215078370228755,0.25,0.25,true
-rho0_NGA_pct,"Intro, Conclusion",Nigeria's equivalent rights at a zero autarky price (% of an equal share),25.215078370228756,25,25,true
+rho0_NGA_pct,Intro,Nigeria's equivalent rights at a zero autarky price (% of an equal share),25.215078370228756,25,25,true
+rho0_NGA_bound,Conclusion,Nigeria's zero-price bound below 26% of an equal share,25.215078370228756,25.2,< 26,true
 rho0_COD,4.3,DRC's equivalent rights at a zero autarky price,0.047023508288398116,0.05,0.05,true
-rho0_COD_pct,Conclusion,DRC's equivalent rights at a zero autarky price (% of an equal share),4.702350828839812,5,5,true
+rho0_COD_bound,Conclusion,DRC's zero-price bound below 5% of an equal share,4.702350828839812,4.7,< 5,true
 n_countries,"Abstract, 4.1",countries in NICE,179.0,179,179,true
 W_members,5.1,members of the Wolfram et al. coalition,47.0,47,47,true
 W_share_2030,5.1,"Wolfram et al. members' share of world CO2 in 2030, under the schedule (%)",49.069770637229695,49,49,true
@@ -88,8 +87,6 @@ cut_W_A,App. A,"coalition emissions cut, Wolfram et al., isolated solve (%)",4.9
 cut_D_A,App. A,"coalition emissions cut, Banerjee et al., isolated solve (%)",4.114689173643216,4.1,4.1,true
 lose_A_W,App. A,"Wolfram et al. members losing consumption, isolated solve",33.0,33,33,true
 lose_A_D,App. A,"Banerjee et al. members losing consumption, isolated solve",39.0,39,39,true
-welf_B3_D,App. A,"world welfare gain, marginal-utility sharing, Banerjee et al. (%)",0.2414610558789026,0.241,0.241,true
-welf_B2_D,App. A,"world welfare gain, maximin sharing, Banerjee et al. (%)",0.0526885540754401,0.053,0.053,true
 lose_B3_D,App. A,"Banerjee et al. members losing consumption, marginal-utility sharing",9.0,9,9,true
 welf_B4_D,App. A,"world welfare gain, uniform scaling, Banerjee et al. (%)",0.04481710714388075,0.045,0.045,true
 lose_B4_cons,App. A,members losing consumption under uniform scaling (both schedules),0.0,0,0,true
@@ -107,12 +104,12 @@ comp_MNG_pct,"5.3, App. A","the same, % of Mongolia's allocation",0.311391694373
 comp_MNG_world,"5.3, App. A","the same, % of global emissions 2025-2100",0.000716888553456854,0.001,0.001,true
 beta1_negative,App. A,countries with beta1 < 0 (Kalkuhl-Wenz),13.0,13,13,true
 neg_marginal_damage,App. A,"countries with beta1 < 0 and local anomaly below -beta1/(2 beta2), 2100, Banerjee et al.",4.0,4,4,true
-rho1w_USA,App. B,"rho_1 of USA, welfare variant",3.561131633614848,3.56,3.56,true
-rho1w_CHN,App. B,"rho_1 of CHN, welfare variant",1.6231068196119438,1.62,1.62,true
-rho1w_EU27,App. B,"rho_1 of EU27, welfare variant",1.4749728699542206,1.47,1.47,true
-rho1w_IND,App. B,"rho_1 of IND, welfare variant",0.7481515164863287,0.75,0.75,true
-rho1w_NGA,App. B,"rho_1 of NGA, welfare variant",0.14418403558340878,0.14,0.14,true
-rho1_w_minus_c,App. B,largest |rho_1 welfare - rho_1 consumption| over the 8 economies,0.06561690506769313,0.07,<= 0.07,true
+rho1w_USA,App. B,"rho*_1 of USA, welfare variant",3.561131633614848,3.56,3.56,true
+rho1w_CHN,App. B,"rho*_1 of CHN, welfare variant",1.6231068196119438,1.62,1.62,true
+rho1w_EU27,App. B,"rho*_1 of EU27, welfare variant",1.4749728699542206,1.47,1.47,true
+rho1w_IND,App. B,"rho*_1 of IND, welfare variant",0.7481515164863287,0.75,0.75,true
+rho1w_NGA,App. B,"rho*_1 of NGA, welfare variant",0.14418403558340878,0.14,0.14,true
+rho1_w_minus_c,App. B,largest |rho*_1 welfare - rho*_1 consumption| over the 8 economies,0.06561690506769313,0.07,<= 0.07,true
 rhow_USA_pi05,App. B,"US equivalent rights at pi = 0.5, welfare variant",4.080106001444667,4.08,4.08,true
 rhow_USA_pi0,App. B,"US equivalent rights at pi = 0, welfare variant",3.284061020932722,3.28,3.28,true
 rhow_NGA_max,App. B,"Nigeria's largest equivalent rights, welfare variant",0.16817614788420499,0.17,0.17,true
