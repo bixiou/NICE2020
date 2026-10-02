@@ -477,7 +477,7 @@ We show the consumption variant in the main text, report the main figures of the
 % The benchmark is an exponential uniform price path $p^*_t$, ramped up linearly from zero in 2025 over ten years and growing at a constant rate from 2036, which exhausts a carbon budget of 1000\,GtCO$_2$ over 2025--2100. Among such paths, we take the one that maximises discounted world welfare, damages included, over 2030--2300.\footnote{Welfare is discounted at a pure rate of time preference of 0.3\%, which, with $\eta=1.5$ and the model's 1.8\% annual growth of consumption per capita, corresponds to the 3\% discount rate on consumption used throughout.} The ramp-up reaches \$146/t in 2035, after which the price grows at 1.6\% a year, reaching \$182/t in 2050 and \$343/t in 2090. World emissions fall from 38\,GtCO$_2$ in 2025 to 28 in 2030, 21 in 2035 and 5 in 2090, and warming reaches 1.84\textdegree C in 2100. % DONE: the ramp-up is now spread over ten years (0 in 2025 to $145.70/t in 2035, then +1.6%/yr), the smoother path the TO DO asked for; the five-year version ($127.02/t in 2030, +1.68%/yr) and all the results computed on it are in cap_and_share/output/_backup_pstar_ramp5_20260924/. % TO DO too high a ramp-up, choose a smoother path
 
 % DONE (26 Sept 2026): p* re-searched with welfare counted over 2025-2300 (it was counted over 2035-2300, from the year the ramp-up ends: the "2030--2300" of the text was itself inaccurate) -- cap_and_share/find_global_exp_carbon_tax_buget_zoom.jl with NICE_WELFARE_START=2025 NICE_WELFARE_END=2300, budget exact 1000 GtCO2 over 2025-2100, growth rate searched over [-2%, +6%] (logs/pstar2025/zoom.log). Result: A = $142.10/t in 2035, B = +1.68%/yr (previously $145.70/t and +1.6%/yr). An intermediate attempt with welfare counted over 2025-2100 only (abandoned) gave a declining price ($290/t in 2035, -0.8%/yr) with emissions rebounding after 2050 (logs/pstar2025/zoom_welfare2025_2100.log). The results on the previous p* are in cap_and_share/output/_backup_pstar_welf2035_20260926/.
-The benchmark is an exponential uniform price path $p^*_t$, ramped up linearly from zero in 2025 over ten years and growing at a constant rate from 2036, which exhausts a carbon budget of 1000\,GtCO$_2$ over 2025--2100. Among such paths, we take the one that maximises discounted world welfare, damages included, over 2025--2300.\footnote{Welfare is discounted at a pure rate of time preference of 0.3\%, which, with $\eta=1.5$ and the model's 1.8\% annual growth of consumption per capita, corresponds to the 3\% discount rate on consumption used throughout.} The ramp-up reaches \$192/t in 2035, after which the price grows at 1.3\% a year, reaching \$229/t in 2050 and \$429/t in 2100. World emissions fall from 38\,GtCO$_2$ in 2025 to 27 in 2030, 20 in 2035 and 2 in 2100, and warming reaches 1.84\textdegree C in 2100.\footnote{This 47\% fall over 2025--2035, or 6.2\% a year, is ambitious but in line with existing targets and pathways: the EU's target of a 55\% cut from 1990 levels by 2030 amounts, applied to its CO$_2$ emissions, to a 40\% cut over 2019--2030 (4.5\% a year), and the pathway consistent with China's goal of CO$_2$ neutrality by 2060 cuts its emissions by 54\% over 2035--2045 (7.5\% a year) \citep{du_toward_2026}.} % TODO improve footnote wording
+The benchmark is an exponential uniform price path $p^*_t$, ramped up linearly from zero in 2025 over ten years and growing at a constant rate from 2036, which exhausts a carbon budget of 1000\,GtCO$_2$ over 2025--2100. Among such paths, we take the one that maximises discounted world welfare, damages included, over 2025--2300.\footnote{Welfare is discounted at a pure rate of time preference of 0.3\%, which, with $\eta=1.5$ and the model's 1.8\% annual growth of consumption per capita, corresponds to the 3\% discount rate on consumption used throughout.} The ramp-up reaches \$192/t in 2035, after which the price grows at 1.3\% a year, reaching \$229/t in 2050 and \$429/t in 2100. World emissions fall from 38\,GtCO$_2$ in 2025 to 27 in 2030, 20 in 2035 and 2 in 2100, and warming reaches 1.84\textdegree C in 2100.\footnote{This 47\% fall over 2025--2035 is ambitious but in line with existing domestic pathways: the EU's 2030 target amounts to a 40\% cut over 2019--2030, and the pathway consistent with China's goal of CO$_2$ neutrality by 2060 cuts its emissions by 54\% over 2035--2045 \citep{du_toward_2026}.} 
 % DONE (1 Oct 2026): reworded, with annual rates since the periods differ in length. Checked: p* run -47.5% over 2025-2035 (37.81 -> 19.87 GtCO2); EU27 territorial CO2 2.915 GtCO2 in 2019 (input data of cap_and_share/eu_and_china_emissions.jl) -> 1.748 in 2030 (-55% vs 1990, as in that script), -40.0%; China in Du et al. (2026) 10.82 GtCO2 (2035) -> 4.96 (2045), -54.1%.
 % ANSWER (25 Sept 2026, item 5 of the Ask list: benchmark emissions and carbon price in 2070 and 2100, and 2100 warming of the Equal Right 16% scenario). Read off the benchmark run itself (all 179 countries at p*_t, revenue recycled as in the paper, emissions on a consumption basis; one run of make_uniform_model with zero-transfer rights, identical to REFERENCE_RUN to 0.02 GtCO2):
 %   year  p*_t ($/tCO2)  world emissions (GtCO2)  warming (C)
@@ -512,21 +512,21 @@ Figure~\ref{fig:heatmaps} maps each country's consumption gain in the uniform-pr
 \begin{figure}[p]
   \centering
   \begin{subfigure}[b]{0.49\textwidth}\centering
-    \includegraphics[width=\linewidth]{figures/heatmap_linear_USA.pdf}\caption{United States, linear y-axis}\end{subfigure}\hfill
+    \includegraphics[width=\linewidth]{figures/cropped/heatmap_linear_USA.pdf}\caption{United States, linear y-axis}\end{subfigure}\hfill
   \begin{subfigure}[b]{0.49\textwidth}\centering
-    \includegraphics[width=\linewidth]{figures/heatmap_USA.pdf}\caption{United States}\end{subfigure}\\[2pt]
+    \includegraphics[width=\linewidth]{figures/heatmap_USA.pdf}\caption{United States}\end{subfigure}\\[10pt]
   \begin{subfigure}[b]{0.49\textwidth}\centering
-    \includegraphics[width=\linewidth]{figures/heatmap_RUS.pdf}\caption{Russia}\end{subfigure}\hfill
+    \includegraphics[width=\linewidth]{figures/cropped/heatmap_RUS.pdf}\caption{Russia}\end{subfigure}\hfill
   \begin{subfigure}[b]{0.49\textwidth}\centering
-    \includegraphics[width=\linewidth]{figures/heatmap_CHN.pdf}\caption{China}\end{subfigure}\\[2pt]
+    \includegraphics[width=\linewidth]{figures/cropped/heatmap_CHN.pdf}\caption{China}\end{subfigure}\\[10pt]
   \begin{subfigure}[b]{0.49\textwidth}\centering
-    \includegraphics[width=\linewidth]{figures/heatmap_EU27.pdf}\caption{European Union (EU27)}\end{subfigure}\hfill
+    \includegraphics[width=\linewidth]{figures/cropped/heatmap_EU27.pdf}\caption{European Union (EU27)}\end{subfigure}\hfill
   \begin{subfigure}[b]{0.49\textwidth}\centering
-    \includegraphics[width=\linewidth]{figures/heatmap_IND.pdf}\caption{India}\end{subfigure}\\[2pt]
+    \includegraphics[width=\linewidth]{figures/cropped/heatmap_IND.pdf}\caption{India}\end{subfigure}\\[10pt]
   \begin{subfigure}[b]{0.49\textwidth}\centering
-    \includegraphics[width=\linewidth]{figures/heatmap_NGA.pdf}\caption{Nigeria}\end{subfigure}\hfill
+    \includegraphics[width=\linewidth]{figures/cropped/heatmap_NGA.pdf}\caption{Nigeria}\end{subfigure}\hfill
   \begin{subfigure}[b]{0.49\textwidth}\centering
-    \includegraphics[width=\linewidth]{figures/heatmap_COD.pdf}\caption{DR Congo}\end{subfigure}
+    \includegraphics[width=\linewidth]{figures/cropped/heatmap_COD.pdf}\caption{DR Congo}\end{subfigure}
   \caption{Consumption gain of the uniform-price regime over autarky.} % TODO crop
   \label{fig:heatmaps}
   \begin{minipage}{\textwidth}\footnotesize\singlespacing
