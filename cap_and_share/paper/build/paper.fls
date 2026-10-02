@@ -1171,11 +1171,11 @@ INPUT ./figures/cropped/heatmap_linear_USA.pdf
 INPUT figures/cropped/heatmap_linear_USA.pdf
 INPUT ./figures/cropped/heatmap_linear_USA.pdf
 INPUT ./figures/cropped/heatmap_linear_USA.pdf
-INPUT ./figures/heatmap_USA.pdf
-INPUT ./figures/heatmap_USA.pdf
-INPUT figures/heatmap_USA.pdf
-INPUT ./figures/heatmap_USA.pdf
-INPUT ./figures/heatmap_USA.pdf
+INPUT ./figures/cropped/heatmap_USA.pdf
+INPUT ./figures/cropped/heatmap_USA.pdf
+INPUT figures/cropped/heatmap_USA.pdf
+INPUT ./figures/cropped/heatmap_USA.pdf
+INPUT ./figures/cropped/heatmap_USA.pdf
 INPUT ./figures/cropped/heatmap_RUS.pdf
 INPUT ./figures/cropped/heatmap_RUS.pdf
 INPUT figures/cropped/heatmap_RUS.pdf
