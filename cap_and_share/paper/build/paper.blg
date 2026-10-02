@@ -1,10 +1,11 @@
-This is BibTeX, Version 0.99d (TeX Live 2022)
+This is BibTeX, Version 0.99d (TeX Live 2023/Debian)
 Capacity: max_strings=200000, hash_size=200000, hash_prime=170003
 The top-level auxiliary file: paper.aux
 The style file: plainnaturl_clean.bst
 Database file #1: price_rights.bib
 Warning--empty journal in banerjee_grand_2025
 Warning--empty journal in fabre_public_2025
+<<<<<<< HEAD
 Warning--empty journal in fleurbaey_when_2025
 You've used 32 entries,
             2497 wiz_defined-function locations,
@@ -32,12 +33,41 @@ missing$ -- 29
 newline$ -- 200
 num.names$ -- 129
 pop$ -- 324
+=======
+You've used 32 entries,
+            2497 wiz_defined-function locations,
+            831 strings with 13499 characters,
+and the built_in function-call counts, 13279 in all, are:
+= -- 1177
+> -- 993
+< -- 18
++ -- 338
+- -- 306
+* -- 1048
+:= -- 2294
+add.period$ -- 127
+call.type$ -- 32
+change.case$ -- 198
+chr.to.int$ -- 32
+cite$ -- 66
+duplicate$ -- 549
+empty$ -- 846
+format.name$ -- 350
+if$ -- 2662
+int.to.chr$ -- 1
+int.to.str$ -- 1
+missing$ -- 28
+newline$ -- 199
+num.names$ -- 129
+pop$ -- 321
+>>>>>>> origin/claude/laughing-albattani-sxcmjy
 preamble$ -- 1
 purify$ -- 166
 quote$ -- 0
 skip$ -- 409
 stack$ -- 0
 substring$ -- 64
+<<<<<<< HEAD
 swap$ -- 27
 text.length$ -- 0
 text.prefix$ -- 0
@@ -48,3 +78,15 @@ while$ -- 96
 width$ -- 0
 write$ -- 455
 (There were 3 warnings)
+=======
+swap$ -- 28
+text.length$ -- 1
+text.prefix$ -- 0
+top$ -- 0
+type$ -- 342
+warning$ -- 2
+while$ -- 96
+width$ -- 0
+write$ -- 455
+(There were 2 warnings)
+>>>>>>> origin/claude/laughing-albattani-sxcmjy
