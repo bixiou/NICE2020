@@ -1,8 +1,8 @@
 # Fdb version 4
-["bibtex build/paper_blind"] 1790933824.85123 "build/paper_blind.aux" "build/paper_blind.bbl" "build/paper_blind" 1790933826.68409 0
-  "./price_rights.bib" 1790932161.73606 16664 1445c523d84366ee7af6b60d371d5568 ""
-  "/usr/share/texlive/texmf-dist/bibtex/bst/natbib/plainnat.bst" 1233624470 26816 ffe5423d2019860bad9f54bc402fac15 ""
-  "build/paper_blind.aux" 1790933826.30313 19771 d7ad3f279afba614149c8dd2c62615c0 "pdflatex"
+["bibtex build/paper_blind"] 1790935284 "build/paper_blind.aux" "build/paper_blind.bbl" "build/paper_blind" 1790935284 2
+  "./price_rights.bib" 1790932600 17206 40a40f4ee66e70f423915c4fc0f6ce69 ""
+  "/usr/share/texlive/texmf-dist/bibtex/bst/natbib/plainnat.bst" 0 -1 0 ""
+  "build/paper_blind.aux" 1790935284 34 3985256e7290058c681f74d7a3565a19 "pdflatex"
   (generated)
   "build/paper_blind.bbl"
   "build/paper_blind.blg"
@@ -211,10 +211,10 @@
   "/usr/share/texmf/web2c/texmf.cnf" 1707919699 40399 f2c302f7d2af602abb742093540a5834 ""
   "/var/lib/texmf/fonts/map/pdftex/updmap/pdftex.map" 1790684545.57003 5312232 f3296911be9cc021788f3f879cf0a47d ""
   "/var/lib/texmf/web2c/pdftex/pdflatex.fmt" 1790684565 6800788 b008adaa520830f5457f66dbb8e192a5 ""
-  "build/paper_blind.aux" 1790933826.30313 19771 d7ad3f279afba614149c8dd2c62615c0 "pdflatex"
-  "build/paper_blind.bbl" 1790933824.95113 13858 0717f270bee5f2be927a4133f9102026 "bibtex build/paper_blind"
-  "build/paper_blind.brf" 1790933826.30713 4488 77b1b5cb6e6d4d46ea22eafe86ac2ece "pdflatex"
-  "build/paper_blind.out" 1790933826.30713 2826 62d9a82d5c359130ea7272aa08c488a0 "pdflatex"
+  "build/paper_blind.aux" 1790935284 34 3985256e7290058c681f74d7a3565a19 "pdflatex"
+  "build/paper_blind.bbl" 1790935284 0 d41d8cd98f00b204e9800998ecf8427e "bibtex build/paper_blind"
+  "build/paper_blind.brf" 1790934979 4569 77b1b5cb6e6d4d46ea22eafe86ac2ece "pdflatex"
+  "build/paper_blind.out" 1790934979 2843 62d9a82d5c359130ea7272aa08c488a0 "pdflatex"
   "figures/heatmap_CHN.pdf" 1790933662.07827 9827 28fc39cea8e1d48b3f902e7581f2b337 ""
   "figures/heatmap_COD.pdf" 1790933670.22193 8008 2f89ea2fb64e847b7f0b7635a23a02a2 ""
   "figures/heatmap_EU27.pdf" 1790933665.39666 9701 f4a96d7611ed5f91f42f5fb3dbadb081 ""
