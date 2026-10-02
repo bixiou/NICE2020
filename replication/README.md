@@ -7,19 +7,20 @@ This package reproduces every table, figure and number of the paper, from the mo
 (Young-Brun et al., 2025) coupled to FaIR v2, its input data, the scripts that run the
 paper's experiments, and the LaTeX source of the paper.
 
-The published results are shipped in `reference_output/`, so the paper can be compiled, and a
-new run checked, without running the model.
+The published results are shipped at the paths where the pipeline writes them, as in the
+development repository (`cap_and_share/output/`, `cap_and_share/paper/figures/` and the PDFs in
+`cap_and_share/paper/`), so the paper can be compiled without running the model. A new run
+overwrites them, and `git diff` or `compare_to_reference.sh` shows what changed.
 
 ## Quick start
 
 ```bash
-# 1. compile the paper from the published results (a minute; needs LaTeX only)
-./use_reference_outputs.sh
-ONLY=paper ./run_all.sh            # -> cap_and_share/paper/paper.pdf
+# 1. compile the paper from the shipped results (a minute; needs LaTeX only)
+ONLY=paper ./run_all.sh            # -> cap_and_share/paper/paper.pdf, paper_blind.pdf, ...
 
 # 2. rerun everything from scratch (Julia, R and LaTeX; see "Computing time")
-./run_all.sh
-./compare_to_reference.sh          # compares the new results with the published ones
+./run_all.sh                       # overwrites the shipped results
+./compare_to_reference.sh          # compares them with the committed (published) ones
 ```
 
 `run_all.sh` runs seven steps, which can also be run one at a time with
@@ -33,7 +34,7 @@ ONLY=paper ./run_all.sh            # -> cap_and_share/paper/paper.pdf
 | `tables` | writes the LaTeX tables from the solves | `cap_and_share/output/*.tex` |
 | `numbers` | recomputes every number quoted in the text and checks it against the paper | `cap_and_share/output/text_numbers.csv`, `logs/ndc_baseline.log` |
 | `figures` | draws the heatmaps | `cap_and_share/paper/figures/*.pdf` |
-| `paper` | compiles the paper in `cap_and_share/paper/build/` and copies the PDF next to its source | `cap_and_share/paper/paper.pdf` |
+| `paper` | runs `cap_and_share/paper/compile_versions.sh`: compiles the paper in `cap_and_share/paper/build/` and copies the PDFs next to its source | `cap_and_share/paper/paper.pdf` (full), `paper_blind.pdf` (anonymised), `title_page.pdf`, `declaration_competing_interest.pdf` |
 
 ## Requirements
 
@@ -61,6 +62,7 @@ on at the same time on the same machine, so with 2 cores per run (`NJOBS=2`):
 | `pstar` | 1 h (33 growth rates, about 2 min each) |
 | `solves` | about 10.5 h (the Equal Right joint solves are the longest cells, 3–4 h each from a cold start) |
 | `tables`, `numbers`, `figures`, `paper` | about 20 min together |
+| total | about 12 h |
 
 With `NJOBS=4` on 4 free cores, the `solves` step should take roughly half as long; we did not
 time it. An interrupted run resumes where it stopped: `SKIP_PSTAR=1 ./run_all.sh` skips the
@@ -74,16 +76,16 @@ themselves, the scripts start up to four worker processes each, which exhausted 
 ## Verification
 
 The whole pipeline was run twice from scratch on 30 Sept–1 Oct 2026, in this package (in a
-fresh copy, without `reference_output/`) and in the development repository, with its own
+fresh copy, without the shipped results) and in the development repository, with its own
 environment (which still lists the unused packages, installed from the Mimi registry).
 
 - **The two runs agree exactly.** Both p* searches return the same path (\$191.82/t in 2035,
   1.264% a year); all 215 files the run writes to `cap_and_share/output/` (tables, CSVs,
-  `text_numbers.csv`) are byte-identical; the 34 figures are identical pixel for pixel; the two
-  compiled papers have the same text (32 pages), the comment-free `paper.tex` of this package
-  included.
+  `text_numbers.csv`) are byte-identical; the figures are identical pixel for pixel; the two
+  compiled papers have the same text (30 pages; 40 for the anonymised manuscript), the
+  comment-free `paper.tex` of this package included.
 - **Every number of the text is computed.** `text_numbers.csv` lists 127 of them.
-- **`reference_output/` holds the results of this run**, i.e. of the default configuration
+- **The shipped results are those of this run**, i.e. of the default configuration
   (NICE2020's own baseline emissions, see below), and the paper's text reports them: all 127
   numbers agree with the text but one, the 1000 GtCO₂ budget of p*, which holds in the
   configuration of the p* search (996 GtCO₂ in that of the results). The results with the NDC
@@ -118,8 +120,7 @@ other studies are not listed.
 
 ```
 run_all.sh                    the whole pipeline
-use_reference_outputs.sh      stages the published results so the paper compiles without a run
-compare_to_reference.sh       compares a run with the published results
+compare_to_reference.sh       compares a run with the committed results (or REF=<untouched copy>)
 Project.toml, Manifest-v1.12.toml   Julia environment
 src/
   nice2020_module.jl, components/, helper_functions.jl   the NICE2020 model (Mimi)
@@ -140,8 +141,10 @@ cap_and_share/
                               compile_versions.sh builds the full paper, the anonymised
                               manuscript, the title page and the declaration of competing
                               interest (paper.tex: \version = full | blind | titlepage)
-  output/                     (created by the run)
-reference_output/             the published results: tables, CSVs, figures, paper.pdf
+    figures/                  heatmaps (Figure 1 uses figures/cropped/, made by pdfcrop)
+    *.pdf                     the compiled paper, as published
+  output/                     tables, CSVs and text_numbers.csv of the published run
+                              (the run's caches, cache/, and checkpoints are not shipped)
 ```
 
 The code runs with the package root as working directory (`run_all.sh` sees to it): the model
@@ -208,7 +211,7 @@ emissions cut of the Banerjee et al. schedule is 3.9% instead of 4.8%
   PrettyTables; MimiDICE2010 is not in the General registry, which made the environment
   impossible to instantiate on a fresh machine), every other version unchanged. New:
   `run_all.sh` (the sequence of `logs/rerun_pstar2025.sh`, which produced the submitted
-  results), `use_reference_outputs.sh`, `compare_to_reference.sh` and this README.
+  results), `compare_to_reference.sh` and this README.
 
 ## Citation
 
