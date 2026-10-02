@@ -6,17 +6,19 @@
 #   SKIP_PSTAR=1 ./run_all.sh    keep the shipped benchmark price path p*
 #   ONLY=paper ./run_all.sh      one step: setup|pstar|solves|tables|numbers|figures|paper
 #   NJOBS=2 ./run_all.sh         number of Julia processes run in parallel (default 4)
+#   RESUME=1 SKIP_PSTAR=1 ./run_all.sh   resume an interrupted run
 #
 # The results of the paper are shipped at the paths where this script writes
-# them, so ONLY=paper compiles the paper without running the model, and a new
-# run overwrites them (compare_to_reference.sh then compares it with the
-# committed ones).
+# them, so ONLY=paper compiles the paper without running the model. The solves
+# step first deletes the shipped cap_and_share/output/ (git checkout restores
+# it), since the scripts would otherwise reuse the results they find there
+# instead of recomputing them; compare_to_reference.sh then compares the new
+# results with the committed ones.
 #
 # Each Julia process needs about 2-3 GB of RAM: with 16 GB, NJOBS=4 is the
-# maximum. Logs go to logs/. An interrupted run can be restarted with
-# SKIP_PSTAR=1 ONLY=solves, then the later steps: the solves skip the cells
-# already finished (NICE_RESUME) and the indifference grids the points already
-# stored.
+# maximum. Logs go to logs/. With RESUME=1, the solves step keeps what an
+# interrupted run left: the solves skip the cells already finished
+# (NICE_RESUME) and the indifference grids the points already stored.
 #
 # This is the sequence of logs/rerun_pstar2025.sh in the development repository
 # (the run behind the submitted paper), without its warm starts from earlier runs.
@@ -62,6 +64,11 @@ fi
 
 # ── 2. model solves ─────────────────────────────────────────────────────────
 if want solves; then
+  if [[ "${RESUME:-0}" != 1 ]]; then
+    say "deleting the previous results in $O/ (restore the shipped ones with: git checkout -- $O)"
+    rm -rf "$O" $L/done_*
+    mkdir -p $O/equal_pc
+  fi
   # Build each variant's proposal scenarios once, so that the parallel jobs
   # below read them from the cache instead of writing it concurrently. With no
   # solve on disk yet, the table step of this call may complain: only the cache

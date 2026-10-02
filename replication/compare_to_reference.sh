@@ -15,7 +15,7 @@ tmp=$(mktemp -d); trap 'rm -rf "$tmp"' EXIT
 status=0
 for f in rho1_table.tex equivalent_rights_main.tex equivalent_rights_combined.tex \
          equivalent_rights_benchmarks.tex equivalent_rights_equalright_joint.tex \
-         equal_pc/rho1_table.tex implicit_transfers_duflo.csv; do
+         implicit_transfers_duflo.csv; do
   new=cap_and_share/output/$f
   ref "$new" > "$tmp/ref" 2> /dev/null || { echo "NO REF   $f"; status=1; continue; }
   if [[ ! -f $new ]]; then echo "MISSING  $new"; status=1

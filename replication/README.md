@@ -10,7 +10,9 @@ paper's experiments, and the LaTeX source of the paper.
 The published results are shipped at the paths where the pipeline writes them, as in the
 development repository (`cap_and_share/output/`, `cap_and_share/paper/figures/` and the PDFs in
 `cap_and_share/paper/`), so the paper can be compiled without running the model. A new run
-overwrites them, and `git diff` or `compare_to_reference.sh` shows what changed.
+overwrites them (its `solves` step first deletes `cap_and_share/output/`, since the scripts
+would otherwise reuse the results they find there), and `git diff` or
+`compare_to_reference.sh` shows what changed. `git checkout -- cap_and_share` restores them.
 
 ## Quick start
 
@@ -65,7 +67,7 @@ on at the same time on the same machine, so with 2 cores per run (`NJOBS=2`):
 | total | about 12 h |
 
 With `NJOBS=4` on 4 free cores, the `solves` step should take roughly half as long; we did not
-time it. An interrupted run resumes where it stopped: `SKIP_PSTAR=1 ./run_all.sh` skips the
+time it. An interrupted run resumes where it stopped: `RESUME=1 SKIP_PSTAR=1 ./run_all.sh` skips the
 finished solves (the test run was interrupted three times by restarts of the machine, and
 resumed this way).
 
@@ -143,8 +145,11 @@ cap_and_share/
                               interest (paper.tex: \version = full | blind | titlepage)
     figures/                  heatmaps (Figure 1 uses figures/cropped/, made by pdfcrop)
     *.pdf                     the compiled paper, as published
-  output/                     tables, CSVs and text_numbers.csv of the published run
-                              (the run's caches, cache/, and checkpoints are not shipped)
+  output/                     results of the published run: the paper's tables,
+                              text_numbers.csv, and the files a later step reads (solved
+                              allocations, indifference grids), so that each step can be
+                              run alone. The run writes more files (other tables, yearly
+                              series, caches), which .gitignore lists as ignored.
 ```
 
 The code runs with the package root as working directory (`run_all.sh` sees to it): the model

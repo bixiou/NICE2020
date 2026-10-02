@@ -1,14 +1,40 @@
-# The results of the paper are tracked at the paths where run_all.sh writes
-# them (cap_and_share/output/, cap_and_share/paper/figures/, the PDFs in
-# cap_and_share/paper/), as in the development repository: a new run
-# overwrites them, and `git diff` / compare_to_reference.sh show what changed.
-# Ignored: logs, LaTeX build files and the intermediate files of the solves.
+# The results are tracked at the paths where run_all.sh writes them, as in the
+# development repository. Of what the run writes to cap_and_share/output/, only
+# the files the paper uses (its tables, and text_numbers.csv for the numbers of
+# the text) and those a later step reads (so that each step can be run alone)
+# are tracked; everything else is ignored.
+cap_and_share/output/**
+!cap_and_share/output/**/
+# the paper's tables (Tables 1, 2, A1, A2, A3) and the numbers of the text
+!cap_and_share/output/rho1_table.tex
+!cap_and_share/output/equivalent_rights_main.tex
+!cap_and_share/output/equivalent_rights_combined.tex
+!cap_and_share/output/equivalent_rights_benchmarks.tex
+!cap_and_share/output/equivalent_rights_equalright_joint.tex
+!cap_and_share/output/text_numbers.csv
+# results of the solves, read by the tables and numbers steps
+!cap_and_share/output/rho_[AB]_*.csv
+!cap_and_share/output/country_gains*.csv
+!cap_and_share/output/equivalent_rights_variants*.csv
+!cap_and_share/output/implicit_transfers_duflo.csv
+!cap_and_share/output/price_paths_B_equalright5.csv
+!cap_and_share/output/equal_pc/rho_B_*_ede.csv
+!cap_and_share/output/equal_pc/country_gains*_ede.csv
+!cap_and_share/output/equal_pc/equivalent_rights_variants*_ede.csv
+!cap_and_share/output/equal_pc/implicit_transfers_duflo_ede.csv
+# indifference grids (Section 4), read by the figures and numbers steps
+!cap_and_share/output/indifference/uniform_*.csv
+!cap_and_share/output/indifference/autarky_[A-Z]*.csv
+!cap_and_share/output/indifference/indifference_curves.csv
+!cap_and_share/output/indifference/table_rho1.csv
+!cap_and_share/output/equal_pc/indifference/uniform_*.csv
+!cap_and_share/output/equal_pc/indifference/autarky_[A-Z]*.csv
+!cap_and_share/output/equal_pc/indifference/indifference_curves.csv
+!cap_and_share/output/equal_pc/indifference/table_rho1.csv
+# also ignored: checkpoints of interrupted solves, logs, LaTeX build files
+cap_and_share/output/**/*_checkpoint*.csv
 logs/
 cap_and_share/paper/build/
-cap_and_share/output/cache/
-cap_and_share/output/equal_pc/cache/
-cap_and_share/output/*_checkpoint*.csv
-cap_and_share/output/equal_pc/*_checkpoint*.csv
 budget_ndc_CHN/
 # Julia: the pinned environment is Manifest-v1.12.toml
 Manifest.toml
