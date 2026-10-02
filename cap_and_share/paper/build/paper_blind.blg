@@ -1,0 +1,52 @@
+This is BibTeX, Version 0.99d (TeX Live 2023/Debian)
+Capacity: max_strings=200000, hash_size=200000, hash_prime=170003
+The top-level auxiliary file: paper_blind.aux
+The style file: plainnat.bst
+Database file #1: price_rights.bib
+Warning--empty journal in banerjee_grand_2025
+Warning--empty journal in fabre_public_2025
+Warning--empty journal in fleurbaey_when_2025
+Warning--there's a number but no volume in fleurbaey_when_2025
+Warning--there's a number but no volume in sandmo_global_2007
+You've used 32 entries,
+            2773 wiz_defined-function locations,
+            865 strings with 13830 characters,
+and the built_in function-call counts, 16225 in all, are:
+= -- 1534
+> -- 993
+< -- 19
++ -- 338
+- -- 306
+* -- 1449
+:= -- 2617
+add.period$ -- 170
+call.type$ -- 32
+change.case$ -- 198
+chr.to.int$ -- 32
+cite$ -- 69
+duplicate$ -- 642
+empty$ -- 1170
+format.name$ -- 350
+if$ -- 3325
+int.to.chr$ -- 1
+int.to.str$ -- 1
+missing$ -- 29
+newline$ -- 242
+num.names$ -- 129
+pop$ -- 304
+preamble$ -- 1
+purify$ -- 166
+quote$ -- 0
+skip$ -- 485
+stack$ -- 0
+substring$ -- 519
+swap$ -- 57
+text.length$ -- 2
+text.prefix$ -- 0
+top$ -- 0
+type$ -- 342
+warning$ -- 5
+while$ -- 136
+width$ -- 0
+write$ -- 562
+(There were 5 warnings)

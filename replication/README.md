@@ -136,7 +136,10 @@ cap_and_share/
   indifference_curves.R       heatmaps
   Modeling_co2_emissions/     raw inputs of eu_and_china_emissions.jl
   data/                       Equal Right price schedule, NDC trajectories, p*
-  paper/                      paper.tex, price_rights.bib, plainnaturl_clean.bst
+  paper/                      paper.tex, price_rights.bib, plainnaturl_clean.bst;
+                              compile_versions.sh builds the full paper, the anonymised
+                              manuscript, the title page and the declaration of competing
+                              interest (paper.tex: \version = full | blind | titlepage)
   output/                     (created by the run)
 reference_output/             the published results: tables, CSVs, figures, paper.pdf
 ```
