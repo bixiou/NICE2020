@@ -1,8 +1,8 @@
 # The results are tracked at the paths where run_all.sh writes them, as in the
-# development repository. Of what the run writes to cap_and_share/output/, only
-# the files the paper uses (its tables, and text_numbers.csv for the numbers of
-# the text) and those a later step reads (so that each step can be run alone)
-# are tracked; everything else is ignored.
+# development repository. Of what the run writes, only the tables and figures
+# the paper shows, text_numbers.csv (the check of the numbers of the text) and
+# the files a later step reads (so that each step can be run alone) are
+# tracked; everything else is ignored.
 cap_and_share/output/**
 !cap_and_share/output/**/
 # the paper's tables (Tables 1, 2, A1, A2, A3) and the numbers of the text
@@ -31,6 +31,19 @@ cap_and_share/output/**
 !cap_and_share/output/equal_pc/indifference/autarky_[A-Z]*.csv
 !cap_and_share/output/equal_pc/indifference/indifference_curves.csv
 !cap_and_share/output/equal_pc/indifference/table_rho1.csv
+# figures: only those the paper shows (the figures step also draws other
+# versions: discrete colours, other axes, the uncropped panels)
+cap_and_share/paper/figures/**
+!cap_and_share/paper/figures/**/
+!cap_and_share/paper/figures/heatmap_USA.pdf
+!cap_and_share/paper/figures/heatmap_eqpc_[A-Z]*.pdf
+!cap_and_share/paper/figures/cropped/heatmap_linear_USA.pdf
+!cap_and_share/paper/figures/cropped/heatmap_RUS.pdf
+!cap_and_share/paper/figures/cropped/heatmap_CHN.pdf
+!cap_and_share/paper/figures/cropped/heatmap_EU27.pdf
+!cap_and_share/paper/figures/cropped/heatmap_IND.pdf
+!cap_and_share/paper/figures/cropped/heatmap_NGA.pdf
+!cap_and_share/paper/figures/cropped/heatmap_COD.pdf
 # also ignored: checkpoints of interrupted solves, logs, LaTeX build files
 cap_and_share/output/**/*_checkpoint*.csv
 logs/

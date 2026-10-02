@@ -19,9 +19,9 @@ rho1_IND,4.3,India's rho_1,0.7247692022945857,0.72,0.72,true
 rel_2025_EU27,4.3,EU27's 2025 emissions p.c. over world average,1.727009659749663,1.7,1.7,true
 rho1_EU27,4.3,EU27's rho_1,1.5405897750219137,1.54,1.54,true
 rho0_NGA,"Intro, 4.3",Nigeria's equivalent rights at a zero autarky price,0.25215078370228755,0.25,0.25,true
-rho0_NGA_pct,Conclusion,Nigeria's zero-price bound below 30% of an equal share,0.25215078370228755,0.25,< 0.30,true
+rho0_NGA_pct,"Intro, Conclusion",Nigeria's equivalent rights at a zero autarky price (% of an equal share),25.215078370228756,25,25,true
 rho0_COD,4.3,DRC's equivalent rights at a zero autarky price,0.047023508288398116,0.05,0.05,true
-rho0_COD_pct,Conclusion,DRC's zero-price bound below 6% of an equal share,0.047023508288398116,0.05,< 0.06,true
+rho0_COD_pct,Conclusion,DRC's equivalent rights at a zero autarky price (% of an equal share),4.702350828839812,5,5,true
 n_countries,"Abstract, 4.1",countries in NICE,179.0,179,179,true
 W_members,5.1,members of the Wolfram et al. coalition,47.0,47,47,true
 W_share_2030,5.1,"Wolfram et al. members' share of world CO2 in 2030, under the schedule (%)",49.069770637229695,49,49,true
@@ -82,7 +82,7 @@ rho2_ER5_NGA,5.3,"NGA's rights, Equal Right, increased consumption",0.9691076773
 rho2_ER5_IND,5.3,"IND's rights, Equal Right, increased consumption",1.393315079861049,1.39,1.39,true
 rho2_ER5_CHN,5.3,"CHN's rights, Equal Right, increased consumption",1.2108962029142787,1.21,1.21,true
 rho2_ER5_IDN,5.3,"IDN's rights, Equal Right, increased consumption",1.131613066000707,1.13,1.13,true
-ER5_negative,5.3,"members with a negative equivalent ratio, Equal Right",6.0,6,6,true
+ER5_negative,5.3,"members with a negative equivalent ratio, Equal Right",6.0,6,six,true
 rho_ER5_USA,5.3,"United States' equivalent rights, Equal Right",-0.16136601171064432,-0.16,-0.16,true
 cut_W_A,App. A,"coalition emissions cut, Wolfram et al., isolated solve (%)",4.9122356140356205,4.9,4.9,true
 cut_D_A,App. A,"coalition emissions cut, Banerjee et al., isolated solve (%)",4.114689173643216,4.1,4.1,true

@@ -10,8 +10,9 @@ paper's experiments, and the LaTeX source of the paper.
 The published results are shipped at the paths where the pipeline writes them, as in the
 development repository (`cap_and_share/output/`, `cap_and_share/paper/figures/` and the PDFs in
 `cap_and_share/paper/`), so the paper can be compiled without running the model. A new run
-overwrites them (its `solves` step first deletes `cap_and_share/output/`, since the scripts
-would otherwise reuse the results they find there), and `git diff` or
+overwrites them (a full run starts from scratch: its `solves` step first deletes
+`cap_and_share/output/`, since the scripts would otherwise reuse the results they find there;
+a single step, `ONLY=<step>`, resumes from what is there), and `git diff` or
 `compare_to_reference.sh` shows what changed. `git checkout -- cap_and_share` restores them.
 
 ## Quick start
@@ -67,7 +68,7 @@ on at the same time on the same machine, so with 2 cores per run (`NJOBS=2`):
 | total | about 12 h |
 
 With `NJOBS=4` on 4 free cores, the `solves` step should take roughly half as long; we did not
-time it. An interrupted run resumes where it stopped: `RESUME=1 SKIP_PSTAR=1 ./run_all.sh` skips the
+time it. An interrupted full run resumes where it stopped with `RESUME=1 SKIP_PSTAR=1 ./run_all.sh`, which skips the
 finished solves (the test run was interrupted three times by restarts of the machine, and
 resumed this way).
 
@@ -102,7 +103,7 @@ paper (`NICE_RECYCLING=negishi NICE_TARGET=cons`), "welf" the welfare variant
 
 | Exhibit | File | Produced by |
 |---|---|---|
-| Figure 1 | `cap_and_share/paper/figures/heatmap_{linear_USA,USA,RUS,CHN,EU27,IND,NGA,COD}.pdf` | `src/indifference_curves.jl` (cons), then `cap_and_share/indifference_curves.R` |
+| Figure 1 | `cap_and_share/paper/figures/heatmap_USA.pdf`, `cap_and_share/paper/figures/cropped/heatmap_{linear_USA,RUS,CHN,EU27,IND,NGA,COD}.pdf` | `src/indifference_curves.jl` (cons), then `cap_and_share/indifference_curves.R` |
 | Table 1 | `cap_and_share/output/rho1_table.tex` | `src/indifference_curves.jl` (cons) |
 | Table 2 | `cap_and_share/output/equivalent_rights_main.tex` | `src/run_solves_sept2026.jl` (cons, A and B; the B solves also write the implicit transfers of column τ), then `src/equivalent_rights_proposals.jl tables` |
 | Table A1 | `cap_and_share/output/equivalent_rights_combined.tex` | same as Table 2 |
@@ -143,7 +144,9 @@ cap_and_share/
                               compile_versions.sh builds the full paper, the anonymised
                               manuscript, the title page and the declaration of competing
                               interest (paper.tex: \version = full | blind | titlepage)
-    figures/                  heatmaps (Figure 1 uses figures/cropped/, made by pdfcrop)
+    figures/                  the heatmaps of Figures 1 and A1 (most of Figure 1 in cropped/,
+                              made by pdfcrop); the figures step also draws versions the
+                              paper does not show, which .gitignore lists as ignored
     *.pdf                     the compiled paper, as published
   output/                     results of the published run: the paper's tables,
                               text_numbers.csv, and the files a later step reads (solved
