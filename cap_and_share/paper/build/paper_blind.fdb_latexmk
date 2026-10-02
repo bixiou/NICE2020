@@ -1,13 +1,13 @@
 # Fdb version 4
-["bibtex build/paper"] 1790933724.43769 "build/paper.aux" "build/paper.bbl" "build/paper" 1790933818.91234 0
-  "./plainnaturl_clean.bst" 1790351146.69685 24654 4b2b0914a35465b0a6a8366fb04efb16 ""
+["bibtex build/paper_blind"] 1790933824.85123 "build/paper_blind.aux" "build/paper_blind.bbl" "build/paper_blind" 1790933826.68409 0
   "./price_rights.bib" 1790932161.73606 16664 1445c523d84366ee7af6b60d371d5568 ""
-  "build/paper.aux" 1790933818.48713 19749 75a334dd54a1f470e2d532bd1274b6d9 "pdflatex"
+  "/usr/share/texlive/texmf-dist/bibtex/bst/natbib/plainnat.bst" 1233624470 26816 ffe5423d2019860bad9f54bc402fac15 ""
+  "build/paper_blind.aux" 1790933826.30313 19771 d7ad3f279afba614149c8dd2c62615c0 "pdflatex"
   (generated)
-  "build/paper.bbl"
-  "build/paper.blg"
+  "build/paper_blind.bbl"
+  "build/paper_blind.blg"
   (rewritten before read)
-["pdflatex"] 1790933816.51915 "paper.tex" "build/paper.pdf" "paper" 1790933818.91266 0
+["pdflatex"] 1790933824.96425 "paper.tex" "build/paper_blind.pdf" "paper_blind" 1790933826.68566 0
   "../output/equivalent_rights_benchmarks.tex" 1790829598.17971 2193 e6ca6c3b298a27ed482538e9f9ae75a3 ""
   "../output/equivalent_rights_combined.tex" 1790829403.55971 4286 e616d44369b5851c8ad1f2334a28118c ""
   "../output/equivalent_rights_equalright_joint.tex" 1790829406.79171 1319 6ce8cf520cb5753e6f10d5322db3d141 ""
@@ -33,7 +33,9 @@
   "/usr/share/texlive/texmf-dist/fonts/tfm/public/cm/cmmi10.tfm" 1136768653 1528 abec98dbc43e172678c11b3b9031252a ""
   "/usr/share/texlive/texmf-dist/fonts/tfm/public/cm/cmr10.tfm" 1136768653 1296 45809c5a464d5f32c8f98ba97c1bb47f ""
   "/usr/share/texlive/texmf-dist/fonts/tfm/public/cm/cmr12.tfm" 1136768653 1288 655e228510b4c2a1abe905c368440826 ""
+  "/usr/share/texlive/texmf-dist/fonts/tfm/public/cm/cmss8.tfm" 1136768653 1296 d77f431d10d47c8ea2cc18cf45346274 ""
   "/usr/share/texlive/texmf-dist/fonts/tfm/public/cm/cmsy10.tfm" 1136768653 1124 6c73e740cf17375f03eec0ee63599741 ""
+  "/usr/share/texlive/texmf-dist/fonts/tfm/public/cm/cmtt12.tfm" 1136768653 772 9a936b7f5e2ff0557fce0f62822f0bbf ""
   "/usr/share/texlive/texmf-dist/fonts/tfm/public/mathpazo/fplmb.tfm" 1136768653 984 3dcde7360ef3d34302e591b511cba83c ""
   "/usr/share/texlive/texmf-dist/fonts/tfm/public/mathpazo/fplmr.tfm" 1136768653 1032 7fa31d93ecd4cbdfac02c7a1ebc6facc ""
   "/usr/share/texlive/texmf-dist/fonts/tfm/public/mathpazo/fplmri.tfm" 1136768653 1148 56b0fdf7ca3f800294e968f64cfdcb87 ""
@@ -44,7 +46,9 @@
   "/usr/share/texlive/texmf-dist/fonts/type1/public/amsfonts/cm/cmex10.pfb" 1248133631 30251 6afa5cb1d0204815a708a080681d4674 ""
   "/usr/share/texlive/texmf-dist/fonts/type1/public/amsfonts/cm/cmmi10.pfb" 1248133631 36299 5f9df58c2139e7edcf37c8fca4bd384d ""
   "/usr/share/texlive/texmf-dist/fonts/type1/public/amsfonts/cm/cmr10.pfb" 1248133631 35752 024fb6c41858982481f6968b5fc26508 ""
+  "/usr/share/texlive/texmf-dist/fonts/type1/public/amsfonts/cm/cmss8.pfb" 1248133631 24420 52dbb8e8aa0069a1b987309557f8d303 ""
   "/usr/share/texlive/texmf-dist/fonts/type1/public/amsfonts/cm/cmsy10.pfb" 1248133631 32569 5e5ddc8df908dea60932f3c484a54c0d ""
+  "/usr/share/texlive/texmf-dist/fonts/type1/public/amsfonts/cm/cmtt12.pfb" 1248133631 24252 1e4e051947e12dfb50fee0b7f4e26e3a ""
   "/usr/share/texlive/texmf-dist/fonts/type1/public/mathpazo/fplmr.pfb" 1136849748 9356 a3851bc942e9b6995883193472ba1847 ""
   "/usr/share/texlive/texmf-dist/fonts/type1/public/mathpazo/fplmri.pfb" 1136849748 15213 d999bbe8bd9c8f231f3f66a737c76478 ""
   "/usr/share/texlive/texmf-dist/fonts/type1/urw/palatino/uplb8a.pfb" 1136849748 52406 dad2f72863a03727d5f536c64a69c452 ""
@@ -207,11 +211,10 @@
   "/usr/share/texmf/web2c/texmf.cnf" 1707919699 40399 f2c302f7d2af602abb742093540a5834 ""
   "/var/lib/texmf/fonts/map/pdftex/updmap/pdftex.map" 1790684545.57003 5312232 f3296911be9cc021788f3f879cf0a47d ""
   "/var/lib/texmf/web2c/pdftex/pdflatex.fmt" 1790684565 6800788 b008adaa520830f5457f66dbb8e192a5 ""
-  "build/paper.aux" 1790933818.48713 19749 75a334dd54a1f470e2d532bd1274b6d9 "pdflatex"
-  "build/paper.bbl" 1790933724.53913 10952 1c4cf177315dc73c3009694f932ab98b "bibtex build/paper"
-  "build/paper.brf" 1790933818.49513 4488 12b06e4f4b783fed0d92ceade7844c45 "pdflatex"
-  "build/paper.out" 1790933818.49513 2826 62d9a82d5c359130ea7272aa08c488a0 "pdflatex"
-  "build/paper.toc" 1790933818.49513 2750 aa2d8608465f977862c9f397f7e39820 "pdflatex"
+  "build/paper_blind.aux" 1790933826.30313 19771 d7ad3f279afba614149c8dd2c62615c0 "pdflatex"
+  "build/paper_blind.bbl" 1790933824.95113 13858 0717f270bee5f2be927a4133f9102026 "bibtex build/paper_blind"
+  "build/paper_blind.brf" 1790933826.30713 4488 77b1b5cb6e6d4d46ea22eafe86ac2ece "pdflatex"
+  "build/paper_blind.out" 1790933826.30713 2826 62d9a82d5c359130ea7272aa08c488a0 "pdflatex"
   "figures/heatmap_CHN.pdf" 1790933662.07827 9827 28fc39cea8e1d48b3f902e7581f2b337 ""
   "figures/heatmap_COD.pdf" 1790933670.22193 8008 2f89ea2fb64e847b7f0b7635a23a02a2 ""
   "figures/heatmap_EU27.pdf" 1790933665.39666 9701 f4a96d7611ed5f91f42f5fb3dbadb081 ""
@@ -230,10 +233,9 @@
   "figures/heatmap_linear_USA.pdf" 1790933659.46108 9953 4d72fdd48ec090b5defd3ac569d6bdc9 ""
   "paper.tex" 1790933801.85113 186198 c4f56c7b922e4ec13ba439b14efc4f44 ""
   (generated)
-  "build/paper.aux"
-  "build/paper.brf"
-  "build/paper.log"
-  "build/paper.out"
-  "build/paper.pdf"
-  "build/paper.toc"
+  "build/paper_blind.aux"
+  "build/paper_blind.brf"
+  "build/paper_blind.log"
+  "build/paper_blind.out"
+  "build/paper_blind.pdf"
   (rewritten before read)

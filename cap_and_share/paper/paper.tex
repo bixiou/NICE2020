@@ -9,8 +9,11 @@
 % highlights in a separate file (see highlights.txt); double-blind review, so
 % the manuscript is anonymised and the title page is a separate file.
 %
-% \blindtrue  -> anonymised manuscript (what is uploaded as "Manuscript")
-% \blindfalse -> full version with authors, acknowledgements, funding
+% Version printed: \version below, or from the command line (see compile_versions.sh)
+%   titlepage -> the title page alone (authors, affiliations, acknowledgements,
+%                funding, declaration of competing interest): uploaded as "Title page"
+%   blind     -> anonymised manuscript: uploaded as "Manuscript"
+%   full      -> full manuscript with author details
 %
 % Main-text exhibits (3 of the 5 allowed): Figure 1, Tables 1 and 2.
 % Everything else is in the Online Appendix at the end.
@@ -20,9 +23,16 @@
 
 \documentclass[12pt,english]{article}
 
+% Which version to print: full | blind | titlepage (overridden by a
+% \def\version{...} placed before \input{paper}, as compile_versions.sh does)
+\providecommand*{\version}{full}
+\newcommand*{\versionblind}{blind}
+\newcommand*{\versiontitlepage}{titlepage}
 \newif\ifblind
-\blindfalse
-% \blindtrue
+\newif\iftitlepage
+\ifx\version\versionblind \blindtrue\fi
+\ifx\version\versiontitlepage \titlepagetrue\fi
+\newcommand{\stopdocument}{\end{document}}
 
 \usepackage[utf8]{inputenc}
 \usepackage{tgpagella}
@@ -81,7 +91,32 @@
   \date{\today}
 \fi
 
+% Declaration of competing interest (title page, manuscript, standalone file)
+\newcommand{\competinginterests}{The authors declare that they have no known competing financial interests or personal relationships that could have appeared to influence the work reported in this paper.}
+
 \begin{document}
+
+% ── title page alone (version titlepage) ────────────────────────────────────
+\iftitlepage
+  \thispagestyle{empty}
+  \begin{center}
+    {\LARGE International Transfers or\\[2pt] Differentiated Carbon Prices?\par}
+    \vspace{1.5em}
+    {\large Adrien Fabre\textsuperscript{a,*} \quad Constance Gorge\textsuperscript{b}\par}
+    \vspace{1em}
+    \textsuperscript{a}CNRS; CIRED \qquad \textsuperscript{b}CIRED\par
+    \vspace{0.5em}
+    \textsuperscript{*}Corresponding author: \href{mailto:adrien.fabre@cnrs.fr}{adrien.fabre@cnrs.fr}\par
+  \end{center}
+  \vspace{2em}
+  \subsection*{Acknowledgements}
+  We thank Marie Young-Brun and her co-authors for sharing the NICE model and for their advice.
+  \subsection*{Funding}
+  This work received funding from the Agence Nationale de la Recherche (ANR-24-CE03-7110).
+  \subsection*{Declaration of competing interest}
+  \competinginterests
+  \expandafter\stopdocument
+\fi
 
 \maketitle
 \ifblind\else
@@ -828,7 +863,7 @@ Extending the equivalence to settings with trade and different sectors, where a 
 % \fi
 
 \section*{Declaration of competing interest}
-The authors declare no competing interests.
+\competinginterests
 
 \section*{Data availability}
 

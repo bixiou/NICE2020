@@ -1,7 +1,13 @@
 \documentclass[12pt,english]{article}
 
+\providecommand*{\version}{full}
+\newcommand*{\versionblind}{blind}
+\newcommand*{\versiontitlepage}{titlepage}
 \newif\ifblind
-\blindfalse
+\newif\iftitlepage
+\ifx\version\versionblind \blindtrue\fi
+\ifx\version\versiontitlepage \titlepagetrue\fi
+\newcommand{\stopdocument}{\end{document}}
 
 \usepackage[utf8]{inputenc}
 \usepackage{tgpagella}
@@ -50,7 +56,30 @@
   \date{\today}
 \fi
 
+\newcommand{\competinginterests}{The authors declare that they have no known competing financial interests or personal relationships that could have appeared to influence the work reported in this paper.}
+
 \begin{document}
+
+\iftitlepage
+  \thispagestyle{empty}
+  \begin{center}
+    {\LARGE International Transfers or\\[2pt] Differentiated Carbon Prices?\par}
+    \vspace{1.5em}
+    {\large Adrien Fabre\textsuperscript{a,*} \quad Constance Gorge\textsuperscript{b}\par}
+    \vspace{1em}
+    \textsuperscript{a}CNRS; CIRED \qquad \textsuperscript{b}CIRED\par
+    \vspace{0.5em}
+    \textsuperscript{*}Corresponding author: \href{mailto:adrien.fabre@cnrs.fr}{adrien.fabre@cnrs.fr}\par
+  \end{center}
+  \vspace{2em}
+  \subsection*{Acknowledgements}
+  We thank Marie Young-Brun and her co-authors for sharing the NICE model and for their advice.
+  \subsection*{Funding}
+  This work received funding from the Agence Nationale de la Recherche (ANR-24-CE03-7110).
+  \subsection*{Declaration of competing interest}
+  \competinginterests
+  \expandafter\stopdocument
+\fi
 
 \maketitle
 \ifblind\else
@@ -492,7 +521,7 @@ It has no sectoral detail, which forced us to apply sectoral proposals economy-w
 Extending the equivalence to settings with trade and different sectors, where a uniform price must coexist with border adjustments and territorial emissions can be distinguished from carbon footprints, is a natural next step to better inform climate negotiators.
 
 \section*{Declaration of competing interest}
-The authors declare no competing interests.
+\competinginterests
 
 \section*{Data availability}
 
