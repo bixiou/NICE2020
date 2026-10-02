@@ -1,23 +1,23 @@
 # Fdb version 4
-["bibtex build/paper_blind"] 1790954090 "build/paper_blind.aux" "build/paper_blind.bbl" "build/paper_blind" 1790954095 0
-  "./price_rights.bib" 1790932600 17206 40a40f4ee66e70f423915c4fc0f6ce69 ""
-  "build/paper_blind.aux" 1790954093 20256 af575caed2216ba41bfa9f081ad9df92 "pdflatex"
+["bibtex build/paper_blind"] 1790959599 "build/paper_blind.aux" "build/paper_blind.bbl" "build/paper_blind" 1790959607 0
+  "./price_rights.bib" 1790959123 16664 1445c523d84366ee7af6b60d371d5568 ""
+  "build/paper_blind.aux" 1790959605 20256 af575caed2216ba41bfa9f081ad9df92 "pdflatex"
   "c:/texlive/2022/texmf-dist/bibtex/bst/natbib/plainnat.bst" 1670341364 26816 ffe5423d2019860bad9f54bc402fac15 ""
   (generated)
   "build/paper_blind.bbl"
   "build/paper_blind.blg"
   (rewritten before read)
-["pdflatex"] 1790954091 "paper.tex" "build/paper_blind.pdf" "paper_blind" 1790954095 0
+["pdflatex"] 1790959600 "paper.tex" "build/paper_blind.pdf" "paper_blind" 1790959607 0
   "../output/equivalent_rights_benchmarks.tex" 1790875548 2222 e6ca6c3b298a27ed482538e9f9ae75a3 ""
   "../output/equivalent_rights_combined.tex" 1790875548 4331 e616d44369b5851c8ad1f2334a28118c ""
   "../output/equivalent_rights_equalright_joint.tex" 1790875548 1346 6ce8cf520cb5753e6f10d5322db3d141 ""
   "../output/equivalent_rights_main.tex" 1790875548 1821 4ea6fcce60f73ba8842e939f9feab567 ""
   "../output/rho1_table.tex" 1790953871 641 b515401be48d2744a47b13f40291358f ""
   "../paper/figures/heatmap_eqpc_USA.pdf" 1790953871 8813 08e1950d1c76909335ac063add79bbb2 ""
-  "build/paper_blind.aux" 1790954093 20256 af575caed2216ba41bfa9f081ad9df92 "pdflatex"
-  "build/paper_blind.bbl" 1790954091 13858 0717f270bee5f2be927a4133f9102026 "bibtex build/paper_blind"
-  "build/paper_blind.brf" 1790954093 4488 63e70e310fd9845ee9b13e28f389ce05 "pdflatex"
-  "build/paper_blind.out" 1790954093 2826 62d9a82d5c359130ea7272aa08c488a0 "pdflatex"
+  "build/paper_blind.aux" 1790959605 20256 af575caed2216ba41bfa9f081ad9df92 "pdflatex"
+  "build/paper_blind.bbl" 1790959600 13858 0717f270bee5f2be927a4133f9102026 "bibtex build/paper_blind"
+  "build/paper_blind.brf" 1790959605 4488 63e70e310fd9845ee9b13e28f389ce05 "pdflatex"
+  "build/paper_blind.out" 1790959605 2826 62d9a82d5c359130ea7272aa08c488a0 "pdflatex"
   "c:/texlive/2022/texmf-dist/fonts/enc/dvips/base/8r.enc" 1670336910 4850 80dc9bab7f31fb78a000ccfed0e27cab ""
   "c:/texlive/2022/texmf-dist/fonts/map/fontname/texfonts.map" 1670337557 3524 cb3e574dea2d1052e39280babc910dc8 ""
   "c:/texlive/2022/texmf-dist/fonts/tfm/adobe/palatino/pplb7t.tfm" 1670341705 1616 371d1ee60c04b008c8fd760060cd34f1 ""
@@ -233,7 +233,7 @@
   "figures/heatmap_eqpc_RUS.pdf" 1790953871 8899 76e0e8a9ca230101d5f8f77dbeda6337 ""
   "figures/heatmap_eqpc_TUR.pdf" 1790953871 8771 2de814c3905cb7be4a3bc41fbccba513 ""
   "figures/heatmap_eqpc_USA.pdf" 1790953871 8813 08e1950d1c76909335ac063add79bbb2 ""
-  "paper.tex" 1790953871 188905 23e3eb5ac2e73e2c2a96e132d0f3b008 ""
+  "paper.tex" 1790959564 188861 8e8ef13b4f07a12e1154a373e3046395 ""
   (generated)
   "build/paper_blind.aux"
   "build/paper_blind.brf"
