@@ -101,16 +101,17 @@ let t1 = CSV.read(joinpath(OUT_CONS, "indifference", "table_rho1.csv"), DataFram
     cv = CSV.read(joinpath(OUT_CONS, "indifference", "indifference_curves.csv"), DataFrame)
     row(e) = only(eachrow(t1[String.(t1.country) .== e, :]))
     at(e, p, col) = only(cv[(String.(cv.country) .== e) .& (cv.pi .== p), col])
-    num!("rel_2025_CHN", "4.3", "China's 2025 emissions p.c. over world average", row("CHN").emissions_pc_rel_2025, 1, "1.5")
-    num!("rho1_CHN", "4.3", "China's rho_1", row("CHN").rho1_cons, 2, "1.62")
     num!("rel_2025_IND", "4.3", "India's 2025 emissions p.c. over world average", row("IND").emissions_pc_rel_2025, 1, "0.4")
-    num!("rho1_IND", "4.3", "India's rho_1", row("IND").rho1_cons, 2, "0.72")
+    num!("rho1_IND", "4.3", "India's rho*_1", row("IND").rho1_cons, 2, "0.72")
     num!("rel_2025_EU27", "4.3", "EU27's 2025 emissions p.c. over world average", row("EU27").emissions_pc_rel_2025, 1, "1.7")
-    num!("rho1_EU27", "4.3", "EU27's rho_1", row("EU27").rho1_cons, 2, "1.54")
+    num!("rho1_EU27", "4.3", "EU27's rho*_1", row("EU27").rho1_cons, 2, "1.54")
     num!("rho0_NGA", "Intro, 4.3", "Nigeria's equivalent rights at a zero autarky price", at("NGA", 0.0, :rho_cons), 2, "0.25")
-    num!("rho0_NGA_pct", "Intro, Conclusion", "Nigeria's equivalent rights at a zero autarky price (% of an equal share)", 100 * at("NGA", 0.0, :rho_cons), 0, "25")
+    num!("rho0_NGA_pct", "Intro", "Nigeria's equivalent rights at a zero autarky price (% of an equal share)", 100 * at("NGA", 0.0, :rho_cons), 0, "25")
+    num!("rho0_NGA_bound", "Conclusion", "Nigeria's zero-price bound below 26% of an equal share", 100 * at("NGA", 0.0, :rho_cons), 1, "< 26";
+         ok = 25 <= 100 * at("NGA", 0.0, :rho_cons) < 26)
     num!("rho0_COD", "4.3", "DRC's equivalent rights at a zero autarky price", at("COD", 0.0, :rho_cons), 2, "0.05")
-    num!("rho0_COD_pct", "Conclusion", "DRC's equivalent rights at a zero autarky price (% of an equal share)", 100 * at("COD", 0.0, :rho_cons), 0, "5")
+    num!("rho0_COD_bound", "Conclusion", "DRC's zero-price bound below 5% of an equal share", 100 * at("COD", 0.0, :rho_cons), 1, "< 5";
+         ok = 4 <= 100 * at("COD", 0.0, :rho_cons) < 5)
 end
 
 # ══ Section 5.1: the proposals ════════════════════════════════════════════════
@@ -239,8 +240,6 @@ num!("cut_W_A", "App. A", "coalition emissions cut, Wolfram et al., isolated sol
 num!("cut_D_A", "App. A", "coalition emissions cut, Banerjee et al., isolated solve (%)", cut(RC, "A", "Duflo"), 1, "4.1")
 num!("lose_A_W", "App. A", "Wolfram et al. members losing consumption, isolated solve", length(losers(RC[("A", "Wolfram")].v1, :cons_gain, W)), 0, "33")
 num!("lose_A_D", "App. A", "Banerjee et al. members losing consumption, isolated solve", length(losers(RC[("A", "Duflo")].v1, :cons_gain, D)), 0, "39")
-num!("welf_B3_D", "App. A", "world welfare gain, marginal-utility sharing, Banerjee et al. (%)", RC[("B", "Duflo")].v3.welfare_gain_pct, 3, "0.241")
-num!("welf_B2_D", "App. A", "world welfare gain, maximin sharing, Banerjee et al. (%)", RC[("B", "Duflo")].v2.welfare_gain_pct, 3, "0.053")
 num!("lose_B3_D", "App. A", "Banerjee et al. members losing consumption, marginal-utility sharing", length(losers(RC[("B", "Duflo")].v3, :cons_gain, D)), 0, "9")
 num!("welf_B4_D", "App. A", "world welfare gain, uniform scaling, Banerjee et al. (%)", RC[("B", "Duflo")].v4.welfare_gain_pct, 3, "0.045")
 num!("lose_B4_cons", "App. A", "members losing consumption under uniform scaling (both schedules)",
@@ -303,10 +302,10 @@ let t1w = CSV.read(joinpath(OUT_WELF, "indifference", "table_rho1.csv"), DataFra
     rw(e) = only(t1w[String.(t1w.country) .== e, :rho1_welfare])
     rc(e) = only(t1c[String.(t1c.country) .== e, :rho1_cons])
     for (e, s) in (("USA", "3.56"), ("CHN", "1.62"), ("EU27", "1.47"), ("IND", "0.75"), ("NGA", "0.14"))
-        num!("rho1w_$e", "App. B", "rho_1 of $e, welfare variant", rw(e), 2, s)
+        num!("rho1w_$e", "App. B", "rho*_1 of $e, welfare variant", rw(e), 2, s)
     end
     d = maximum(abs(rw(e) - rc(e)) for e in String.(t1w.country))
-    num!("rho1_w_minus_c", "App. B", "largest |rho_1 welfare - rho_1 consumption| over the 8 economies", d, 2, "<= 0.07"; ok = d <= 0.07)
+    num!("rho1_w_minus_c", "App. B", "largest |rho*_1 welfare - rho*_1 consumption| over the 8 economies", d, 2, "<= 0.07"; ok = d <= 0.07)
     at(e, p) = only(cw[(String.(cw.country) .== e) .& (cw.pi .== p), :rho_welfare])
     mx(e)    = maximum(cw[String.(cw.country) .== e, :rho_welfare])
     num!("rhow_USA_pi05", "App. B", "US equivalent rights at pi = 0.5, welfare variant", at("USA", 0.5), 2, "4.08")

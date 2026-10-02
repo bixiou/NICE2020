@@ -136,8 +136,7 @@ fi
 
 # ── 6. the paper ────────────────────────────────────────────────────────────
 # Compiled in paper/build/ so that the source folder holds only the PDFs:
-# paper.pdf (full), paper_blind.pdf (anonymised), title_page.pdf and
-# declaration_competing_interest.pdf.
+# paper.pdf (full), paper_blind.pdf (anonymised) and title_page.pdf.
 if want paper; then
   say "compiling the paper"
   cap_and_share/paper/compile_versions.sh

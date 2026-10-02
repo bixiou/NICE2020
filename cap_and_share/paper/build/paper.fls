@@ -1,13 +1,3 @@
-<<<<<<< HEAD
-PWD C:/Users/fabre/Documents/www/NICE2020/cap_and_share/paper
-INPUT c:/texlive/2022/texmf.cnf
-INPUT c:/texlive/2022/texmf-dist/web2c/texmf.cnf
-INPUT c:/texlive/2022/texmf-var/web2c/pdftex/pdflatex.fmt
-INPUT ./paper.tex
-INPUT paper.tex
-INPUT ./paper.tex
-INPUT paper.tex
-=======
 PWD /home/user/NICE2020/cap_and_share/paper
 INPUT /etc/texmf/web2c/texmf.cnf
 INPUT /usr/share/texmf/web2c/texmf.cnf
@@ -16,7 +6,6 @@ INPUT /var/lib/texmf/web2c/pdftex/pdflatex.fmt
 INPUT ./paper.tex
 INPUT ./paper.tex
 INPUT paper.tex
->>>>>>> origin/claude/laughing-albattani-sxcmjy
 OUTPUT build/paper.log
 INPUT /usr/share/texlive/texmf-dist/tex/latex/base/article.cls
 INPUT /usr/share/texlive/texmf-dist/tex/latex/base/article.cls
@@ -442,19 +431,11 @@ INPUT ./figures/cropped/heatmap_linear_USA.pdf
 INPUT ./figures/cropped/heatmap_linear_USA.pdf
 INPUT ./figures/cropped/heatmap_linear_USA.pdf
 INPUT ./figures/cropped/heatmap_linear_USA.pdf
-<<<<<<< HEAD
 INPUT ./figures/cropped/heatmap_USA.pdf
 INPUT ./figures/cropped/heatmap_USA.pdf
-INPUT figures/cropped/heatmap_USA.pdf
 INPUT ./figures/cropped/heatmap_USA.pdf
 INPUT ./figures/cropped/heatmap_USA.pdf
-=======
-INPUT ./figures/heatmap_USA.pdf
-INPUT ./figures/heatmap_USA.pdf
-INPUT ./figures/heatmap_USA.pdf
-INPUT ./figures/heatmap_USA.pdf
-INPUT ./figures/heatmap_USA.pdf
->>>>>>> origin/claude/laughing-albattani-sxcmjy
+INPUT ./figures/cropped/heatmap_USA.pdf
 INPUT ./figures/cropped/heatmap_RUS.pdf
 INPUT ./figures/cropped/heatmap_RUS.pdf
 INPUT ./figures/cropped/heatmap_RUS.pdf
@@ -510,6 +491,9 @@ INPUT /usr/share/texlive/texmf-dist/fonts/tfm/public/cm/cmmi10.tfm
 INPUT /usr/share/texlive/texmf-dist/fonts/tfm/adobe/palatino/pplri8r.tfm
 INPUT /usr/share/texlive/texmf-dist/fonts/vf/adobe/palatino/pplr7t.vf
 INPUT /usr/share/texlive/texmf-dist/fonts/tfm/adobe/palatino/pplr8r.tfm
+INPUT /usr/share/texlive/texmf-dist/fonts/vf/public/mathpazo/zplmr7y.vf
+INPUT /usr/share/texlive/texmf-dist/fonts/tfm/public/cm/cmsy10.tfm
+INPUT /usr/share/texlive/texmf-dist/fonts/tfm/public/mathpazo/fplmr.tfm
 INPUT ../output/equivalent_rights_main.tex
 INPUT ../output/equivalent_rights_main.tex
 INPUT ../output/equivalent_rights_main.tex

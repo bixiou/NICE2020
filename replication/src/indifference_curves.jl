@@ -350,7 +350,7 @@ function write_curves_and_table()
         println(io, "\\begin{tabular}{lrrrr}")
         println(io, "  \\toprule")
         println(io, "  & Emissions p.c. & Emissions p.c. & Predicted & Simulated \\\\")
-        println(io, "  & in 2025 & in 2025 over & \$\\hat\\rho_1\$ & \$\\rho_1\$ \\\\")
+        println(io, "  & in 2025 & in 2025 over & \$\\hat\\rho_1\$ & \$\\rho^*_1\$ \\\\")
         println(io, "  & (tCO\$_2\$) & world average & & \\\\")
         println(io, "  \\midrule")
         # rho_1 is read on the criterion of the benchmark the grid belongs to --
