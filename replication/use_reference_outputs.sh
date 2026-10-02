@@ -6,5 +6,5 @@ set -euo pipefail
 cd "$(dirname "$0")"
 mkdir -p cap_and_share/output cap_and_share/paper/figures
 cp -r reference_output/output/. cap_and_share/output/
-cp reference_output/figures/*.pdf cap_and_share/paper/figures/
+cp -r reference_output/figures/. cap_and_share/paper/figures/
 echo "reference outputs copied; now run: ONLY=paper ./run_all.sh"
