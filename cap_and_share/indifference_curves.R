@@ -116,9 +116,8 @@ curve_for <- function(cc) {
 curves <- read.csv(file.path(dir_in, "indifference_curves.csv"))
 curves <- curves[is.finite(curves[[rho_col]]), ]
 
-# Colour limits. Figure 1 (consumption variant): the range of the cells shown
-# over its seven countries, rounded outward to 0.5, with white at zero and each
-# arm running to full colour at its own end. Figure A1 (welfare variant):
+# Colour limits. Figure 1 (consumption variant): symmetric, +/- NICE_FILL_LIM
+# (5 by default), larger gains taking the end colour. Figure A1 (welfare variant):
 # symmetric, at the 95th percentile of |gain| over the whole grid (a few cells,
 # very large allocations to small emitters, reach hundreds of percent).
 FIG1 <- c("USA", "RUS", "CHN", "EU27", "IND", "NGA", "COD")
@@ -128,25 +127,27 @@ if (recycling == "equal_pc") {
   lim_lo <- -lim; lim_hi <- lim
 } else {
   shown  <- unlist(lapply(intersect(FIG1, countries), function(cc) grid_for(cc)$gain))
-  lim_lo <- floor(min(shown, na.rm = TRUE) * 2) / 2
-  lim_hi <- ceiling(max(shown, na.rm = TRUE) * 2) / 2
+  message(sprintf("gains shown in Figure 1: %.2f to %.2f", min(shown, na.rm = TRUE), max(shown, na.rm = TRUE)))
+  lim_hi <- as.numeric(Sys.getenv("NICE_FILL_LIM", "5")); lim_lo <- -lim_hi
 }
 message(sprintf("colour limits: %.2f to %.2f", lim_lo, lim_hi))
 RDBU <- rev(c("#053061", "#2166ac", "#4393c3", "#92c5de", "#d1e5f0", "#f7f7f7",
               "#fddbc7", "#f4a582", "#d6604d", "#b2182b", "#67001f"))   # red -> white -> blue
 z <- (0 - lim_lo) / (lim_hi - lim_lo)                                  # position of zero
 fill_continuous <- scale_fill_gradientn(colours = RDBU, limits = c(lim_lo, lim_hi), name = fill_title,
-                                        breaks = if (recycling == "equal_pc") waiver() else c(-3, 0, 5, 10, 15),
+                                        breaks = if (recycling == "equal_pc") waiver() else seq(lim_lo, lim_hi, length.out = 5),
                                         values = c(seq(0, z, length.out = 6), seq(z, 1, length.out = 6)[-1]))
-# Discrete version (Figure 1 only): five classes on each side of zero, so that
-# the sign of every cell is unambiguous (10-class ColorBrewer RdBu, no neutral class).
-BREAKS <- c(lim_lo, -2, -1, -0.5, -0.1, 0, 0.1, 0.5, 2, 5, lim_hi)
+# Discrete version (Figure 1 only): five classes on each side of zero, mirrored,
+# so that the sign of every cell is unambiguous (10-class ColorBrewer RdBu, no
+# neutral class); the end classes are open.
+BREAKS <- c(-Inf, -2, -1, -0.5, -0.1, 0, 0.1, 0.5, 1, 2, Inf)
 RDBU10 <- c("#67001f", "#b2182b", "#d6604d", "#f4a582", "#fddbc7",
             "#d1e5f0", "#92c5de", "#4393c3", "#2166ac", "#053061")
 fmt_b  <- function(x) format(x, trim = TRUE, drop0trailing = TRUE)   # plain hyphen: the pdf device cannot encode a Unicode minus
 BINLAB <- sprintf("%s to %s", fmt_b(head(BREAKS, -1)), fmt_b(tail(BREAKS, -1)))
-bin_of <- function(g) factor(BINLAB[findInterval(pmin(pmax(g, lim_lo), lim_hi), BREAKS,
-                                                 rightmost.closed = TRUE, all.inside = TRUE)],
+BINLAB[1] <- sprintf("below %s", fmt_b(BREAKS[2]))
+BINLAB[length(BINLAB)] <- sprintf("above %s", fmt_b(BREAKS[length(BREAKS) - 1]))
+bin_of <- function(g) factor(BINLAB[findInterval(g, BREAKS, rightmost.closed = TRUE, all.inside = TRUE)],
                              levels = BINLAB)
 fill_discrete <- scale_fill_manual(values = setNames(RDBU10, BINLAB), drop = FALSE, name = fill_title,
                                    breaks = rev(BINLAB))
